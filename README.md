@@ -16,10 +16,10 @@ Require as normal with Composer:
 
 and use `vendor/bin/strauss` to execute.
 
-Or, download `strauss.phar` from [releases](https://github.com/BrianHenryIE/strauss/releases/), 
+Or, download `strauss.phar` from [releases](https://github.com/BrianHenryIE/strauss/releases), 
 
 ```shell
-curl -o strauss.phar -L -C - https://github.com/BrianHenryIE/strauss/releases/download/0.10.4/strauss.phar
+curl -o strauss.phar -L -C - https://github.com/BrianHenryIE/strauss/releases/latest/download/strauss.phar
 ```
 
 Then run it from the root of your project folder using `php strauss.phar`. 
