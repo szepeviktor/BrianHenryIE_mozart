@@ -93,8 +93,8 @@ Strauss potentially requires zero configuration, but likely you'll want to custo
         },
         "namespace_replacement_patterns" : {
         },
-        "delete_vendor_packages": false
-        "delete_vendor_files": false,
+        "delete_vendor_packages": false,
+        "delete_vendor_files": false
     }
 },
 ```
@@ -148,7 +148,7 @@ If you prefer to use Composer's autoloader, add your `target_directory` (default
 
 ## Motivation & Comparison to Mozart
 
-I was happy to make PRs to Mozart to fix bugs, but they weren't being reviewed and merged. At the time of writing, somewhere approaching 50% of Mozart's code [was written by me](https://github.com/coenjacobs/mozart/graphs/contributors) with an additional [nine open PRs](https://github.com/coenjacobs/mozart/pulls?q=is%3Apr+author%3ABrianHenryIE+) and the majority of issues' solutions [provided by me](https://github.com/coenjacobs/mozart/issues?q=is%3Aissue+). This fork is a means to merge all outstanding bugfixes I've written and make some more drastic changes I see as a better approach to the problem.
+I was happy to make PRs to Mozart to fix bugs, but they weren't being reviewed and merged. At the time of writing, somewhere approaching 50% of Mozart's code [was written by me](https://github.com/coenjacobs/mozart/graphs/contributors) with an additional [nine open PRs](https://github.com/coenjacobs/mozart/pulls?q=is%3Apr+author%3ABrianHenryIE+) and the majority of issues' solutions [provided by me](https://github.com/coenjacobs/mozart/issues/created_by/BrianHenryIE). This fork is a means to merge all outstanding bugfixes I've written and make some more drastic changes I see as a better approach to the problem.
 
 Benefits over Mozart:
 
