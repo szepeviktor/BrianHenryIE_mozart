@@ -133,7 +133,7 @@ class Compose extends Command
 
         // Unset PHP, ext-*, ...
         // TODO: I think this code is unnecessary due to how the path to packages is handled (null is fine) later.
-        $removePhpExt = function ($element) use ($virtualPackages) {
+        $removePhpExt = function (string $element) use ($virtualPackages) {
             return !(
                 0 === strpos($element, 'ext')
                 || 'php' === $element
@@ -144,11 +144,9 @@ class Compose extends Command
 
         foreach ($requiredPackageNames as $requiredPackageName) {
             $packageComposerFile = $this->workingDir . $this->config->getVendorDirectory()
-                . $requiredPackageName . DIRECTORY_SEPARATOR . 'composer.json';
+                                   . $requiredPackageName . DIRECTORY_SEPARATOR . 'composer.json';
 
-            $overrideAutoload = isset($this->config->getOverrideAutoload()[$requiredPackageName])
-                ? $this->config->getOverrideAutoload()[$requiredPackageName]
-                : null;
+            $overrideAutoload = $this->config->getOverrideAutoload()[ $requiredPackageName ] ?? null;
 
             if (file_exists($packageComposerFile)) {
                 $requiredComposerPackage = ComposerPackage::fromFile($packageComposerFile, $overrideAutoload);
@@ -169,8 +167,9 @@ class Compose extends Command
                 $requiredComposerPackage = ComposerPackage::fromComposerJsonArray($requiredPackageComposerJson, $overrideAutoload);
             }
 
-            $this->flatDependencyTree[$requiredComposerPackage->getName()] = $requiredComposerPackage;
-            $nextRequiredPackageNames = $requiredComposerPackage->getRequiresNames();
+            $this->flatDependencyTree[$requiredComposerPackage->getPackageName()] = $requiredComposerPackage;
+            $nextRequiredPackageNames                                             = $requiredComposerPackage->getRequiresNames();
+
             $this->recursiveGetAllDependencies($nextRequiredPackageNames);
         }
     }
@@ -192,6 +191,10 @@ class Compose extends Command
     // 3. Copy autoloaded files for each
     protected function copyFiles()
     {
+        if ($this->config->getTargetDirectory() === $this->config->getVendorDirectory()) {
+            // Nothing to do.
+            return;
+        }
 
         $this->copier = new Copier(
             $this->fileEnumerator->getAllFilesAndDependencyList(),
@@ -211,9 +214,9 @@ class Compose extends Command
 
         $this->changeEnumerator = new ChangeEnumerator($this->config);
 
-        $relativeTargetDir = $this->config->getTargetDirectory();
+        $absoluteTargetDir = $this->workingDir . $this->config->getTargetDirectory();
         $phpFiles = $this->fileEnumerator->getPhpFilesAndDependencyList();
-        $this->changeEnumerator->findInFiles($relativeTargetDir, $phpFiles);
+        $this->changeEnumerator->findInFiles($absoluteTargetDir, $phpFiles);
     }
 
     // 5. Update namespaces and class names.
@@ -251,6 +254,10 @@ class Compose extends Command
      */
     protected function generateAutoloader()
     {
+        if ($this->config->getTargetDirectory() === $this->config->getVendorDirectory()) {
+            // Nothing to do.
+            return;
+        }
 
         $files = $this->fileEnumerator->getFilesAutoloaders();
 
@@ -267,6 +274,10 @@ class Compose extends Command
      */
     protected function cleanUp()
     {
+        if ($this->config->getTargetDirectory() === $this->config->getVendorDirectory()) {
+            // Nothing to do.
+            return;
+        }
 
         $cleanup = new Cleanup($this->config, $this->workingDir);
 

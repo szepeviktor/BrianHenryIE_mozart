@@ -34,7 +34,7 @@ class LicenserTest extends TestCase
         $dependencies = array();
 
         $dependency = $this->createStub(ComposerPackage::class);
-        $dependency->method('getPath')->willReturn('developer-name/project-name/');
+        $dependency->method('getRelativePath')->willReturn('developer-name/project-name/');
         $dependencies[] = $dependency;
 
         $sut = new Licenser($config, $workingDir, $dependencies, 'BrianHenryIE');
@@ -71,9 +71,6 @@ class LicenserTest extends TestCase
      * @see https://www.phpliveregex.com/p/A5y
      */
 
-    // https://schibsted.com/blog/mocking-the-file-system-using-phpunit-and-vfsstream/
-
-
     /**
      * @see https://github.com/AuthorizeNet/sdk-php/blob/a3e76f96f674d16e892f87c58bedb99dada4b067/lib/net/authorize/api/contract/v1/ANetApiRequestType.php
      *
@@ -84,7 +81,10 @@ class LicenserTest extends TestCase
 
         $author = 'BrianHenryIE';
 
-        $config = $this->createStub(StraussConfig::class);
+        $config = $this->createMock(StraussConfig::class);
+        $config->expects($this->once())->method('isIncludeModifiedDate')->willReturn(true);
+        $config->expects($this->once())->method('isIncludeAuthor')->willReturn(true);
+
         $sut = new Licenser($config, __DIR__, array(), $author);
 
         $given = <<<'EOD'
@@ -112,13 +112,97 @@ EOD;
         $this->assertEquals($expected, $actual);
     }
 
+
+    // https://schibsted.com/blog/mocking-the-file-system-using-phpunit-and-vfsstream/
+
+    /**
+     * Not including the date was reported as not working.
+     * The real problem was the master readme was ahead of the packagist release.
+     *
+     * @see https://github.com/BrianHenryIE/strauss/issues/35
+     *
+     * @covers ::addChangeDeclarationToPhpString
+     */
+    public function testAppendHeaderCommentNoDate()
+    {
+
+        $author = 'BrianHenryIE';
+
+        $config = $this->createMock(StraussConfig::class);
+        $config->expects($this->once())->method('isIncludeModifiedDate')->willReturn(false);
+        $config->expects($this->once())->method('isIncludeAuthor')->willReturn(true);
+
+        $sut = new Licenser($config, __DIR__, array(), $author);
+
+        $given = <<<'EOD'
+<?php
+
+namespace net\authorize\api\contract\v1;
+EOD;
+
+        $expected = <<<'EOD'
+<?php
+/**
+ * @license proprietary
+ *
+ * Modified by BrianHenryIE using Strauss.
+ * @see https://github.com/BrianHenryIE/strauss
+ */
+
+namespace net\authorize\api\contract\v1;
+EOD;
+
+        $actual = $sut->addChangeDeclarationToPhpString($given, '25-April-2021', 'proprietary');
+
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * @covers ::addChangeDeclarationToPhpString
+     */
+    public function testAppendHeaderCommentNoAuthor()
+    {
+
+        $author = 'BrianHenryIE';
+
+        $config = $this->createMock(StraussConfig::class);
+        $config->expects($this->once())->method('isIncludeAuthor')->willReturn(false);
+
+        $sut = new Licenser($config, __DIR__, array(), $author);
+
+        $given = <<<'EOD'
+<?php
+
+namespace net\authorize\api\contract\v1;
+EOD;
+
+        $expected = <<<'EOD'
+<?php
+/**
+ * @license proprietary
+ *
+ * Modified using Strauss.
+ * @see https://github.com/BrianHenryIE/strauss
+ */
+
+namespace net\authorize\api\contract\v1;
+EOD;
+
+        $actual = $sut->addChangeDeclarationToPhpString($given, '25-April-2021', 'proprietary');
+
+        $this->assertEquals($expected, $actual);
+    }
+
     /**
      * @covers ::addChangeDeclarationToPhpString
      */
     public function testWithLicenceAlreadyInHeader(): void
     {
 
-        $config = $this->createStub(StraussConfig::class);
+        $config = $this->createMock(StraussConfig::class);
+        $config->expects($this->once())->method('isIncludeModifiedDate')->willReturn(true);
+        $config->expects($this->once())->method('isIncludeAuthor')->willReturn(true);
+
         $author = 'BrianHenryIE';
         $sut = new Licenser($config, __DIR__, array(), $author);
 
@@ -169,7 +253,10 @@ EOD;
     public function testWithTwoCommentsBeforeFirstCode()
     {
 
-        $config = $this->createStub(StraussConfig::class);
+        $config = $this->createMock(StraussConfig::class);
+        $config->expects($this->once())->method('isIncludeModifiedDate')->willReturn(true);
+        $config->expects($this->once())->method('isIncludeAuthor')->willReturn(true);
+
         $author = 'BrianHenryIE';
         $sut = new Licenser($config, __DIR__, array(), $author);
 
@@ -230,7 +317,10 @@ EOD;
     public function testUnusualHeaderCommentStyle()
     {
 
-        $config = $this->createStub(StraussConfig::class);
+        $config = $this->createMock(StraussConfig::class);
+        $config->expects($this->once())->method('isIncludeModifiedDate')->willReturn(true);
+        $config->expects($this->once())->method('isIncludeAuthor')->willReturn(true);
+
         $author = 'BrianHenryIE';
         $sut = new Licenser($config, __DIR__, array(), $author);
 
@@ -275,7 +365,10 @@ EOD;
     public function testCommentWithLicenseWord()
     {
 
-        $config = $this->createStub(StraussConfig::class);
+        $config = $this->createMock(StraussConfig::class);
+        $config->expects($this->once())->method('isIncludeModifiedDate')->willReturn(true);
+        $config->expects($this->once())->method('isIncludeAuthor')->willReturn(true);
+
         $author = 'BrianHenryIE';
         $sut = new Licenser($config, __DIR__, array(), $author);
 
@@ -334,7 +427,10 @@ EOD;
     public function testIncorrectlyMatching()
     {
 
-        $config = $this->createStub(StraussConfig::class);
+        $config = $this->createMock(StraussConfig::class);
+        $config->expects($this->once())->method('isIncludeModifiedDate')->willReturn(true);
+        $config->expects($this->once())->method('isIncludeAuthor')->willReturn(true);
+
         $author = 'BrianHenryIE';
         $sut = new Licenser($config, __DIR__, array(), $author);
 
@@ -404,7 +500,10 @@ EOD;
     public function testLicenseDetailsOnlyInsertedOncePerFile()
     {
 
-        $config = $this->createStub(StraussConfig::class);
+        $config = $this->createMock(StraussConfig::class);
+        $config->expects($this->once())->method('isIncludeModifiedDate')->willReturn(true);
+        $config->expects($this->once())->method('isIncludeAuthor')->willReturn(true);
+
         $author = 'BrianHenryIE';
         $sut = new Licenser($config, __DIR__, array(), $author);
 

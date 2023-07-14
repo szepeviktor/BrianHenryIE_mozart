@@ -56,12 +56,12 @@ EOD;
         }, $projectComposerPackage->getRequiresNames());
 
         $workingDir = $this->testsWorkingDir;
-        $relativeTargetDir = 'strauss' . DIRECTORY_SEPARATOR;
+        $relativeTargetDir = 'vendor-prefixed' . DIRECTORY_SEPARATOR;
         $absoluteTargetDir = $workingDir . $relativeTargetDir;
         $vendorDir = 'vendor' . DIRECTORY_SEPARATOR;
 
 //        $config = $this->createStub(StraussConfig::class);
-//        $config->method('getTargetDirectory')->willReturn('strauss' . DIRECTORY_SEPARATOR);
+//        $config->method('getTargetDirectory')->willReturn('vendor-prefixed' . DIRECTORY_SEPARATOR);
 
         $fileEnumerator = new FileEnumerator($dependencies, $workingDir, $config);
         $fileEnumerator->compileFileList();
@@ -131,7 +131,7 @@ EOD;
 //        }, $projectComposerPackage->getRequiresNames());
 //
 //        $workingDir = $this->testsWorkingDir;
-//        $relativeTargetDir = 'strauss' . DIRECTORY_SEPARATOR;
+//        $relativeTargetDir = 'vendor-prefixed' . DIRECTORY_SEPARATOR;
 //        $absoluteTargetDir = $workingDir . $relativeTargetDir;
 //
 //        $fileEnumerator = new FileEnumerator($dependencies, $workingDir);
@@ -152,7 +152,7 @@ EOD;
 //
 //        $replacer->replaceInFiles($namespaces, $classes, $phpFileList);
 
-        $updatedFile = file_get_contents($this->testsWorkingDir .'strauss/' . 'setasign/fpdf/fpdf.php');
+        $updatedFile = file_get_contents($this->testsWorkingDir .'vendor-prefixed/' . 'setasign/fpdf/fpdf.php');
 
         $this->assertStringContainsString('class BrianHenryIE_Strauss_FPDF', $updatedFile);
     }

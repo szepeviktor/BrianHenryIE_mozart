@@ -18,6 +18,7 @@ class Cleanup
     protected Filesystem $filesystem;
 
     protected bool $isDeleteVendorFiles;
+    protected bool $isDeleteVendorPackages;
 
     protected string $vendorDirectory = 'vendor'. DIRECTORY_SEPARATOR;
     
@@ -25,8 +26,9 @@ class Cleanup
     {
         $this->vendorDirectory = $config->getVendorDirectory();
 
-        $this->isDeleteVendorFiles = $config->isDeleteVendorFiles();
-        
+        $this->isDeleteVendorFiles = $config->isDeleteVendorFiles() && $config->getTargetDirectory() !== $config->getVendorDirectory();
+        $this->isDeleteVendorPackages = $config->isDeleteVendorPackages() && $config->getTargetDirectory() !== $config->getVendorDirectory();
+
         $this->filesystem = new Filesystem(new Local($workingDir));
     }
 
@@ -38,41 +40,53 @@ class Cleanup
      */
     public function cleanup(array $sourceFiles)
     {
+        if (!$this->isDeleteVendorPackages && !$this->isDeleteVendorFiles) {
+            return;
+        }
 
-        // TODO Don't do this if vendor is the target dir (i.e. in-situ updating).
+        if ($this->isDeleteVendorPackages) {
+            $package_dirs = array_unique(array_map(function (string $relativeFilePath): string {
+                list( $vendor, $package ) = explode('/', $relativeFilePath);
+                return "{$vendor}/{$package}";
+            }, $sourceFiles));
 
-        if ($this->isDeleteVendorFiles) {
+            foreach ($package_dirs as $package_dir) {
+                $relativeDirectoryPath = $this->vendorDirectory . $package_dir;
+
+                $this->filesystem->deleteDir($relativeDirectoryPath);
+            }
+        } elseif ($this->isDeleteVendorFiles) {
             foreach ($sourceFiles as $sourceFile) {
                 $relativeFilepath = $this->vendorDirectory . $sourceFile;
 
                 $this->filesystem->delete($relativeFilepath);
             }
+        }
 
-            // Get the root folders of the moved files.
-            $rootSourceDirectories = [];
-            foreach ($sourceFiles as $sourceFile) {
-                $arr = explode("/", $sourceFile, 2);
-                $dir = $arr[0];
-                $rootSourceDirectories[ $dir ] = $dir;
+        // Get the root folders of the moved files.
+        $rootSourceDirectories = [];
+        foreach ($sourceFiles as $sourceFile) {
+            $arr = explode("/", $sourceFile, 2);
+            $dir = $arr[0];
+            $rootSourceDirectories[ $dir ] = $dir;
+        }
+        $rootSourceDirectories = array_keys($rootSourceDirectories);
+
+
+        $finder = new Finder();
+
+        foreach ($rootSourceDirectories as $rootSourceDirectory) {
+            if (!is_dir($rootSourceDirectory) || is_link($rootSourceDirectory)) {
+                continue;
             }
-            $rootSourceDirectories = array_keys($rootSourceDirectories);
 
+            $finder->directories()->path($rootSourceDirectory);
 
-            $finder = new Finder();
+            foreach ($finder as $directory) {
+                $metadata = $this->filesystem->getMetadata($directory);
 
-            foreach ($rootSourceDirectories as $rootSourceDirectory) {
-                if (!is_dir($rootSourceDirectory) || is_link($rootSourceDirectory)) {
-                    continue;
-                }
-
-                $finder->directories()->path($rootSourceDirectory);
-
-                foreach ($finder as $directory) {
-                    $metadata = $this->filesystem->getMetadata($directory);
-
-                    if ($this->dirIsEmpty($directory)) {
-                        $this->filesystem->deleteDir($directory);
-                    }
+                if ($this->dirIsEmpty($directory)) {
+                    $this->filesystem->deleteDir($directory);
                 }
             }
         }

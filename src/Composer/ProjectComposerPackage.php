@@ -26,13 +26,13 @@ class ProjectComposerPackage extends ComposerPackage
         }
         unset($absolutePath);
 
-        $composer = Factory::create(new NullIO(), $absolutePathFile);
+        $composer = Factory::create(new NullIO(), $absolutePathFile, true);
 
         parent::__construct($composer, $overrideAutoload);
 
         $authors = $this->composer->getPackage()->getAuthors();
         if (empty($authors) || !isset($authors[0]['name'])) {
-            $this->author = explode("/", $this->name, 2)[0];
+            $this->author = explode("/", $this->packageName, 2)[0];
         } else {
             $this->author = $authors[0]['name'];
         }

@@ -36,6 +36,14 @@ class Licenser
 
     protected string $targetDirectory;
 
+    protected bool $includeModifiedDate;
+
+    /**
+     * @see StraussConfig::isIncludeAuthor()
+     * @var bool
+     */
+    protected bool $includeAuthor = true;
+
     /**
      * An array of files relative to the project vendor folder.
      *
@@ -61,8 +69,10 @@ class Licenser
 
         $this->targetDirectory = $config->getTargetDirectory();
         $this->vendorDir = $config->getVendorDirectory();
+        $this->includeModifiedDate = $config->isIncludeModifiedDate();
+        $this->includeAuthor = $config->isIncludeAuthor();
 
-        $this->filesystem = new Filesystem(new Local($workingDir));
+        $this->filesystem = new Filesystem(new Local('/'));
     }
 
     public function copyLicenses(): void
@@ -105,7 +115,8 @@ class Licenser
 
         /** @var ComposerPackage $dependency */
         foreach ($this->dependencies as $dependency) {
-            $packagePath = $this->vendorDir . $dependency->getPath();
+            $packagePath = $dependency->getPackageAbsolutePath();
+
 
             // If packages happen to have their vendor dir, i.e. locally required packages, don't included the licenses
             // from their vendor dir (they should be included otherwise anyway).
@@ -116,12 +127,12 @@ class Licenser
             foreach ($finder as $foundFile) {
                 $filePath = $foundFile->getPathname();
 
-                $relativeFilepath = str_replace($prefixToRemove, '', $filePath);
+//                $relativeFilepath = str_replace($prefixToRemove, '', $filePath);
 
                 // Replace multiple \ and/or / with OS native DIRECTORY_SEPARATOR.
-                $relativeFilepath = preg_replace('#[\\\/]+#', DIRECTORY_SEPARATOR, $relativeFilepath);
+                $filePath = preg_replace('#[\\\/]+#', DIRECTORY_SEPARATOR, $filePath);
 
-                $this->discoveredLicenseFiles[$relativeFilepath] = $dependency->getName();
+                $this->discoveredLicenseFiles[$filePath] = $dependency->getPackageName();
             }
         }
     }
@@ -141,7 +152,7 @@ class Licenser
         $date = gmdate("d-F-Y", time());
 
         foreach ($modifiedFiles as $relativeFilePath => $package) {
-            $filepath = $this->targetDirectory . $relativeFilePath;
+            $filepath = $this->workingDir . $this->targetDirectory . $relativeFilePath;
 
             $packageLicense = $package->getLicense();
 
@@ -157,7 +168,7 @@ class Licenser
     }
 
     /**
-     * Given a php file as a string, edit it's header phpdoc, or add a header, to include:
+     * Given a php file as a string, edit its header phpdoc, or add a header, to include:
      *
      * "Modified by {author} on {date} using Strauss.
      * @see https://github.com/BrianHenryIE/strauss"
@@ -184,7 +195,15 @@ class Licenser
         $author = $this->author;
 
         $licenseDeclaration = "@license {$packageLicense}";
-        $modifiedDeclaration = "Modified by {$author} on {$modifiedDate} using Strauss.";
+        $modifiedDeclaration = 'Modified ';
+        if ($this->includeAuthor) {
+            $modifiedDeclaration .= "by {$author} ";
+        }
+        if ($this->includeModifiedDate) {
+            $modifiedDeclaration .= "on {$modifiedDate} ";
+        }
+        $modifiedDeclaration .= 'using Strauss.';
+
         $straussLink = "@see https://github.com/BrianHenryIE/strauss";
 
         // php-open followed by some whitespace and new line until the first ...

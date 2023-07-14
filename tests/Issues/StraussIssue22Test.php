@@ -45,6 +45,11 @@ class StraussIssue22Test extends \BrianHenryIE\Strauss\Tests\Integration\Util\In
       "namespace_prefix": "Strauss\\Issue22\\",
       "classmap_prefix": "Strauss_Issue22_"
     }
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": true
+    }
   }
 }
 EOD;
@@ -95,6 +100,11 @@ EOD;
       "namespace_prefix": "Strauss\\Issue22\\",
       "classmap_prefix": "Strauss_Issue22_"
     }
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": true
+    }
   }
 }
 EOD;
@@ -112,6 +122,6 @@ EOD;
 
         $result = $mozartCompose->run($inputInterfaceMock, $outputInterfaceMock);
 
-        $this->assertFileExists($this->testsWorkingDir . 'strauss/omnipay/common/src/Omnipay.php');
+        $this->assertFileExists($this->testsWorkingDir . 'vendor-prefixed/omnipay/common/src/Omnipay.php');
     }
 }

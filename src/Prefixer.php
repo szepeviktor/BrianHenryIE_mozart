@@ -50,27 +50,28 @@ class Prefixer
     /**
      * @param array<string, string> $namespaceChanges
      * @param array<string, string> $classChanges
-     * @param array<string, ComposerPackage> $phpFileList
+     * @param array<string,array{dependency:ComposerPackage,sourceAbsoluteFilepath:string,targetRelativeFilepath:string}> $phpFileArrays
      * @throws FileNotFoundException
      */
-    public function replaceInFiles(array $namespaceChanges, array $classChanges, array $constants, array $phpFileList)
+    public function replaceInFiles(array $namespaceChanges, array $classChanges, array $constants, array $phpFileArrays)
     {
 
-        foreach ($phpFileList as $sourceRelativeFilePathFromVendor => $package) {
+        foreach ($phpFileArrays as $targetRelativeFilepath => $fileArray) {
+            $package = $fileArray['dependency'];
+
             // Skip excluded namespaces.
-            if (in_array($package->getName(), $this->excludePackageNamesFromPrefixing)) {
+            if (in_array($package->getPackageName(), $this->excludePackageNamesFromPrefixing)) {
                 continue;
             }
 
             // Skip files whose filepath matches an excluded pattern.
             foreach ($this->excludeFilePatternsFromPrefixing as $excludePattern) {
-                if (1 === preg_match($excludePattern, $sourceRelativeFilePathFromVendor)) {
+                if (1 === preg_match($excludePattern, $targetRelativeFilepath)) {
                     continue 2;
                 }
             }
 
-            $targetRelativeFilepathFromProject =
-                $this->targetDirectory. $sourceRelativeFilePathFromVendor;
+            $targetRelativeFilepathFromProject = $this->targetDirectory. $targetRelativeFilepath;
 
             // Throws an exception, but unlikely to happen.
             $contents = $this->filesystem->read($targetRelativeFilepathFromProject);
@@ -78,7 +79,7 @@ class Prefixer
             $updatedContents = $this->replaceInString($namespaceChanges, $classChanges, $constants, $contents);
 
             if ($updatedContents !== $contents) {
-                $this->changedFiles[$sourceRelativeFilePathFromVendor] = $package;
+                $this->changedFiles[$targetRelativeFilepath] = $package;
                 $this->filesystem->put($targetRelativeFilepathFromProject, $updatedContents);
             }
         }
@@ -87,6 +88,8 @@ class Prefixer
     public function replaceInString(array $namespacesChanges, array $classes, array $originalConstants, string $contents): string
     {
 
+        // Reorder this so substrings are always ahead of what they might be substrings of.
+        asort($namespacesChanges);
         foreach ($namespacesChanges as $originalNamespace => $replacement) {
             if (in_array($originalNamespace, $this->excludeNamespacesFromPrefixing)) {
                 continue;
@@ -96,6 +99,10 @@ class Prefixer
         }
 
         foreach ($classes as $originalClassname) {
+            if ('ReturnTypeWillChange' === $originalClassname) {
+                continue;
+            }
+
             $classmapPrefix = $this->classmapPrefix;
 
             $contents = $this->replaceClassname($contents, $originalClassname, $classmapPrefix);
@@ -127,7 +134,7 @@ class Prefixer
             (
             ^\s*                           # start of the string
             |\\n\s*                        # start of the line
-            |namespace\s+                  # the namespace keyword
+            |(^\s*namespace|[\r\n]+\s*namespace)\s+                  # the namespace keyword
             |use\s+                        # the use keyword
             |new\s+
             |static\s+
@@ -145,6 +152,9 @@ class Prefixer
             |\|\s*
             |!\s*                             # negating the result of a static call
             |=>\s*                            # as the value in an associative array
+            |\[\s*                         # In a square array 
+            |\?\s*                         # In a ternary operator
+            |:\s*                          # In a ternary operator
             )
             (
             {$searchNamespace}             # followed by the namespace to replace
@@ -165,7 +175,7 @@ class Prefixer
             $singleBackslash = '\\';
             $doubleBackslash = '\\\\';
 
-            if (false !== strpos($matches[2], $doubleBackslash)) {
+            if (false !== strpos($matches[3], $doubleBackslash)) {
                 $originalNamespace = str_replace($singleBackslash, $doubleBackslash, $originalNamespace);
                 $replacement = str_replace($singleBackslash, $doubleBackslash, $replacement);
             }
@@ -207,24 +217,24 @@ class Prefixer
     {
         $searchClassname = preg_quote($originalClassname, '/');
 
-        // This could be more specific if we could enumerate all preceeding and proceeding words ("new", "("...).
+        // This could be more specific if we could enumerate all preceding and proceeding words ("new", "("...).
         $pattern = '
 			/											# Start the pattern
-				namespace\s+([a-zA-Z0-9_\x7f-\xff\\\\]+).*?{.*?(namespace|\z) 
+				(^\s*namespace|\r\n\s*namespace)\s+[a-zA-Z0-9_\x7f-\xff\\\\]+\s*{(.*?)(namespace|\z) 
 														# Look for a preceeding namespace declaration, up until a 
 														# potential second namespace declaration.
 				|										# if found, match that much before continuing the search on
 								    		        	# the remainder of the string.
-                namespace\s+[a-zA-Z0-9_\x7f-\xff\\\\]+; # Skip lines just declaring the namespace.
+                (^\s*namespace|\r\n\s*namespace)\s+[a-zA-Z0-9_\x7f-\xff\\\\]+\s*;(.*) # Skip lines just declaring the namespace.
                 |		        	
-				([^a-zA-Z0-9_\x7f-\xff\$\\\])('. $searchClassname . ')([^a-zA-Z0-9_\x7f-\xff\\\])
+				([^a-zA-Z0-9_\x7f-\xff\$\\\])('. $searchClassname . ')([^a-zA-Z0-9_\x7f-\xff\\\]) # outside a namespace the class will not be prefixed with a slash
 				
-			/xs'; //                                    # x: ignore whitespace in regex.  s dot matches newline
+			/xsm'; //                                    # x: ignore whitespace in regex.  s dot matches newline, m: ^ and $ match start and end of line
 
         $replacingFunction = function ($matches) use ($originalClassname, $classnamePrefix) {
 
             // If we're inside a namespace other than the global namespace:
-            if (1 === preg_match('/^namespace\s+[a-zA-Z0-9_\x7f-\xff\\\\]+[;{\s\n]{1}.*/', $matches[0])) {
+            if (1 === preg_match('/\s*namespace\s+[a-zA-Z0-9_\x7f-\xff\\\\]+[;{\s\n]{1}.*/', $matches[0])) {
                 $updated = $this->replaceGlobalClassInsideNamedNamespace(
                     $matches[0],
                     $originalClassname,
@@ -232,9 +242,22 @@ class Prefixer
                 );
 
                 return $updated;
-            }
+            } else {
+                $newContents = '';
+                foreach ($matches as $index => $captured) {
+                    if (0 === $index) {
+                        continue;
+                    }
 
-            return $matches[1] . $matches[2] . $matches[3] . $classnamePrefix . $originalClassname . $matches[5];
+                    if ($captured == $originalClassname) {
+                        $newContents .= $classnamePrefix;
+                    }
+
+                    $newContents .= $captured;
+                }
+                return $newContents;
+            }
+//            return $matches[1] . $matches[2] . $matches[3] . $classnamePrefix . $originalClassname . $matches[5];
         };
 
         $result = preg_replace_callback($pattern, $replacingFunction, $contents);

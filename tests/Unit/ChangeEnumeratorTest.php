@@ -38,7 +38,7 @@ EOD;
 
         $sut->find($validPhp);
 
-        $this->assertArrayHasKey('MyNamespace', $sut->getDiscoveredNamespaceReplacements());
+        $this->assertArrayHasKey('MyNamespace', $sut->getDiscoveredNamespaceReplacements(), 'Found: ' . implode(',', $sut->getDiscoveredNamespaceReplacements()));
         $this->assertContains('Prefix\MyNamespace', $sut->getDiscoveredNamespaceReplacements());
 
         $this->assertNotContains('MyClass', $sut->getDiscoveredClasses());
@@ -335,11 +335,15 @@ EOD;
 
         $dir = '';
         $composerPackage = $this->createMock(ComposerPackage::class);
-        $composerPackage->method('getName')->willReturn('brianhenryie/pdfhelpers');
-        $relativeFilepaths = array( 'irrelevent' => $composerPackage);
+        $composerPackage->method('getPackageName')->willReturn('brianhenryie/pdfhelpers');
+        $filesArray = array(
+            'irrelevantPath' => array(
+                'dependency' => $composerPackage
+            ),
+        );
 
         $changeEnumerator = new ChangeEnumerator($config);
-        $changeEnumerator->findInFiles($dir, $relativeFilepaths);
+        $changeEnumerator->findInFiles($dir, $filesArray);
 
         $this->assertEmpty($changeEnumerator->getDiscoveredNamespaceReplacements());
     }
@@ -354,11 +358,15 @@ EOD;
 
         $dir = '';
         $composerPackage = $this->createMock(ComposerPackage::class);
-        $composerPackage->method('getName')->willReturn('brianhenryie/pdfhelpers');
-        $relativeFilepaths = array( 'path/to/file' => $composerPackage);
+        $composerPackage->method('getPackageName')->willReturn('brianhenryie/pdfhelpers');
+        $filesArray = array(
+            'path/to/file' => array(
+                'dependency' => $composerPackage
+            ),
+        );
 
         $changeEnumerator = new ChangeEnumerator($config);
-        $changeEnumerator->findInFiles($dir, $relativeFilepaths);
+        $changeEnumerator->findInFiles($dir, $filesArray);
 
         $this->assertEmpty($changeEnumerator->getDiscoveredNamespaceReplacements());
     }
@@ -455,5 +463,35 @@ EOD;
 
         $this->assertContains('FPDF_VERSION', $constants);
         $this->assertContains('ANOTHER_CONSTANT', $constants);
+    }
+
+    public function test_commented_namespace_is_invalid(): void
+    {
+
+        $contents = <<<'EOD'
+<?php
+
+// Global. - namespace WPGraphQL;
+
+use WPGraphQL\Utils\Preview;
+
+/**
+ * Class WPGraphQL
+ *
+ * This is the one true WPGraphQL class
+ *
+ * @package WPGraphQL
+ */
+final class WPGraphQL {
+
+}
+EOD;
+
+        $config = $this->createMock(StraussConfig::class);
+        $changeEnumerator = new ChangeEnumerator($config);
+        $changeEnumerator->find($contents);
+
+        self::assertArrayNotHasKey('WPGraphQL', $changeEnumerator->getDiscoveredNamespaceReplacements());
+        self::assertContains('WPGraphQL', $changeEnumerator->getDiscoveredClasses());
     }
 }

@@ -50,7 +50,7 @@ EOD;
 
         $result = $strauss->run($inputInterfaceMock, $outputInterfaceMock);
 
-        $php_string = file_get_contents($this->testsWorkingDir . 'strauss/symfony/polyfill-intl-normalizer/Normalizer.php');
+        $php_string = file_get_contents($this->testsWorkingDir . 'vendor-prefixed/symfony/polyfill-intl-normalizer/Normalizer.php');
 
         $this->assertStringNotContainsString('namespace Normalizer_Test\Symfony\Polyfill\Intl\Normalizer_Test_Normalizer;', $php_string);
         $this->assertStringContainsString('namespace Normalizer_Test\Symfony\Polyfill\Intl\Normalizer;', $php_string);
@@ -59,7 +59,7 @@ EOD;
         $this->assertStringContainsString('class Normalizer', $php_string);
 
 
-        $php_string = file_get_contents($this->testsWorkingDir . 'strauss/symfony/polyfill-intl-normalizer/Resources/stubs/Normalizer.php');
+        $php_string = file_get_contents($this->testsWorkingDir . 'vendor-prefixed/symfony/polyfill-intl-normalizer/Resources/stubs/Normalizer.php');
 
         $this->assertStringNotContainsString('class Normalizer_Test_Normalizer extends Normalizer_Test\Symfony\Polyfill\Intl\Normalizer_Test_Normalizer\Normalizer', $php_string);
         $this->assertStringContainsString('class Normalizer_Test_Normalizer extends Normalizer_Test\Symfony\Polyfill\Intl\Normalizer\Normalizer', $php_string);

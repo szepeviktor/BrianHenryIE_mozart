@@ -63,7 +63,7 @@ EOD;
 
         $result = $mozartCompose->run($inputInterfaceMock, $outputInterfaceMock);
 
-        $phpString = file_get_contents($this->testsWorkingDir .'strauss/paypal/rest-api-sdk-php/lib/PayPal/Log/PayPalLogger.php');
+        $phpString = file_get_contents($this->testsWorkingDir .'vendor-prefixed/paypal/rest-api-sdk-php/lib/PayPal/Log/PayPalLogger.php');
 
         // Confirm solution is correct.
         $this->assertStringContainsString('constant("\\\\BrianHenryIE\\\\Strauss\\\\Psr\\\\Log\\\\LogLevel::$loggingLevel")', $phpString);

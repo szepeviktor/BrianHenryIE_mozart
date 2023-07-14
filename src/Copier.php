@@ -27,34 +27,36 @@ class Copier
      */
     protected string $workingDir;
 
-    protected string $targetDir;
+    protected string $absoluteTargetDir;
 
     /** @var string */
     protected string $vendorDir;
 
-    protected array $filepaths;
+    /** @var array<string,array{dependency:ComposerPackage,sourceAbsoluteFilepath:string,targetRelativeFilepath:string}> */
+    protected array $files;
 
     /** @var Filesystem */
     protected Filesystem $filesystem;
 
     /**
      * Copier constructor.
-     * @param array<string, ComposerPackage> $filepaths
+     *
+     * @param array<string,array{dependency:ComposerPackage,sourceAbsoluteFilepath:string,targetRelativeFilepath:string}> $files
      * @param string $workingDir
      * @param string $relativeTargetDir
      * @param string $vendorDir
      */
-    public function __construct(array $filepaths, string $workingDir, string $relativeTargetDir, string $vendorDir)
+    public function __construct(array $files, string $workingDir, string $relativeTargetDir, string $vendorDir)
     {
-        $this->filepaths = array_keys($filepaths);
+        $this->files = $files;
 
         $this->workingDir = $workingDir;
 
-        $this->targetDir = $relativeTargetDir;
+        $this->absoluteTargetDir = $workingDir . $relativeTargetDir;
 
         $this->vendorDir = $vendorDir;
 
-        $this->filesystem = new Filesystem(new Local($this->workingDir));
+        $this->filesystem = new Filesystem(new Local('/'));
     }
 
     /**
@@ -65,14 +67,14 @@ class Copier
      */
     public function prepareTarget(): void
     {
-        if (! $this->filesystem->has($this->targetDir)) {
-            $this->filesystem->createDir($this->targetDir);
+        if (! $this->filesystem->has($this->absoluteTargetDir)) {
+            $this->filesystem->createDir($this->absoluteTargetDir);
         } else {
-            foreach ($this->filepaths as $vendorRelativeFilepath) {
-                $projectRelativeFilepath = $this->targetDir . $vendorRelativeFilepath;
+            foreach (array_keys($this->files) as $targetRelativeFilepath) {
+                $targetAbsoluteFilepath = $this->absoluteTargetDir . $targetRelativeFilepath;
 
-                if ($this->filesystem->has($projectRelativeFilepath)) {
-                    $this->filesystem->delete($projectRelativeFilepath);
+                if ($this->filesystem->has($targetAbsoluteFilepath)) {
+                    $this->filesystem->delete($targetAbsoluteFilepath);
                 }
             }
         }
@@ -85,12 +87,12 @@ class Copier
     public function copy(): void
     {
 
-        foreach ($this->filepaths as $relativeFilepath) {
-            $sourceFileRelativePath = $this->vendorDir . $relativeFilepath;
+        foreach ($this->files as $targetRelativeFilepath => $fileArray) {
+            $sourceAbsoluteFilepath = $fileArray['sourceAbsoluteFilepath'];
 
-            $targetFileRelativePath = $this->targetDir . $relativeFilepath;
+            $targetAbsolutePath = $this->absoluteTargetDir . $targetRelativeFilepath;
 
-            $this->filesystem->copy($sourceFileRelativePath, $targetFileRelativePath);
+            $this->filesystem->copy($sourceAbsoluteFilepath, $targetAbsolutePath);
         }
     }
 }

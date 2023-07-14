@@ -68,6 +68,6 @@ EOD;
 //
 //        $this->assertEquals(0, $result);
 
-        $this->assertFileExists($this->testsWorkingDir .'strauss/aws/aws-sdk-php/src/AWS/Common/Aws.php');
+        $this->assertFileExists($this->testsWorkingDir .'vendor-prefixed/aws/aws-sdk-php/src/AWS/Common/Aws.php');
     }
 }

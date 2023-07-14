@@ -66,7 +66,7 @@ EOD;
             return $fileList;
         };
 
-        $found = $rsearch($this->testsWorkingDir . 'strauss', '~EigenvalueDecomposition\.php~');
+        $found = $rsearch($this->testsWorkingDir . 'vendor-prefixed', '~EigenvalueDecomposition\.php~');
 
         $this->assertNotEmpty($found);
     }

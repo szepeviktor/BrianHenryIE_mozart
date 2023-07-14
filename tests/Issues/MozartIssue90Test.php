@@ -59,6 +59,6 @@ EOD;
         // This test would only fail on Windows?
         $this->assertDirectoryDoesNotExist($this->testsWorkingDir .'strauss/iio/libmergepdf/vendor/iio/libmergepdf/tcpdi');
 
-        $this->assertFileExists($this->testsWorkingDir .'strauss/iio/libmergepdf/tcpdi/tcpdi.php');
+        $this->assertFileExists($this->testsWorkingDir .'vendor-prefixed/iio/libmergepdf/tcpdi/tcpdi.php');
     }
 }

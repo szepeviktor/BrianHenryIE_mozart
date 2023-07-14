@@ -40,11 +40,7 @@ class FileEnumerator
     /**
      * Complete list of files specified in packages autoloaders.
      *
-     * Relative filepaths as key, with their dependency as the value.
-     *
-     * Relative from vendor/
-     *
-     * @var array<string, ComposerPackage>
+     * @var array<string,array{dependency:ComposerPackage,sourceAbsoluteFilepath:string,targetRelativeFilepath:string}>
      */
     protected array $filesWithDependencies = [];
 
@@ -86,12 +82,11 @@ class FileEnumerator
         $prefixToRemove = $this->workingDir . $this->vendorDir;
 
         foreach ($this->dependencies as $dependency) {
-            if (in_array($dependency->getName(), $this->excludePackageNames)) {
+            if (in_array($dependency->getPackageName(), $this->excludePackageNames)) {
                 continue;
             }
 
-            $packagePath = $this->workingDir . $this->vendorDir
-                . $dependency->getPath() . DIRECTORY_SEPARATOR;
+            $packagePath = $dependency->getPackageAbsolutePath();
 
             /**
              * Where $dependency->autoload is ~
@@ -108,56 +103,82 @@ class FileEnumerator
                 // Might have to switch/case here.
 
                 if ('files' === $type) {
-                    $this->filesAutoloaders[$dependency->getPath()] = $value;
+                    $this->filesAutoloaders[$dependency->getRelativePath()] = $value;
                 }
 
-                foreach ($value as $namespace => $namespace_relative_path) {
+                foreach ($value as $namespace => $namespace_relative_paths) {
                     if (!empty($namespace) && in_array($namespace, $this->excludeNamespaces)) {
                         continue;
                     }
 
-                    if (is_file($packagePath . $namespace_relative_path)) {
-                        //  $finder->files()->name($file)->in($source_path);
-
-                        $relativeFilepath = str_replace($prefixToRemove, '', $packagePath . $namespace_relative_path);
-                        $relativeFilepath = preg_replace('#[\\\/]+#', DIRECTORY_SEPARATOR, $relativeFilepath);
-                        
-                        $this->filesWithDependencies[$relativeFilepath] = $dependency;
-
-                        continue;
+                    if (! is_array($namespace_relative_paths)) {
+                        $namespace_relative_paths = array( $namespace_relative_paths );
                     }
 
-                    // else it is a directory.
+                    foreach ($namespace_relative_paths as $namespace_relative_path) {
+                        if (is_file($packagePath . $namespace_relative_path)) {
+                            //  $finder->files()->name($file)->in($source_path);
 
-                    // trailingslashit().
-                    $namespace_relative_path = rtrim($namespace_relative_path, DIRECTORY_SEPARATOR)
-                        . DIRECTORY_SEPARATOR;
+                            $sourceAbsoluteFilepath = $packagePath . $namespace_relative_path;
 
-                    $sourcePath = $packagePath . $namespace_relative_path;
+                            $outputRelativeFilepath = str_replace($prefixToRemove, '', $sourceAbsoluteFilepath);
+                            $outputRelativeFilepath = preg_replace('#[\\\/]+#', DIRECTORY_SEPARATOR, $outputRelativeFilepath);
 
-                    // trailingslashit(). (to remove duplicates).
-                    $sourcePath = rtrim($sourcePath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+                            $file                                                   = array(
+                                'dependency'             => $dependency,
+                                'sourceAbsoluteFilepath' => $sourceAbsoluteFilepath,
+                                'targetRelativeFilepath' => $outputRelativeFilepath,
+                            );
+                            $this->filesWithDependencies[ $outputRelativeFilepath ] = $file;
+                            continue;
+                        } else {
+                            // else it is a directory.
 
-                    $finder = new Finder();
-                    $finder->files()->in($sourcePath)->followLinks();
+                            // trailingslashit().
+                            $namespace_relative_path = rtrim($namespace_relative_path, DIRECTORY_SEPARATOR)
+                                                       . DIRECTORY_SEPARATOR;
 
-                    foreach ($finder as $foundFile) {
-                        $filePath = $foundFile->getPathname();
+                            $sourcePath = $packagePath . $namespace_relative_path;
 
-                        $relativeFilepath = str_replace($prefixToRemove, '', $filePath);
+                            // trailingslashit(). (to remove duplicates).
+                            $sourcePath = rtrim($sourcePath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
 
-                        // TODO: Is this needed here?! If anything, it's the prefix that needs to be normalised a few
-                        // lines above before being used.
-                        // Replace multiple \ and/or / with OS native DIRECTORY_SEPARATOR.
-                        $relativeFilepath = preg_replace('#[\\\/]+#', DIRECTORY_SEPARATOR, $relativeFilepath);
+                            $finder = new Finder();
+                            $finder->files()->in($sourcePath)->followLinks();
 
-                        foreach ($this->excludeFilePatterns as $excludePattern) {
-                            if (1 === preg_match($excludePattern, $relativeFilepath)) {
-                                continue 2;
+                            foreach ($finder as $foundFile) {
+                                $sourceAbsoluteFilepath = $foundFile->getPathname();
+
+                                $outputRelativeFilepath = str_replace($prefixToRemove, '', $sourceAbsoluteFilepath);
+
+                                // For symlinked packages.
+                                if ($outputRelativeFilepath == $sourceAbsoluteFilepath) {
+                                    $outputRelativeFilepath = str_replace($packagePath, $dependency->getPackageName() . DIRECTORY_SEPARATOR, $sourceAbsoluteFilepath);
+                                }
+
+                                // TODO: Is this needed here?! If anything, it's the prefix that needs to be normalised a few
+                                // lines above before being used.
+                                // Replace multiple \ and/or / with OS native DIRECTORY_SEPARATOR.
+                                $outputRelativeFilepath = preg_replace('#[\\\/]+#', DIRECTORY_SEPARATOR, $outputRelativeFilepath);
+
+                                foreach ($this->excludeFilePatterns as $excludePattern) {
+                                    if (1 === preg_match($excludePattern, $outputRelativeFilepath)) {
+                                        continue 2;
+                                    }
+                                }
+
+                                if (is_dir($sourceAbsoluteFilepath)) {
+                                    continue;
+                                }
+
+                                $file                                                   = array(
+                                    'dependency'             => $dependency,
+                                    'sourceAbsoluteFilepath' => $sourceAbsoluteFilepath,
+                                    'targetRelativeFilepath' => $outputRelativeFilepath,
+                                );
+                                $this->filesWithDependencies[ $outputRelativeFilepath ] = $file;
                             }
                         }
-
-                        $this->filesWithDependencies[$relativeFilepath] = $dependency;
                     }
                 }
             }
@@ -167,7 +188,7 @@ class FileEnumerator
     /**
      * Returns all found files.
      *
-     * @return array<string, ComposerPackage>
+     * @return array<string,array{dependency:ComposerPackage,sourceAbsoluteFilepath:string,targetRelativeFilepath:string}>
      */
     public function getAllFilesAndDependencyList(): array
     {
@@ -177,10 +198,11 @@ class FileEnumerator
     /**
      * Returns found PHP files.
      *
-     * @return array<string, ComposerPackage>
+     * @return array<string,array{dependency:ComposerPackage,sourceAbsoluteFilepath:string,targetRelativeFilepath:string}>
      */
     public function getPhpFilesAndDependencyList(): array
     {
+        // Filter out non .php files by checking the key.
         return array_filter($this->filesWithDependencies, function ($value, $key) {
             return false !== strpos($key, '.php');
         }, ARRAY_FILTER_USE_BOTH);

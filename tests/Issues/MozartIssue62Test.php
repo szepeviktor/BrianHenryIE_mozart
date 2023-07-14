@@ -67,7 +67,7 @@ EOD;
 
         $mozartCompose->run($inputInterfaceMock, $outputInterfaceMock);
 
-        $phpString = file_get_contents($this->testsWorkingDir .'strauss/aws/aws-sdk-php/src/Aws/S3/S3Client.php');
+        $phpString = file_get_contents($this->testsWorkingDir .'vendor-prefixed/aws/aws-sdk-php/src/Aws/S3/S3Client.php');
 
         $this->assertStringContainsString('use Strauss\\Guzzle\\Common\\Collection;', $phpString);
     }

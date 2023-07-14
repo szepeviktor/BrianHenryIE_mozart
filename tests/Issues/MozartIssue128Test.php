@@ -38,7 +38,7 @@ class MozartIssue128Test extends IntegrationTestCase
   },
   "extra": {
     "strauss": {
-      "target_directory": "strauss",
+      "target_directory": "vendor-prefixed",
       "namespace_prefix": "\\Strauss\\"
     }
   }

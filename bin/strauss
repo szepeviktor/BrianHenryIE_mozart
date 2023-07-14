@@ -21,9 +21,9 @@ call_user_func(function ($version) {
             exit( 1 );
         }
     } else {
-        include 'phar://strauss.phar/vendor/autoload.php';
+        include __DIR__ . '/../vendor/autoload.php';
     }
 
     $app = new BrianHenryIE\Strauss\Console\Application($version);
     $app->run();
-}, '0.8.1');
+}, '0.14.0');

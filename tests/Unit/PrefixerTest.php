@@ -507,6 +507,32 @@ EOD;
     }
 
     /**
+     * Trying to prefix standard namespace `Dragon`, e.g. `Dragon\Form` with `Dragon\Dependencies` results in
+     * `Dragon\Dependencies\Dragon\Dependencies\Dragon\Form`.
+     *
+     * This was not the cause of the issue (i.e. this test, pretty much identical to the one above, passed immediately).
+     *
+     * @see https://github.com/BrianHenryIE/strauss/issues/47
+     */
+    public function testDoesNotDoublePrefixAlreadyUpdatedNamespace(): void
+    {
+
+        $contents = 'namespace Dargon\\Dependencies\\Dragon\\Form;';
+
+        $namespace = "Dragon";
+        $prefix = "Dargon\\Dependencies\\";
+        $replacement = $prefix . $namespace;
+
+        $config = $this->createMock(StraussConfig::class);
+
+        $replacer = new Prefixer($config, __DIR__);
+        $result = $replacer->replaceNamespace($contents, $namespace, $replacement);
+
+        $this->assertNotEquals('namespace Dargon\\Dependencies\\Dargon\\Dependencies\\Dragon\\Form;', $result);
+        $this->assertEquals('namespace Dargon\\Dependencies\\Dragon\\Form;', $result);
+    }
+
+    /**
      * @author markjaquith
      */
     public function test_it_doesnt_double_replace_namespaces_that_also_exist_inside_another_namespace(): void
@@ -1418,6 +1444,133 @@ EOD;
         $replacer = new Prefixer($config, __DIR__);
 
         $result = $replacer->replaceClassname($contents, $originalClassname, $classnamePrefix);
+
+        $this->assertEquals($expected, $result);
+    }
+
+    /**
+     * @see https://github.com/BrianHenryIE/strauss/issues/48
+     * @see https://php.watch/versions/8.1/ReturnTypeWillChange
+     */
+    public function testItDoesNotPrefixReturnTypeWillChangeAsClassname(): void
+    {
+
+        $contents = <<<'EOD'
+namespace Symfony\Polyfill\Intl\Normalizer;
+class NA
+{
+	#[\ReturnTypeWillChange]
+    public function offsetGet(mixed $offset) {}
+}
+EOD;
+
+        $originalClassname = 'Normalizer';
+        $classnamePrefix = 'Normalizer_Test_';
+
+        $config = $this->createMock(StraussConfig::class);
+        $config->method("getClassmapPrefix")->willReturn($classnamePrefix);
+
+        $replacer = new Prefixer($config, __DIR__);
+
+        $result = $replacer->replaceInString([], [$originalClassname,'ReturnTypeWillChange'], [], $contents);
+
+        $this->assertEquals($contents, $result);
+    }
+
+    /**
+     *
+     * @see https://github.com/BrianHenryIE/strauss/issues/36
+     *
+     */
+    public function testItReplacesStaticInsideSquareArray(): void
+    {
+
+        $contents = <<<'EOD'
+namespace ST;
+class StraussTestPackage {
+	public function __construct() {
+		$arr = array();
+
+		$arr[ ( new \ST\StraussTestPackage2() )->test() ] = true;
+
+		$arr[ \ST\StraussTestPackage2::test2() ] = true;
+	}
+}
+EOD;
+
+        $expected = <<<'EOD'
+namespace StraussTest\ST;
+class StraussTestPackage {
+	public function __construct() {
+		$arr = array();
+
+		$arr[ ( new \StraussTest\ST\StraussTestPackage2() )->test() ] = true;
+
+		$arr[ \StraussTest\ST\StraussTestPackage2::test2() ] = true;
+	}
+}
+EOD;
+
+        $config = $this->createMock(StraussConfig::class);
+
+        $replacer = new Prefixer($config, __DIR__);
+
+        $result = $replacer->replaceNamespace($contents, 'ST', 'StraussTest\\ST');
+
+        $this->assertEquals($expected, $result);
+    }
+
+    /**
+     *
+     * @see https://github.com/BrianHenryIE/strauss/issues/44
+     *
+     */
+    public function testItReplacesStaticInsideMultilineTernary(): void
+    {
+
+        $contents = <<<'EOD'
+namespace GuzzleHttp;
+
+use Psr\Http\Message\MessageInterface;
+
+final class BodySummarizer implements BodySummarizerInterface
+{
+    /**
+     * Returns a summarized message body.
+     */
+    public function summarize(MessageInterface $message): ?string
+    {
+        return $this->truncateAt === null
+            ? \GuzzleHttp\Psr7\Message::bodySummary($message)
+            : \GuzzleHttp\Psr7\Message::bodySummary($message, $this->truncateAt);
+    }
+}
+EOD;
+
+        $expected = <<<'EOD'
+namespace StraussTest\GuzzleHttp;
+
+use Psr\Http\Message\MessageInterface;
+
+final class BodySummarizer implements BodySummarizerInterface
+{
+    /**
+     * Returns a summarized message body.
+     */
+    public function summarize(MessageInterface $message): ?string
+    {
+        return $this->truncateAt === null
+            ? \StraussTest\GuzzleHttp\Psr7\Message::bodySummary($message)
+            : \StraussTest\GuzzleHttp\Psr7\Message::bodySummary($message, $this->truncateAt);
+    }
+}
+EOD;
+
+        $config = $this->createMock(StraussConfig::class);
+
+        $replacer = new Prefixer($config, __DIR__);
+
+        $result = $replacer->replaceNamespace($contents, 'GuzzleHttp', 'StraussTest\\GuzzleHttp');
 
         $this->assertEquals($expected, $result);
     }

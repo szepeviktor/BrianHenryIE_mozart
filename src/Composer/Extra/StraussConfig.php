@@ -19,7 +19,7 @@ class StraussConfig
      *
      * @var string
      */
-    protected $targetDirectory = 'strauss';
+    protected $targetDirectory = 'vendor-prefixed';
 
     /**
      * The vendor directory.
@@ -69,10 +69,9 @@ class StraussConfig
     protected array $excludeFromCopy = array();
 
     /**
-     * @var array{packages?: string[], namespaces?: string[], filePatterns?: string[]}
+     * @var array{packages: string[], namespaces: string[], filePatterns: string[]}
      */
-    protected array $excludeFromPrefix = array('file_patterns'=>array('/^psr.*$/'));
-
+    protected array $excludeFromPrefix = array('file_patterns'=>array(),'namespaces'=>array(),'packages'=>array());
 
     /**
      * An array of autoload keys to replace packages' existing autoload key.
@@ -87,17 +86,38 @@ class StraussConfig
     protected $overrideAutoload = [];
 
     /**
-     * After completing `strauss compose` should the source files be deleted?
+     * After completing prefixing should the source files be deleted?
      * This does not affect symlinked directories.
      *
      * @var bool
      */
     protected $deleteVendorFiles = false;
 
+    /**
+     * After completing prefixing should the source packages be deleted?
+     * This does not affect symlinked directories.
+     *
+     * @var bool
+     */
+    protected $deleteVendorPackages = false;
+
     protected bool $classmapOutput;
 
     protected array $namespaceReplacementPatterns = array();
 
+    /**
+     * Should a modified date be included in the header for modified files?
+     *
+     * @var bool
+     */
+    protected $includeModifiedDate = true;
+
+    /**
+     * Should the author name be included in the header for modified files?
+     *
+     * @var bool
+     */
+    protected $includeAuthor = true;
 
     /**
      * Read any existing Mozart config.
@@ -131,7 +151,10 @@ class StraussConfig
             $rename->addMapping(StraussConfig::class, 'dep_namespace', 'namespacePrefix');
 
             $rename->addMapping(StraussConfig::class, 'exclude_packages', 'excludePackages');
-            $rename->addMapping(StraussConfig::class, 'delete_vendor_directories', 'deleteVendorFiles');
+            $rename->addMapping(StraussConfig::class, 'delete_vendor_files', 'deleteVendorFiles');
+            $rename->addMapping(StraussConfig::class, 'delete_vendor_packages', 'deleteVendorPackages');
+
+            $rename->addMapping(StraussConfig::class, 'exclude_prefix_packages', 'excludePackagesFromPrefixing');
 
             $mapper->unshift($rename);
             $mapper->push(new \JsonMapper\Middleware\CaseConversion(
@@ -335,7 +358,15 @@ class StraussConfig
 
     public function setExcludeFromPrefix(array $excludeFromPrefix): void
     {
-        $this->excludeFromPrefix = $excludeFromPrefix;
+        if (isset($excludeFromPrefix['packages'])) {
+            $this->excludeFromPrefix['packages'] = $excludeFromPrefix['packages'];
+        }
+        if (isset($excludeFromPrefix['namespaces'])) {
+            $this->excludeFromPrefix['namespaces'] = $excludeFromPrefix['namespaces'];
+        }
+        if (isset($excludeFromPrefix['file_patterns'])) {
+            $this->excludeFromPrefix['file_patterns'] = $excludeFromPrefix['file_patterns'];
+        }
     }
 
     /**
@@ -346,6 +377,11 @@ class StraussConfig
     public function getExcludePackagesFromPrefixing(): array
     {
         return $this->excludeFromPrefix['packages'] ?? array();
+    }
+
+    public function setExcludePackagesFromPrefixing(array $excludePackagesFromPrefixing): void
+    {
+        $this->excludeFromPrefix['packages'] = $excludePackagesFromPrefixing;
     }
 
     public function getExcludeNamespacesFromPrefixing(): array
@@ -384,11 +420,27 @@ class StraussConfig
     }
 
     /**
+     * @return bool
+     */
+    public function isDeleteVendorPackages(): bool
+    {
+        return $this->deleteVendorPackages;
+    }
+
+    /**
      * @param bool $deleteVendorFiles
      */
     public function setDeleteVendorFiles(bool $deleteVendorFiles): void
     {
         $this->deleteVendorFiles = $deleteVendorFiles;
+    }
+
+    /**
+     * @param bool $deleteVendorPackages
+     */
+    public function setDeleteVendorPackages(bool $deleteVendorPackages): void
+    {
+        $this->deleteVendorPackages = $deleteVendorPackages;
     }
 
     /**
@@ -451,5 +503,38 @@ class StraussConfig
     public function setNamespaceReplacementPatterns(array $namespaceReplacementPatterns): void
     {
         $this->namespaceReplacementPatterns = $namespaceReplacementPatterns;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isIncludeModifiedDate(): bool
+    {
+        return $this->includeModifiedDate;
+    }
+
+    /**
+     * @param bool $includeModifiedDate
+     */
+    public function setIncludeModifiedDate(bool $includeModifiedDate): void
+    {
+        $this->includeModifiedDate = $includeModifiedDate;
+    }
+
+
+    /**
+     * @return bool
+     */
+    public function isIncludeAuthor(): bool
+    {
+        return $this->includeAuthor;
+    }
+
+    /**
+     * @param bool $includeModifiedDate
+     */
+    public function setIncludeAuthor(bool $includeAuthor): void
+    {
+        $this->includeAuthor = $includeAuthor;
     }
 }

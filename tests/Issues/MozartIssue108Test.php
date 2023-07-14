@@ -73,16 +73,16 @@ EOD;
 
         $mozartCompose->run($inputInterfaceMock, $outputInterfaceMock);
 
-        $php_contents = file_get_contents($this->testsWorkingDir .'strauss/deliciousbrains/wp-background-processing/classes/wp-async-request.php');
+        $php_contents = file_get_contents($this->testsWorkingDir .'vendor-prefixed/deliciousbrains/wp-background-processing/classes/wp-async-request.php');
         $this->assertStringContainsString('abstract class Strauss_WP_Async_Request', $php_contents);
 
 //        $pdf_contents = file_get_contents($this->testsWorkingDir .'strauss/mtdowling/cron-expression/src/Cron/CronExpression.php');
 //        $this->assertStringContainsString('namespace Strauss\\CronExpression', $pdf_contents);
 
-        $php_contents = file_get_contents($this->testsWorkingDir .'strauss/woocommerce/action-scheduler/lib/cron-expression/CronExpression.php');
+        $php_contents = file_get_contents($this->testsWorkingDir .'vendor-prefixed/woocommerce/action-scheduler/lib/cron-expression/CronExpression.php');
         $this->assertStringContainsString('class Strauss_CronExpression', $php_contents);
 
-        $php_contents = file_get_contents($this->testsWorkingDir .'strauss/woocommerce/action-scheduler/classes/schedules/ActionScheduler_CronSchedule.php');
+        $php_contents = file_get_contents($this->testsWorkingDir .'vendor-prefixed/woocommerce/action-scheduler/classes/schedules/ActionScheduler_CronSchedule.php');
         $this->assertStringContainsString('if ( ! is_a( $recurrence, \'Strauss_CronExpression\' ) ) {', $php_contents);
     }
 }

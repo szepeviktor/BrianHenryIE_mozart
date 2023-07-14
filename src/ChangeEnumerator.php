@@ -72,6 +72,7 @@ class ChangeEnumerator
      */
     public function getDiscoveredClasses(): array
     {
+        unset($this->discoveredClasses['ReturnTypeWillChange']);
         return array_keys($this->discoveredClasses);
     }
 
@@ -84,15 +85,17 @@ class ChangeEnumerator
     }
 
     /**
-     * @param string $dir
-     * @param array<string, ComposerPackage> $relativeFilepaths
+     * @param string $absoluteTargetDir
+     * @param array<string,array{dependency:ComposerPackage,sourceAbsoluteFilepath:string,targetRelativeFilepath:string}> $filesArray
      */
-    public function findInFiles($dir, $relativeFilepaths)
+    public function findInFiles($absoluteTargetDir, $filesArray)
     {
+//      $relativeFilepaths = array_keys( $filesArray );
 
-        foreach ($relativeFilepaths as $relativeFilepath => $package) {
+        foreach ($filesArray as $relativeFilepath => $fileArray) {
+            $package = $fileArray['dependency'];
             foreach ($this->excludePackagesFromPrefixing as $excludePackagesName) {
-                if ($package->getName() === $excludePackagesName) {
+                if ($package->getPackageName() === $excludePackagesName) {
                     continue 2;
                 }
             }
@@ -104,7 +107,7 @@ class ChangeEnumerator
             }
 
 
-            $filepath = $dir . $relativeFilepath;
+            $filepath = $absoluteTargetDir . $relativeFilepath;
 
             // TODO: use flysystem
             // $contents = $this->filesystem->read($targetFile);
@@ -128,7 +131,7 @@ class ChangeEnumerator
 
         // If the entire file is under one namespace, all we want is the namespace.
         $singleNamespacePattern = '/
-            namespace\s+([0-9A-Za-z_\x7f-\xff\\\\]+)[\s\S]*;    # A single namespace in the file.... should return
+            [\r\n]+\s*namespace\s+([0-9A-Za-z_\x7f-\xff\\\\]+)[\s\S]*;    # A single namespace in the file.... should return
         /x';
         if (1 === preg_match($singleNamespacePattern, $contents, $matches)) {
             $this->addDiscoveredNamespaceChange($matches[1]);
@@ -150,7 +153,7 @@ class ChangeEnumerator
         return preg_replace_callback(
             '
 			~											# Start the pattern
-				namespace\s+([a-zA-Z0-9_\x7f-\xff\\\\]+)[;{\s\n]{1}[\s\S]*?(?=namespace|$) 
+				[\r\n]+\s*namespace\s+([a-zA-Z0-9_\x7f-\xff\\\\]+)[;{\s\n]{1}[\s\S]*?(?=namespace|$) 
 														# Look for a preceeding namespace declaration, 
 														# followed by a semicolon, open curly bracket, space or new line
 														# up until a 
@@ -169,7 +172,7 @@ class ChangeEnumerator
             function ($matches) {
 
                 // If we're inside a namespace other than the global namespace:
-                if (1 === preg_match('/^namespace\s+[a-zA-Z0-9_\x7f-\xff\\\\]+[;{\s\n]{1}.*/', $matches[0])) {
+                if (1 === preg_match('/\s*namespace\s+[a-zA-Z0-9_\x7f-\xff\\\\]+[;{\s\n]{1}.*/', $matches[0])) {
                     $this->addDiscoveredNamespaceChange($matches[1]);
                     return $matches[0];
                 }

@@ -30,14 +30,22 @@ class ComposerPackage
      *
      * @var string
      */
-    protected string $name;
+    protected string $packageName;
 
     /**
-     * Virtual packages and meta packages do not have a composer.json
+     * Virtual packages and meta packages do not have a composer.json.
+     * Some packages are installed in a different directory name than their package name.
      *
      * @var ?string
      */
-    protected ?string $path = null;
+    protected ?string $relativePath = null;
+
+    /**
+     * Packages can be symlinked from outside the current project directory.
+     *
+     * @var ?string
+     */
+    protected ?string $packageAbsolutePath = null;
 
     /**
      * The discovered files, classmap, psr0 and psr4 autoload keys discovered (as parsed by Composer).
@@ -69,7 +77,7 @@ class ComposerPackage
             $absolutePath = rtrim($absolutePath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'composer.json';
         }
 
-        $composer = Factory::create(new NullIO(), $absolutePath);
+        $composer = Factory::create(new NullIO(), $absolutePath, true);
 
         return new ComposerPackage($composer, $overrideAutoload);
     }
@@ -83,7 +91,7 @@ class ComposerPackage
     {
         $factory = new Factory();
         $io = new NullIO();
-        $composer = $factory->createComposer($io, $jsonArray);
+        $composer = $factory->createComposer($io, $jsonArray, true);
 
         return new ComposerPackage($composer, $overrideAutoload);
     }
@@ -98,16 +106,22 @@ class ComposerPackage
     {
         $this->composer = $composer;
 
-        $this->name = $composer->getPackage()->getName();
+        $this->packageName = $composer->getPackage()->getName();
 
         $composerJsonFileAbsolute = $composer->getConfig()->getConfigSource()->getName();
 
+        $absolutePath = realpath(dirname($composerJsonFileAbsolute));
+        if (false !== $absolutePath) {
+            $this->packageAbsolutePath = $absolutePath . DIRECTORY_SEPARATOR;
+        }
+
         $vendorDirectory = $this->composer->getConfig()->get('vendor-dir');
-        if (file_exists($vendorDirectory . DIRECTORY_SEPARATOR . $this->name)) {
-            $this->path = $this->name;
+        if (file_exists($vendorDirectory . DIRECTORY_SEPARATOR . $this->packageName)) {
+            $this->relativePath = $this->packageName;
+            $this->packageAbsolutePath = realpath($vendorDirectory . DIRECTORY_SEPARATOR . $this->packageName) . DIRECTORY_SEPARATOR;
         } elseif (1 === preg_match('/.*\/([^\/]*\/[^\/]*)\/composer.json/', $composerJsonFileAbsolute, $output_array)) {
             // Not every package gets installed to a folder matching its name (crewlabs/unsplash).
-            $this->path = $output_array[1];
+            $this->relativePath = $output_array[1];
         }
 
         if (!is_null($overrideAutoload)) {
@@ -131,14 +145,19 @@ class ComposerPackage
      *
      * @return string
      */
-    public function getName(): string
+    public function getPackageName(): string
     {
-        return $this->name;
+        return $this->packageName;
     }
 
-    public function getPath(): ?string
+    public function getRelativePath(): ?string
     {
-        return $this->path;
+        return $this->relativePath;
+    }
+
+    public function getPackageAbsolutePath(): ?string
+    {
+        return $this->packageAbsolutePath;
     }
 
     /**

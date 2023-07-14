@@ -52,7 +52,7 @@ EOD;
 
         $result = $mozartCompose->run($inputInterfaceMock, $outputInterfaceMock);
 
-        $php_string = file_get_contents($this->testsWorkingDir .'strauss/guzzlehttp/psr7/src/AppendStream.php');
+        $php_string = file_get_contents($this->testsWorkingDir .'vendor-prefixed/guzzlehttp/psr7/src/AppendStream.php');
 
         // was namespace GuzzleHttp\Psr7;
 
@@ -93,6 +93,6 @@ EOD;
 
         $result = $mozartCompose->run($inputInterfaceMock, $outputInterfaceMock);
 
-        $this->assertFileExists($this->testsWorkingDir .'strauss/autoload-files.php');
+        $this->assertFileExists($this->testsWorkingDir .'vendor-prefixed/autoload-files.php');
     }
 }

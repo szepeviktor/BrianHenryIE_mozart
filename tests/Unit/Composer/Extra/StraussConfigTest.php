@@ -1,6 +1,6 @@
 <?php
 /**
- * Should accept Nannarl config and Mozart config.
+ * Should accept Strauss config and Mozart config.
  *
  * Should have sensible defaults.
  */
@@ -11,6 +11,9 @@ use Composer\Factory;
 use Composer\IO\NullIO;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \BrianHenryIE\Strauss\Composer\Extra\StraussConfig
+ */
 class StraussConfigTest extends TestCase
 {
 
@@ -64,9 +67,6 @@ EOD;
         $this->assertEquals("BrianHenryIE\\Strauss", $sut->getNamespacePrefix());
 
         $this->assertEquals('BrianHenryIE_Strauss_', $sut->getClassmapPrefix());
-
-        // @see https://github.com/BrianHenryIE/strauss/issues/14
-        $this->assertContains('/^psr.*$/', $sut->getExcludeFilePatternsFromPrefixing());
 
         $this->assertArrayHasKey('clancats/container', $sut->getOverrideAutoload());
 
@@ -170,7 +170,7 @@ EOD;
 
         $sut = new StraussConfig($composer);
 
-        $this->assertEquals('strauss'. DIRECTORY_SEPARATOR, $sut->getTargetDirectory());
+        $this->assertEquals('vendor-prefixed'. DIRECTORY_SEPARATOR, $sut->getTargetDirectory());
     }
 
     /**
@@ -396,6 +396,116 @@ EOD;
         $this->assertContains('pimple/pimple', $sut->getPackages());
     }
 
+
+    public function testGetOldSyntaxExcludePackagesFromPrefixing()
+    {
+        $this->markTestSkipped('Currently needs a reflectable property in the target object');
+
+        $composerExtraStraussJson = <<<'EOD'
+{
+  "name": "brianhenryie/strauss-config-test",
+  "extra": {
+    "strauss": {
+      "exclude_prefix_packages": [
+        "psr/container"
+      ]
+    }
+  }
+}
+
+EOD;
+        $tmpfname = tempnam(sys_get_temp_dir(), 'strauss-test-');
+        file_put_contents($tmpfname, $composerExtraStraussJson);
+
+        $composer = Factory::create(new NullIO(), $tmpfname);
+
+        $sut = new StraussConfig($composer);
+
+        $this->assertContains('psr/container', $sut->getExcludePackagesFromPrefixing());
+    }
+
+
+    public function testGetExcludePackagesFromPrefixing()
+    {
+
+        $composerExtraStraussJson = <<<'EOD'
+{
+  "name": "brianhenryie/strauss-config-test",
+  "extra": {
+    "strauss": {
+        "exclude_from_prefix": {
+            "packages": [
+                "psr/container"
+            ]
+        }
+    }
+  }
+}
+
+EOD;
+        $tmpfname = tempnam(sys_get_temp_dir(), 'strauss-test-');
+        file_put_contents($tmpfname, $composerExtraStraussJson);
+
+        $composer = Factory::create(new NullIO(), $tmpfname);
+
+        $sut = new StraussConfig($composer);
+
+        $this->assertContains('psr/container', $sut->getExcludePackagesFromPrefixing());
+    }
+
+
+    public function testGetExcludeFilePatternsFromPrefixingDefault()
+    {
+
+        $composerExtraStraussJson = <<<'EOD'
+{
+  "name": "brianhenryie/strauss-config-test"
+}
+
+EOD;
+        $tmpfname = tempnam(sys_get_temp_dir(), 'strauss-test-');
+        file_put_contents($tmpfname, $composerExtraStraussJson);
+
+        $composer = Factory::create(new NullIO(), $tmpfname);
+
+        $sut = new StraussConfig($composer);
+
+        // Changed in v0.14.0.
+        $this->assertNotContains('/^psr.*$/', $sut->getExcludeFilePatternsFromPrefixing());
+    }
+
+    /**
+     * When excluding a package, the default file pattern exclusion was being forgotten.
+     *
+     * @see https://github.com/BrianHenryIE/strauss/issues/32
+     */
+    public function testGetExcludeFilePatternsFromPrefixingDefaultAfterExcludingPackages()
+    {
+
+        $composerExtraStraussJson = <<<'EOD'
+{
+  "name": "brianhenryie/strauss-config-test",
+    "extra": {
+    "strauss": {
+        "exclude_from_prefix": {
+            "packages": ["yahnis-elsts/plugin-update-checker","erusev/parsedown"]
+        }
+    }
+  }
+}
+
+EOD;
+        $tmpfname = tempnam(sys_get_temp_dir(), 'strauss-test-');
+        file_put_contents($tmpfname, $composerExtraStraussJson);
+
+        $composer = Factory::create(new NullIO(), $tmpfname);
+
+        $sut = new StraussConfig($composer);
+
+        // Changed in v0.14.0.
+        self::assertNotContains('/^psr.*$/', $sut->getExcludeFilePatternsFromPrefixing());
+    }
+
     /**
      * When Strauss config has no packages specified, use composer.json's require list.
      */
@@ -520,5 +630,125 @@ EOD;
         $sut = new StraussConfig($composer);
 
         $this->assertEquals("My_Mozart_Config", $sut->getNamespacePrefix());
+    }
+
+    public function testIncludeModifiedDateDefaultTrue()
+    {
+
+        $composerExtraStraussJson = <<<'EOD'
+{
+ "extra":{
+  "strauss": {
+   "namespace_prefix": "BrianHenryIE\\Strauss\\"
+  }
+ }
+}
+EOD;
+        $tmpfname = tempnam(sys_get_temp_dir(), 'strauss-test-');
+        file_put_contents($tmpfname, $composerExtraStraussJson);
+
+        $composer = Factory::create(new NullIO(), $tmpfname);
+
+        $sut = new StraussConfig($composer);
+
+        $this->assertTrue($sut->isIncludeModifiedDate());
+    }
+
+    /**
+     * "when I add "include_modified_date": false to the extra/strauss object it doesn't take any effect, the date is still added to the header."
+     *
+     * @see https://github.com/BrianHenryIE/strauss/issues/35
+     */
+    public function testIncludeModifiedDate()
+    {
+
+        $composerExtraStraussJson = <<<'EOD'
+{
+ "extra":{
+  "strauss": {
+   "namespace_prefix": "BrianHenryIE\\Strauss\\",
+   "include_modified_date": false
+  }
+ }
+}
+EOD;
+        $tmpfname = tempnam(sys_get_temp_dir(), 'strauss-test-');
+        file_put_contents($tmpfname, $composerExtraStraussJson);
+
+        $composer = Factory::create(new NullIO(), $tmpfname);
+
+        $sut = new StraussConfig($composer);
+
+        $this->assertFalse($sut->isIncludeModifiedDate());
+    }
+
+
+    public function testIncludeAuthorDefaultTrue()
+    {
+
+        $composerExtraStraussJson = <<<'EOD'
+{
+ "extra":{
+  "strauss": {
+   "namespace_prefix": "BrianHenryIE\\Strauss\\"
+  }
+ }
+}
+EOD;
+        $tmpfname = tempnam(sys_get_temp_dir(), 'strauss-test-');
+        file_put_contents($tmpfname, $composerExtraStraussJson);
+
+        $composer = Factory::create(new NullIO(), $tmpfname);
+
+        $sut = new StraussConfig($composer);
+
+        $this->assertTrue($sut->isIncludeAuthor());
+    }
+
+
+    public function testIncludeAuthorFalse()
+    {
+
+        $composerExtraStraussJson = <<<'EOD'
+{
+ "extra":{
+  "strauss": {
+   "namespace_prefix": "BrianHenryIE\\Strauss\\",
+   "include_author": false
+  }
+ }
+}
+EOD;
+        $tmpfname = tempnam(sys_get_temp_dir(), 'strauss-test-');
+        file_put_contents($tmpfname, $composerExtraStraussJson);
+
+        $composer = Factory::create(new NullIO(), $tmpfname);
+
+        $sut = new StraussConfig($composer);
+
+        $this->assertFalse($sut->isIncludeAuthor());
+    }
+
+    public function testDeleteVendorPackages()
+    {
+
+        $composerExtraStraussJson = <<<'EOD'
+{
+ "extra":{
+  "strauss": {
+   "namespace_prefix": "BrianHenryIE\\Strauss\\",
+   "delete_vendor_packages": true
+  }
+ }
+}
+EOD;
+        $tmpfname = tempnam(sys_get_temp_dir(), 'strauss-test-');
+        file_put_contents($tmpfname, $composerExtraStraussJson);
+
+        $composer = Factory::create(new NullIO(), $tmpfname);
+
+        $sut = new StraussConfig($composer);
+
+        $this->assertTrue($sut->isDeleteVendorPackages());
     }
 }

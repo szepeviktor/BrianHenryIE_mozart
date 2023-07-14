@@ -8,6 +8,15 @@ A fork of [Mozart](https://github.com/coenjacobs/mozart/). For [Composer](https:
 
 The primary use case is WordPress plugins, where different plugins active in a single WordPress install could each include different versions of the same library. The version of the class loaded would be whichever plugin registered the autoloader first, and all subsequent instantiations of the class will use that version, with potentially unpredictable behaviour and missing functionality.    
 
+> ⚠️ **Sponsorship**: I don't want your money. [Please write a unit test to help the project](https://brianhenryie.github.io/strauss/).
+
+## Breaking Changes
+
+* v0.14.0 – `psr/*` packages no longer excluded by default
+* v0.12.0 – default output `target_directory` changes from `strauss` to `vendor-prefixed`
+
+Please open issues to suggest possible breaking changes. I think we can probably move to 1.0.0 soon. 
+
 ## Use
 
 Require as normal with Composer:
@@ -46,19 +55,18 @@ or
 "scripts": {
     "strauss": [
         "@php strauss.phar"
-    ],
-    ...
+    ]
+}
 ```
-
 
 ## Configuration
 
 Strauss potentially requires zero configuration, but likely you'll want to customize a little, by adding in your `composer.json` an `extra/strauss` object. The following is the default config, where the `namespace_prefix` and `classmap_prefix` are determined from your `composer.json`'s `autoload` or `name` key and `packages` is determined from the `require` key:
 
-```
+```json
 "extra": {
     "strauss": {
-        "target_directory": "strauss",
+        "target_directory": "vendor-prefixed",
         "namespace_prefix": "BrianHenryIE\\My_Project\\",
         "classmap_prefix": "BrianHenryIE_My_Project_",
         "constant_prefix": "BHMP_",
@@ -85,14 +93,15 @@ Strauss potentially requires zero configuration, but likely you'll want to custo
         },
         "namespace_replacement_patterns" : {
         },
-        "delete_vendor_files": false
+        "delete_vendor_packages": false
+        "delete_vendor_files": false,
     }
 },
 ```
 
 The following configuration is inferred:
 
-- `target_directory` defines the directory the files will be copied to
+- `target_directory` defines the directory the files will be copied to, default `vendor-prefixed`
 - `namespace_prefix` defines the default string to prefix each namespace with
 - `classmap_prefix` defines the default string to prefix class names in the global namespace
 - `packages` is the list of packages to process. If absent, all packages in the `require` key of your `composer.json` are included
@@ -100,8 +109,11 @@ The following configuration is inferred:
 
 The following configuration is default:
 
-- `delete_vendor_files`: `false` a boolean flag to indicate if files copied from the packages' vendor directories should be deleted after being processed. It defaults to false, so any destructive change is opt-in.
-- `exclude_from_prefix` / [`file_patterns`](https://github.com/BrianHenryIE/strauss/blob/83484b79cfaa399bba55af0bf4569c24d6eb169d/src/ChangeEnumerator.php#L92-L96) : `[/psr.*/]` PSR namespaces are ignored by default for interoperability. If you override this key, be sure to include `/psr.*/` too.
+- `delete_vendor_packages`: `false` a boolean flag to indicate if the packages' vendor directories should be deleted after being processed. It defaults to false, so any destructive change is opt-in.
+- `delete_vendor_files`: `false` a boolean flag to indicate if files copied from the packages' vendor directories should be deleted after being processed. It defaults to false, so any destructive change is opt-in. This is maybe deprecated! Is there any use to this that is more appropriate than `delete_vendor_packages`? 
+- `exclude_from_prefix` / [`file_patterns`](https://github.com/BrianHenryIE/strauss/blob/83484b79cfaa399bba55af0bf4569c24d6eb169d/src/ChangeEnumerator.php#L92-L96)
+- `include_modified_date` is a `bool` to decide if Strauss should include a date in the (phpdoc) header written to modified files. Defaults to `true`.
+- `include_author` is a `bool` to decide if Strauss should include the author name in the (phpdoc) header written to modified files. Defaults to `true`.
 
 The remainder is empty:
 
@@ -124,17 +136,15 @@ Strauss uses Composer's own tools to generate a classmap file in the `target_dir
 require_once __DIR__ . '/strauss/autoload.php';
 ```
 
-If you prefer to use Composer's autoloader, add your `target_directory` to the `classmap` and strauss will not create its own `autoload.php`. `psr-4` autoloading is not straightforward with Strauss's approach to copying files, so stick with Mozart for that.
+If you prefer to use Composer's autoloader, add your `target_directory` (default `vendor-prefixed`) to your `autoload` `classmap` and Strauss will not create its own `autoload.php` when run. Then run `composer dump-autoload` to include the newly copied and prefixed files in Composer's own classmap.
 
-```json
+```
 "autoload": {
     "classmap": [
-        "src",
-        "strauss"
-    ]   
+        "vendor-prefixed/"
+    ]
 },
 ```
-
 
 ## Motivation & Comparison to Mozart
 

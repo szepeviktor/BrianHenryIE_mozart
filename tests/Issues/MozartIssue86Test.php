@@ -63,7 +63,7 @@ EOD;
 
         $result = $mozartCompose->run($inputInterfaceMock, $outputInterfaceMock);
 
-        $php_string = file_get_contents($this->testsWorkingDir .'strauss/pear/pear_exception/PEAR/Exception.php');
+        $php_string = file_get_contents($this->testsWorkingDir .'vendor-prefixed/pear/pear_exception/PEAR/Exception.php');
 
         // Confirm problem is gone.
         $this->assertStringNotContainsString('foreach (self::$_observers Mozart_as $func) {', $php_string);
@@ -109,7 +109,7 @@ EOD;
 
         $result = $mozartCompose->run($inputInterfaceMock, $outputInterfaceMock);
 
-        $php_string = file_get_contents($this->testsWorkingDir .'strauss/afragen/wp-dependency-installer/wp-dependency-installer.php');
+        $php_string = file_get_contents($this->testsWorkingDir .'vendor-prefixed/afragen/wp-dependency-installer/wp-dependency-installer.php');
 
         // Confirm problem is gone.
         $this->assertStringNotContainsString('Path BrianHenryIE_Strauss_to plugin or theme', $php_string, 'Text in comment still prefixed.');

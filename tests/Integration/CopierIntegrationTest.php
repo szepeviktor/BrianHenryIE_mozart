@@ -51,7 +51,7 @@ EOD;
         }, $projectComposerPackage->getRequiresNames());
 
         $workingDir = $this->testsWorkingDir;
-        $relativeTargetDir = 'strauss' . DIRECTORY_SEPARATOR;
+        $relativeTargetDir = 'vendor-prefixed' . DIRECTORY_SEPARATOR;
         $vendorDir = 'vendor' . DIRECTORY_SEPARATOR;
 
         $config = $this->createStub(StraussConfig::class);
@@ -112,7 +112,7 @@ EOD;
         }, $projectComposerPackage->getRequiresNames());
 
         $workingDir = $this->testsWorkingDir;
-        $relativeTargetDir = 'strauss' . DIRECTORY_SEPARATOR;
+        $relativeTargetDir = 'vendor-prefixed' . DIRECTORY_SEPARATOR;
         $vendorDir = 'vendor' . DIRECTORY_SEPARATOR;
 
         $config = $this->createStub(StraussConfig::class);
