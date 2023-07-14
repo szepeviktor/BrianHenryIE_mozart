@@ -147,14 +147,14 @@ class ChangeEnumerator
         // TODO traits
 
         // TODO: Is the ";" in this still correct since it's being taken care of in the regex just above?
-        // Looks like with the preceeding regex, it will never match.
+        // Looks like with the preceding regex, it will never match.
 
 
         return preg_replace_callback(
             '
 			~											# Start the pattern
 				[\r\n]+\s*namespace\s+([a-zA-Z0-9_\x7f-\xff\\\\]+)[;{\s\n]{1}[\s\S]*?(?=namespace|$) 
-														# Look for a preceeding namespace declaration, 
+														# Look for a preceding namespace declaration, 
 														# followed by a semicolon, open curly bracket, space or new line
 														# up until a 
 														# potential second namespace declaration or end of file.

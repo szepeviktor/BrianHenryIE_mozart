@@ -215,11 +215,11 @@ class Licenser
             <\?php[\S\s]*            #  match the beginning of the files php-open and following whitespace
             )
             (
-            \*[\S\s.]*               # followed by a multline-comment-open
-            )  
+            \*[\S\s.]*               # followed by a multiline-comment-open
+            )
             (
             \*/                      # Capture the multiline-comment-close separately
-            )             
+            )
             ~Ux';                          // U: Non-greedy matching, x: ignore whitespace in pattern.
 
 

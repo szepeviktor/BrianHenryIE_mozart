@@ -644,7 +644,7 @@ EOD;
     }
 
 
-    public function testItReplacesNamespaceInFunctionParameterDefaultAgumentValue()
+    public function testItReplacesNamespaceInFunctionParameterDefaultArgumentValue()
     {
 
         $originalNamespace = "net\\authorize\\api\constants";

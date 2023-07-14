@@ -221,7 +221,7 @@ class Prefixer
         $pattern = '
 			/											# Start the pattern
 				(^\s*namespace|\r\n\s*namespace)\s+[a-zA-Z0-9_\x7f-\xff\\\\]+\s*{(.*?)(namespace|\z) 
-														# Look for a preceeding namespace declaration, up until a 
+														# Look for a preceding namespace declaration, up until a 
 														# potential second namespace declaration.
 				|										# if found, match that much before continuing the search on
 								    		        	# the remainder of the string.
