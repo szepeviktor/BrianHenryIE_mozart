@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-A bug report generally means something is not being prefixed that should, or, less commonly, something is bring prefixed that should not.
+A bug report generally means something is not being prefixed that should, or, less commonly, something is being prefixed that should not.
 
 Please provide a minimal `composer.json` with the package that is affected and its precise version.
 
