@@ -476,7 +476,7 @@ class StraussConfig
     }
 
     /**
-     * Backwards compatability with Mozart.
+     * Backwards compatibility with Mozart.
      */
     public function setExcludePackages(array $excludePackages)
     {
