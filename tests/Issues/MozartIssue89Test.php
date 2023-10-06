@@ -56,8 +56,7 @@ class MozartIssue89Test extends IntegrationTestCase
      */
     public function it_moves_each_file_once_per_namespace()
     {
-
-        if (version_compare(phpversion(), '8.0.0', '>=')) {
+        if (version_compare(phpversion(), '7.1', '>=')) {
             $this->markTestSkipped("Package specified for test is not PHP 8 compatible");
         }
 
