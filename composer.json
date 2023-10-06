@@ -35,7 +35,7 @@
     "require-dev": {
         "ext-json": "*",
         "php": "^7.4|^8.0",
-        "phpunit/phpunit": "^9",
+        "phpunit/phpunit": "^9|^10",
         "clue/phar-composer": "^1.2",
         "squizlabs/php_codesniffer": "^3.5",
         "jaschilz/php-coverage-badger": "^2.0",
