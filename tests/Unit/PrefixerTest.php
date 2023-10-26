@@ -1576,4 +1576,68 @@ EOD;
 
         $this->assertEquals($expected, $result);
     }
+
+    /**
+     *
+     * @see https://github.com/BrianHenryIE/strauss/issues/65
+     * @see vendor/aws/aws-sdk-php/src/Endpoint/UseDualstackEndpoint/Configuration.php
+     */
+    public function testItPrefixesNamespacedFunctionUse(): void
+    {
+        $contents = <<<'EOD'
+namespace Aws\Endpoint\UseDualstackEndpoint;
+
+use Aws;
+use Aws\Endpoint\UseDualstackEndpoint\Exception\ConfigurationException;
+
+class Configuration implements ConfigurationInterface
+{
+    private $useDualstackEndpoint;
+
+    public function __construct($useDualstackEndpoint, $region)
+    {
+        $this->useDualstackEndpoint = Aws\boolean_value($useDualstackEndpoint);
+        if (is_null($this->useDualstackEndpoint)) {
+            throw new ConfigurationException("'use_dual_stack_endpoint' config option"
+                . " must be a boolean value.");
+        }
+        if ($this->useDualstackEndpoint == true
+            && (strpos($region, "iso-") !== false || strpos($region, "-iso") !== false)
+        ) {
+            throw new ConfigurationException("Dual-stack is not supported in ISO regions");        }
+    }
+EOD;
+
+        $expected = <<<'EOD'
+namespace StraussTest\Aws\Endpoint\UseDualstackEndpoint;
+
+use StraussTest\Aws;
+use StraussTest\Aws\Endpoint\UseDualstackEndpoint\Exception\ConfigurationException;
+
+class Configuration implements ConfigurationInterface
+{
+    private $useDualstackEndpoint;
+
+    public function __construct($useDualstackEndpoint, $region)
+    {
+        $this->useDualstackEndpoint = \StraussTest\Aws\boolean_value($useDualstackEndpoint);
+        if (is_null($this->useDualstackEndpoint)) {
+            throw new ConfigurationException("'use_dual_stack_endpoint' config option"
+                . " must be a boolean value.");
+        }
+        if ($this->useDualstackEndpoint == true
+            && (strpos($region, "iso-") !== false || strpos($region, "-iso") !== false)
+        ) {
+            throw new ConfigurationException("Dual-stack is not supported in ISO regions");        }
+    }
+EOD;
+
+        $config = $this->createMock(StraussConfig::class);
+
+        $replacer = new Prefixer($config, __DIR__);
+
+        $result = $replacer->replaceNamespace($contents, 'Aws', 'StraussTest\\Aws');
+
+        $this->assertEquals($expected, $result);
+    }
 }
