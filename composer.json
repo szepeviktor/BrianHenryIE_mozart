@@ -33,13 +33,14 @@
         }
     },
     "require-dev": {
+        "brianhenryie/php-diff-test": "dev-master",
+        "clue/phar-composer": "^1.2",
         "ext-json": "*",
+        "jaschilz/php-coverage-badger": "^2.0",
+        "mheap/phpunit-github-actions-printer": "^1.4",
         "php": "^7.4|^8.0",
         "phpunit/phpunit": "^9|^10",
-        "clue/phar-composer": "^1.2",
-        "squizlabs/php_codesniffer": "^3.5",
-        "jaschilz/php-coverage-badger": "^2.0",
-        "mheap/phpunit-github-actions-printer": "^1.4"
+        "squizlabs/php_codesniffer": "^3.5"
     },
     "scripts": {
         "lint": [
@@ -49,9 +50,18 @@
         ],
         "test": [
             "phpunit"
+        ],
+        "test-coverage": [
+            "phpunit --coverage-text --coverage-php tests/reports/phpunit.cov"
         ]
     },
     "replace":{
         "coenjacobs/mozart": "*"
+    },
+    "repositories": {
+        "brianhenryie/php-diff-test": {
+            "type": "git",
+            "url": "https://github.com/brianhenryie/php-diff-test"
+        }
     }
 }
