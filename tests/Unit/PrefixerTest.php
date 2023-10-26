@@ -1423,6 +1423,7 @@ EOD;
     {
 
         $contents = <<<'EOD'
+<?php
 namespace Symfony\Polyfill\Intl\Normalizer;
 
 class Normalizer
@@ -1430,6 +1431,7 @@ class Normalizer
 EOD;
 
         $expected = <<<'EOD'
+<?php
 namespace Symfony\Polyfill\Intl\Normalizer;
 
 class Normalizer
