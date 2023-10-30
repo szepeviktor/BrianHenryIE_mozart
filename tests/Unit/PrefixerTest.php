@@ -1640,4 +1640,38 @@ EOD;
 
         $this->assertEquals($expected, $result);
     }
+
+
+    /**
+     *
+     * @see https://github.com/BrianHenryIE/strauss/issues/75
+     *
+     */
+    public function testPrefixUseFunction(): void
+    {
+
+        $contents = <<<'EOD'
+namespace Chophper;
+
+use function Chophper\some_func;
+
+some_func();
+EOD;
+
+        $expected = <<<'EOD'
+namespace StraussTest\Chophper;
+
+use function StraussTest\Chophper\some_func;
+
+some_func();
+EOD;
+
+        $config = $this->createMock(StraussConfig::class);
+
+        $replacer = new Prefixer($config, __DIR__);
+
+        $result = $replacer->replaceNamespace($contents, 'Chophper', 'StraussTest\\Chophper');
+
+        $this->assertEquals($expected, $result);
+    }
 }
