@@ -136,6 +136,7 @@ class Prefixer
             |\\n\s*                        # start of the line
             |(^\s*namespace|[\r\n]+\s*namespace)\s+                  # the namespace keyword
             |use\s+                        # the use keyword
+            |use\s+function\s+			   # the use function syntax
             |new\s+
             |static\s+
             |\"                            # inside a string that does not contain spaces - needs work
