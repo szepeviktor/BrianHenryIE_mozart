@@ -163,8 +163,9 @@ class ComposerPackage
     /**
      *
      * e.g. ['psr-4' => [ 'BrianHenryIE\Project' => 'src' ]]
+     * e.g. ['psr-4' => [ 'BrianHenryIE\Project' => ['src','lib] ]]
      *
-     * @return array<string, array<int|string, string>>
+     * @return array<string, array<int|string, string|array<string>>>
      */
     public function getAutoload(): array
     {

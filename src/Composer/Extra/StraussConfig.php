@@ -230,11 +230,14 @@ class StraussConfig
             // Check each autoloader.
             foreach ($composer->getPackage()->getAutoload() as $autoload) {
                 // To see if one of its paths.
-                foreach ($autoload as $path) {
-                    // Matches the target directory.
-                    if (trim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR === $this->getTargetDirectory()) {
-                        $this->classmapOutput = false;
-                        break 2;
+                foreach ($autoload as $entry) {
+                    $paths = (array) $entry;
+                    foreach ($paths as $path) {
+                        // Matches the target directory.
+                        if (trim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR === $this->getTargetDirectory()) {
+                            $this->classmapOutput = false;
+                            break 3;
+                        }
                     }
                 }
             }
