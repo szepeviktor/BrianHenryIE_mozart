@@ -29,7 +29,9 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-suggest --no-progress
       - name: Run tests
-        run: vendor/bin/phpunit --printer mheap\\GithubActionsReporter\\Printer
+        run: vendor/bin/phpunit
+        # TODO: get GitHub Actions annotations working again.
+#        run: vendor/bin/phpunit --printer mheap\\GithubActionsReporter\\Printer
   lint:
     runs-on: ubuntu-latest
     name: Lint project files
