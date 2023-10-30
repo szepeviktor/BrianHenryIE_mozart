@@ -33,8 +33,8 @@ class MozartIssue124Test extends IntegrationTestCase
      */
     public function test_it_does_not_make_classname_replacement_inside_namespaced_file()
     {
-        if (version_compare('8.1', phpversion(), '>=')) {
-            $this->markTestSkipped("Package specified for test is not PHP 8.1 compatible");
+        if (version_compare('8.1', phpversion(), '<=')) {
+            $this->markTestSkipped("Package specified for test is not PHP 8.1 compatible. Running tests under PHP " . phpversion());
         }
 
         $composerJsonString = <<<'EOD'
@@ -87,8 +87,8 @@ EOD;
      */
     public function test_it_does_not_prefix_function_argument_types_whose_classname_matches_the_namespace()
     {
-        if (version_compare('8.1', phpversion(), '>=')) {
-            $this->markTestSkipped("Package specified for test is not PHP 8.1 compatible");
+        if (version_compare('8.1', phpversion(), '<=')) {
+            $this->markTestSkipped("Package specified for test is not PHP 8.1 compatible. Running tests under PHP " . phpversion());
         }
 
         $composerJsonString = <<<'EOD'
@@ -138,8 +138,8 @@ EOD;
      */
     public function testItDoesPrefixNamespacedExtends()
     {
-        if (version_compare('8.1', phpversion(), '>=')) {
-            $this->markTestSkipped("Package specified for test is not PHP 8.1 compatible");
+        if (version_compare('8.1', phpversion(), '<=')) {
+            $this->markTestSkipped("Package specified for test is not PHP 8.1 compatible. Running tests under PHP " . phpversion());
         }
 
         $composerJsonString = <<<'EOD'
