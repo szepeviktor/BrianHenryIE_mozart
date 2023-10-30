@@ -25,9 +25,9 @@ class MozartIssue128Test extends IntegrationTestCase
     public function test_it_does_not_make_classname_replacement_inside_namespaced_file()
     {
 
-	    if (version_compare('8.0', phpversion(), '<=')) {
-		    $this->markTestSkipped("Package specified for test is not PHP 8.0 compatible. Running tests under PHP " . phpversion());
-	    }
+        if (version_compare('8.0', phpversion(), '>=')) {
+            $this->markTestSkipped("Package specified for test is not PHP 8.0 compatible. Running tests under PHP " . phpversion());
+        }
 
         $composerJsonString = <<<'EOD'
 {
