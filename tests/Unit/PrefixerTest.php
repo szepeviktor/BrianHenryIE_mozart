@@ -1674,4 +1674,41 @@ EOD;
 
         $this->assertEquals($expected, $result);
     }
+
+    /**
+     *
+     * @see https://github.com/BrianHenryIE/strauss/issues/66
+     *
+     */
+    public function testPrefixGlobalClassUse(): void
+    {
+
+        $contents = <<<'EOD'
+<?php
+namespace WPGraphQL\Registry\Utils;
+
+use WPGraphQL;
+EOD;
+
+        $expected = <<<'EOD'
+<?php
+namespace StraussTest\WPGraphQL\Registry\Utils;
+
+use StraussTest_WPGraphQL as WPGraphQL;
+EOD;
+
+        $config = $this->createMock(StraussConfig::class);
+        $config->method("getClassmapPrefix")->willReturn('StraussTest_');
+
+        $replacer = new Prefixer($config, __DIR__);
+
+        $result = $replacer->replaceInString(
+            ['WPGraphQL\Registry\Utils'=>'StraussTest\WPGraphQL\Registry\Utils'],
+            ['WPGraphQL'],
+            [],
+            $contents
+        );
+
+        $this->assertEquals($expected, $result);
+    }
 }

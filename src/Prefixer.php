@@ -88,16 +88,6 @@ class Prefixer
     public function replaceInString(array $namespacesChanges, array $classes, array $originalConstants, string $contents): string
     {
 
-        // Reorder this so substrings are always ahead of what they might be substrings of.
-        asort($namespacesChanges);
-        foreach ($namespacesChanges as $originalNamespace => $replacement) {
-            if (in_array($originalNamespace, $this->excludeNamespacesFromPrefixing)) {
-                continue;
-            }
-
-            $contents = $this->replaceNamespace($contents, $originalNamespace, $replacement);
-        }
-
         foreach ($classes as $originalClassname) {
             if ('ReturnTypeWillChange' === $originalClassname) {
                 continue;
@@ -106,6 +96,16 @@ class Prefixer
             $classmapPrefix = $this->classmapPrefix;
 
             $contents = $this->replaceClassname($contents, $originalClassname, $classmapPrefix);
+        }
+
+        // Reorder this so substrings are always ahead of what they might be substrings of.
+        asort($namespacesChanges);
+        foreach ($namespacesChanges as $originalNamespace => $replacement) {
+            if (in_array($originalNamespace, $this->excludeNamespacesFromPrefixing)) {
+                continue;
+            }
+
+            $contents = $this->replaceNamespace($contents, $originalNamespace, $replacement);
         }
 
         if (!is_null($this->constantsPrefix)) {
@@ -295,18 +295,39 @@ class Prefixer
      */
     protected function replaceGlobalClassInsideNamedNamespace($contents, $originalClassname, $classnamePrefix): string
     {
+        $replacement = $classnamePrefix . $originalClassname;
 
-        return preg_replace_callback(
+        // use Prefixed_Class as Class;
+        $usePattern = '/
+			(\s*use\s+)
+			('.$originalClassname.')   # Followed by the classname
+			\s*;
+			/x'; //                    # x: ignore whitespace in regex.
+
+        $contents = preg_replace_callback(
+            $usePattern,
+            function ($matches) use ($replacement) {
+                return $matches[1] . $replacement . ' as '. $matches[2] . ';';
+            },
+            $contents
+        );
+
+        $bodyPattern =
             '/([^a-zA-Z0-9_\x7f-\xff]  # Not a class character
 			\\\)                       # Followed by a backslash to indicate global namespace
 			('.$originalClassname.')   # Followed by the classname
 			([^\\\;]+)                 # Not a backslash or semicolon which might indicate a namespace
-			/x', //                    # x: ignore whitespace in regex.
-            function ($matches) use ($originalClassname, $classnamePrefix) {
-                return $matches[1] . $classnamePrefix . $originalClassname . $matches[3];
+			/x'; //                    # x: ignore whitespace in regex.
+
+        $contents = preg_replace_callback(
+            $bodyPattern,
+            function ($matches) use ($replacement) {
+                return $matches[1] . $replacement . $matches[2];
             },
             $contents
         );
+
+        return $contents;
     }
 
     protected function replaceConstants($contents, $originalConstants, $prefix): string
