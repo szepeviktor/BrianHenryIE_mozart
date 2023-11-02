@@ -24,8 +24,8 @@ jobs:
 
     steps:
 
-      - name: Git checkout
-        uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Install PHP
         uses: shivammathur/setup-php@v2
@@ -34,48 +34,44 @@ jobs:
           coverage: xdebug
 
       - name: Checkout GitHub Pages branch for code coverage report
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           ref: gh-pages
           path: tests/reports/html
 
       - name: Install dependencies
-        run: composer install --prefer-dist --no-suggest --no-progress
+        run: composer update --prefer-dist --no-progress
 
       - name: Clear previous code coverage
+        working-directory: tests/reports/html
         run: |
-          cd tests/reports/html
           rm -rf *
-          cd ../../..
 
-      - name: Run tests with code coverage
-        run:  XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-text --coverage-clover tests/reports/clover.xml --coverage-html tests/reports/html
+      - name: Generate code coverage
+        run: XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-text --coverage-clover tests/reports/clover.xml --coverage-html tests/reports/html
 
-      - name: Edit phpcov html output to work with gh-pages
+      - name: Add code coverage output to gh-pages
+        working-directory: tests/reports/html
         run: |
-          cd tests/reports/html
-          mv _css css; find . -depth -name '*.html' -exec sed -i "s/_css\//css\//" {} +
-          mv _icons icons; find . -depth -name '*.html' -exec sed -i "s/_icons\//icons\//" {} +
-          mv _js js; find . -depth -name '*.html' -exec sed -i "s/_js\//js\//" {} +
-          git add *
-          cd ../../..
+          touch .nojekyll
+          git add -- .nojekyll *
 
       - name: Commit code coverage to gh-pages
-        uses: stefanzweifel/git-auto-commit-action@v4.1.1
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
           repository: tests/reports/html
           branch: gh-pages
-          commit_message: "🤖 Commit code coverage to gh-pages"
-          commit_options:
+          commit_message: "🤖 Update code coverage to gh-pages"
+          commit_options: ""
         env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          GITHUB_TOKEN: "${{ github.token }}"
 
       - name: Update README badge
         run: vendor/bin/php-coverage-badger tests/reports/clover.xml .github/coverage.svg
 
       - name: Commit code coverage badge
-        uses: stefanzweifel/git-auto-commit-action@v4.1.1
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "🤖 Commit code coverage badge"
+          commit_message: "🤖 Update code coverage badge"
 
 
