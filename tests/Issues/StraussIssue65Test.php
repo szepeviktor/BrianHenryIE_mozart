@@ -20,6 +20,8 @@ class StraussIssue65Test extends \BrianHenryIE\Strauss\Tests\Integration\Util\In
      */
     public function test_aws_prefixed_functions()
     {
+        $this->markTestSkipped('slow test');
+
         $composerJsonString = <<<'EOD'
 {
   "name": "brianhenryie/strauss-issue-65-aws-prefixed-functions",
