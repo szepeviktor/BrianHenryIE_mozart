@@ -52,7 +52,7 @@ class ComposerPackage
     /**
      * The discovered files, classmap, psr0 and psr4 autoload keys discovered (as parsed by Composer).
      *
-     * @var array<string, array<string, string>>
+     * @var AutoloadKey
      */
     protected array $autoload = [];
 
@@ -166,7 +166,7 @@ class ComposerPackage
      * e.g. ['psr-4' => [ 'BrianHenryIE\Project' => 'src' ]]
      * e.g. ['psr-4' => [ 'BrianHenryIE\Project' => ['src','lib] ]]
      *
-     * @return array<string, array<int|string, string|array<string>>>
+     * @return AutoloadKey
      */
     public function getAutoload(): array
     {

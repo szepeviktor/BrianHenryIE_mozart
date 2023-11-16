@@ -163,6 +163,9 @@ class Licenser
 
             // Throws an exception, but unlikely to happen.
             $contents = $this->filesystem->read($filepath);
+            if (false === $contents) {
+                throw new \Exception("Could not read file: {$filepath}");
+            }
 
             $updatedContents = $this->addChangeDeclarationToPhpString($contents, $date, $packageLicense);
 

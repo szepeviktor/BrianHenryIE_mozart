@@ -81,6 +81,9 @@ class Prefixer
 
             // Throws an exception, but unlikely to happen.
             $contents = $this->filesystem->read($targetRelativeFilepathFromProject);
+            if (false === $contents) {
+                throw new Exception("Failed to read file: {$targetRelativeFilepathFromProject}");
+            }
 
             $updatedContents = $this->replaceInString($namespaceChanges, $classChanges, $constants, $contents);
 
@@ -235,10 +238,9 @@ class Prefixer
      * @param string $contents
      * @param string $originalClassname
      * @param string $classnamePrefix
-     * @return array|string|string[]|null
      * @throws \Exception
      */
-    public function replaceClassname($contents, $originalClassname, $classnamePrefix)
+    public function replaceClassname(string $contents, string $originalClassname, string $classnamePrefix): string
     {
         $searchClassname = preg_quote($originalClassname, '/');
 
@@ -286,6 +288,10 @@ class Prefixer
         };
 
         $result = preg_replace_callback($pattern, $replacingFunction, $contents);
+
+        if (is_null($result)) {
+            throw new Exception('preg_replace_callback returned null');
+        }
 
         $matchingError = preg_last_error();
         if (0 !== $matchingError) {

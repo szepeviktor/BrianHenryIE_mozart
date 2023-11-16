@@ -73,7 +73,7 @@ class Autoload
      * @see ClassMapGenerator::dump()
      *
      */
-    protected function generateClassmap(): string
+    protected function generateClassmap(): void
     {
 
         // Hyphen used to match WordPress Coding Standards.
@@ -87,16 +87,12 @@ class Autoload
             $targetDirectory
         );
 
-        $dirname = '';
-
         foreach ($dirs as $dir) {
             if (!is_dir($dir)) {
                 continue;
             }
 
             $dirMap = ClassMapGenerator::createMap($dir);
-
-            $dirname = preg_replace('/[^a-z]/i', '', str_replace(getcwd(), '', $dir));
 
             array_walk(
                 $dirMap,
@@ -122,8 +118,6 @@ class Autoload
 
             file_put_contents($dir . $output_filename, ob_get_clean());
         }
-
-        return $dirname;
     }
 
     protected function generateFilesAutoloader(): void
@@ -142,7 +136,7 @@ class Autoload
             . DIRECTORY_SEPARATOR
             . ltrim($this->config->getTargetDirectory(), DIRECTORY_SEPARATOR);
 
-        $dirname = preg_replace('/[^a-z]/i', '', str_replace(getcwd(), '', $targetDirectory));
+//        $dirname = preg_replace('/[^a-z]/i', '', str_replace(getcwd(), '', $targetDirectory));
 
         ob_start();
 

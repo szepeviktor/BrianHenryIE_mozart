@@ -117,6 +117,9 @@ class ChangeEnumerator
             // $contents = $this->filesystem->read($targetFile);
 
             $contents = file_get_contents($filepath);
+            if (false === $contents) {
+                throw new \Exception("Failed to read file at {$filepath}");
+            }
 
             $this->find($contents);
         }

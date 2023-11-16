@@ -155,7 +155,11 @@ class Compose extends Command
             if (file_exists($packageComposerFile)) {
                 $requiredComposerPackage = ComposerPackage::fromFile($packageComposerFile, $overrideAutoload);
             } else {
-                $composerLock = json_decode(file_get_contents($this->workingDir . 'composer.lock'), true);
+                $fileContents           = file_get_contents($this->workingDir . 'composer.lock');
+                if (false === $fileContents) {
+                    throw new Exception('Failed to read contents of ' . $this->workingDir . 'composer.lock');
+                }
+                $composerLock           = json_decode($fileContents, true);
                 $requiredPackageComposerJson = null;
                 foreach ($composerLock['packages'] as $packageJson) {
                     if ($requiredPackageName === $packageJson['name']) {
