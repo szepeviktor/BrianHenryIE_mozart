@@ -100,7 +100,7 @@ class Autoload
 
             array_walk(
                 $dirMap,
-                function (&$filepath, $_class) use ($dir, $dirname) {
+                function (&$filepath, $_class) use ($dir) {
                     $filepath = "\$strauss_src . '"
                         . DIRECTORY_SEPARATOR
                         . ltrim(str_replace($dir, '', $filepath), DIRECTORY_SEPARATOR) . "'";
