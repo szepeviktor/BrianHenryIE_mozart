@@ -375,7 +375,7 @@ class StraussConfig
     /**
      * When prefixing, do not prefix these packages (which have been copied).
      *
-     * @var string[]
+     * @return string[]
      */
     public function getExcludePackagesFromPrefixing(): array
     {
@@ -534,7 +534,7 @@ class StraussConfig
     }
 
     /**
-     * @param bool $includeModifiedDate
+     * @param bool $includeAuthor
      */
     public function setIncludeAuthor(bool $includeAuthor): void
     {

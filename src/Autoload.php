@@ -26,7 +26,7 @@ class Autoload
      * The files autolaoders of packages that have been copied by Strauss.
      * Keyed by package path.
      *
-     * @var array
+     * @var array<string, array<string>> $discoveredFilesAutoloaders Array of packagePath => array of relativeFilePaths.
      */
     protected array $discoveredFilesAutoloaders;
 
@@ -34,7 +34,7 @@ class Autoload
      * Autoload constructor.
      * @param StraussConfig $config
      * @param string $workingDir
-     * @param array<string, array<string>> $files
+     * @param array<string, array<string>> $discoveredFilesAutoloaders
      */
     public function __construct(StraussConfig $config, string $workingDir, array $discoveredFilesAutoloaders)
     {
