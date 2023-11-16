@@ -43,10 +43,12 @@
         "squizlabs/php_codesniffer": "^3.5"
     },
     "scripts": {
-        "lint": [
-            "composer validate",
-            "phpcbf || true",
+        "cs": [
             "phpcs"
+        ],
+        "cs-fix": [
+            "phpcbf || true",
+            "@cs"
         ],
         "test": [
             "phpunit"
