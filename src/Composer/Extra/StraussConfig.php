@@ -69,7 +69,7 @@ class StraussConfig
     protected array $excludeFromCopy = array();
 
     /**
-     * @var array{packages: string[], namespaces: string[], filePatterns: string[]}
+     * @var array{packages: string[], namespaces: string[], file_patterns: string[]}
      */
     protected array $excludeFromPrefix = array('file_patterns'=>array(),'namespaces'=>array(),'packages'=>array());
 
@@ -483,11 +483,6 @@ class StraussConfig
      */
     public function setExcludePackages(array $excludePackages)
     {
-
-        if (! isset($this->excludeFromPrefix)) {
-            $this->excludeFromPrefix = array();
-        }
-
         $this->excludeFromPrefix['packages'] = $excludePackages;
     }
 
