@@ -64,9 +64,9 @@ class StraussConfig
     private array $excludePackages;
 
     /**
-     * @var array{packages?: string[], namespaces?: string[], filePatterns?: string[]}
+     * @var array{packages: string[], namespaces: string[], file_patterns: string[]}
      */
-    protected array $excludeFromCopy = array();
+    protected array $excludeFromCopy = array('file_patterns'=>array(),'namespaces'=>array(),'packages'=>array());
 
     /**
      * @var array{packages: string[], namespaces: string[], file_patterns: string[]}
