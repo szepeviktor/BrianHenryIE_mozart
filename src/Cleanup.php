@@ -36,9 +36,9 @@ class Cleanup
      * Maybe delete the source files that were copied (depending on config),
      * then delete empty directories.
      *
-     * @param array $sourceFiles
+     * @param string[] $sourceFiles Relative filepaths.
      */
-    public function cleanup(array $sourceFiles)
+    public function cleanup(array $sourceFiles): void
     {
         if (!$this->isDeleteVendorPackages && !$this->isDeleteVendorFiles) {
             return;

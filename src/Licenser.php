@@ -29,6 +29,7 @@ class Licenser
 
     protected string $vendorDir;
 
+    /** @var ComposerPackage[]  */
     protected array $dependencies;
 
     // The author of the current project who is running Strauss to make the changes to the required libraries.
@@ -57,8 +58,9 @@ class Licenser
 
     /**
      * Licenser constructor.
+     *
      * @param string $workingDir
-     * @param array $dependencies Whose folders are searched for existing license.txt files.
+     * @param ComposerPackage[] $dependencies Whose folders are searched for existing license.txt files.
      * @param string $author To add to each modified file's header
      */
     public function __construct(StraussConfig $config, string $workingDir, array $dependencies, string $author)
@@ -105,7 +107,7 @@ class Licenser
     /**
      * @see https://www.phpliveregex.com/p/A5y
      */
-    public function findLicenseFiles(?Finder $finder = null)
+    public function findLicenseFiles(?Finder $finder = null): void
     {
 
         // Include all license files in the dependency path.
@@ -137,6 +139,9 @@ class Licenser
         }
     }
 
+    /**
+     * @return string[]
+     */
     public function getDiscoveredLicenseFiles(): array
     {
         return array_keys($this->discoveredLicenseFiles);
@@ -145,7 +150,7 @@ class Licenser
     /**
      * @param array<string, ComposerPackage> $modifiedFiles
      */
-    public function addInformationToUpdatedFiles(array $modifiedFiles)
+    public function addInformationToUpdatedFiles(array $modifiedFiles): void
     {
 
         // e.g. "25-April-2021".

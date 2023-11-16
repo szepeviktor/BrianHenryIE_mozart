@@ -93,7 +93,7 @@ class Compose extends Command
      *
      * @throws Exception
      */
-    protected function loadProjectComposerPackage()
+    protected function loadProjectComposerPackage(): void
     {
 
         $this->projectComposerPackage = new ProjectComposerPackage($this->workingDir);
@@ -114,7 +114,7 @@ class Compose extends Command
      *
      * @see Compose::flatDependencyTree
      */
-    protected function buildDependencyList()
+    protected function buildDependencyList(): void
     {
 
         $requiredPackageNames = $this->config->getPackages();
@@ -122,11 +122,15 @@ class Compose extends Command
         $this->recursiveGetAllDependencies($requiredPackageNames);
     }
 
+    /** @var string[]  */
     protected $virtualPackages = array(
         'php-http/client-implementation'
     );
 
-    protected function recursiveGetAllDependencies(array $requiredPackageNames)
+    /**
+     * @param string[] $requiredPackageNames
+     */
+    protected function recursiveGetAllDependencies(array $requiredPackageNames): void
     {
 
         $virtualPackages = $this->virtualPackages;
@@ -176,7 +180,7 @@ class Compose extends Command
 
     protected FileEnumerator $fileEnumerator;
 
-    protected function enumerateFiles()
+    protected function enumerateFiles(): void
     {
 
         $this->fileEnumerator = new FileEnumerator(
@@ -189,7 +193,7 @@ class Compose extends Command
     }
 
     // 3. Copy autoloaded files for each
-    protected function copyFiles()
+    protected function copyFiles(): void
     {
         if ($this->config->getTargetDirectory() === $this->config->getVendorDirectory()) {
             // Nothing to do.
@@ -209,7 +213,7 @@ class Compose extends Command
     }
 
     // 4. Determine namespace and classname changes
-    protected function determineChanges()
+    protected function determineChanges(): void
     {
 
         $this->changeEnumerator = new ChangeEnumerator($this->config);
@@ -221,7 +225,7 @@ class Compose extends Command
 
     // 5. Update namespaces and class names.
     // Replace references to updated namespaces and classnames throughout the dependencies.
-    protected function performReplacements()
+    protected function performReplacements(): void
     {
         $this->replacer = new Prefixer($this->config, $this->workingDir);
 
@@ -252,7 +256,7 @@ class Compose extends Command
     /**
      * 6. Generate autoloader.
      */
-    protected function generateAutoloader()
+    protected function generateAutoloader(): void
     {
         if ($this->config->getTargetDirectory() === $this->config->getVendorDirectory()) {
             // Nothing to do.
@@ -272,7 +276,7 @@ class Compose extends Command
      * Delete source files if desired.
      * Delete empty directories in destination.
      */
-    protected function cleanUp()
+    protected function cleanUp(): void
     {
         if ($this->config->getTargetDirectory() === $this->config->getVendorDirectory()) {
             // Nothing to do.

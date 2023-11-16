@@ -30,8 +30,13 @@ class FileEnumerator
     /** @var ComposerPackage[] */
     protected array $dependencies;
 
+    /** @var string[]  */
     protected array $excludePackageNames = array();
+
+    /** @var string[]  */
     protected array $excludeNamespaces = array();
+
+    /** @var string[]  */
     protected array $excludeFilePatterns = array();
 
     /** @var Filesystem */
@@ -47,7 +52,7 @@ class FileEnumerator
     /**
      * Record the files autolaoders for later use in building our own autoloader.
      *
-     * @var array
+     * @var array<string, array<int|string, string|array<string>>>
      */
     protected array $filesAutoloaders = [];
 
@@ -76,7 +81,7 @@ class FileEnumerator
     /**
      * Read the autoload keys of the dependencies and generate a list of the files referenced.
      */
-    public function compileFileList()
+    public function compileFileList(): void
     {
 
         $prefixToRemove = $this->workingDir . $this->vendorDir;

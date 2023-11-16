@@ -44,7 +44,7 @@ class Autoload
         $this->filesystem = new Filesystem(new Local($workingDir));
     }
 
-    public function generate()
+    public function generate(): void
     {
         // Do not overwrite Composer's autoload.php.
         // The correct solution is to add "classmap": ["vendor"] to composer.json, then run composer dump-autoload.
@@ -126,7 +126,7 @@ class Autoload
         return $dirname;
     }
 
-    protected function generateFilesAutoloader()
+    protected function generateFilesAutoloader(): void
     {
 
         // Hyphen used to match WordPress Coding Standards.
@@ -166,7 +166,7 @@ class Autoload
         file_put_contents($targetDirectory . $outputFilename, ob_get_clean());
     }
 
-    protected function generateAutoloadPhp()
+    protected function generateAutoloadPhp(): void
     {
 
         $autoloadPhp = <<<'EOD'
