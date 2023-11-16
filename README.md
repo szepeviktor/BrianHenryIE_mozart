@@ -168,6 +168,20 @@ Benefits over Mozart:
 
 Strauss will read the Mozart configuration from your `composer.json` to enable a seamless migration.
 
+## Alternatives
+
+I don't have a strong opinion on these. I began using Mozart because it was easy, then I adapted it to what I felt was most natural. I've never used these.
+
+* [humbug/php-scoper](https://github.com/humbug/php-scoper)
+* [TypistTech/imposter-plugin](https://github.com/TypistTech/imposter-plugin)
+* [Automattic/jetpack-autoloader](https://github.com/Automattic/jetpack-autoloader)
+* [tschallacka/wordpress-composer-plugin-builder](https://github.com/tschallacka/wordpress-composer-plugin-builder)
+
+### Interesting
+
+* [composer-unused/composer-unused](https://github.com/composer-unused/composer-unused)
+* [sdrobov/autopsr4](https://github.com/sdrobov/autopsr4)
+
 ## Changes before v1.0
 
 * Comprehensive attribution of code forked from Mozart – changes have been drastic and `git blame` is now useless, so I intend to add more attributions
