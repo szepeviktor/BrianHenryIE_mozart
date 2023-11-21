@@ -1738,4 +1738,50 @@ EOD;
 
         $this->assertEquals($expected, $result);
     }
+
+    /**
+     * A \Global_Class in PHPDoc was capturing far beyond what it should and replacing the entire function.
+     */
+    public function test_global_class_phpdoc_end_delimiter(): void
+    {
+
+        $contents = <<<'EOD'
+<?php
+namespace Company\Project;
+
+class Calendar {
+	/**
+	 * @return \Google_Client|WP_Error
+	 */
+	public function get_google_client() {
+		return $this->get_google_connection()->get_client();
+	}
+}
+EOD;
+
+        $expected = <<<'EOD'
+<?php
+namespace Company\Project;
+
+class Calendar {
+	/**
+	 * @return \Company_Project_Google_Client|WP_Error
+	 */
+	public function get_google_client() {
+		return $this->get_google_connection()->get_client();
+	}
+}
+EOD;
+
+        $originalClassname = 'Google_Client';
+        $classnamePrefix = 'Company_Project_';
+
+        $config = $this->createMock(StraussConfig::class);
+
+        $replacer = new Prefixer($config, __DIR__);
+
+        $result = $replacer->replaceClassname($contents, $originalClassname, $classnamePrefix);
+
+        $this->assertEquals($expected, $result);
+    }
 }

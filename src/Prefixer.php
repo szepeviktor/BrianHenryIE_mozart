@@ -336,13 +336,13 @@ class Prefixer
             '/([^a-zA-Z0-9_\x7f-\xff]  # Not a class character
 			\\\)                       # Followed by a backslash to indicate global namespace
 			('.$originalClassname.')   # Followed by the classname
-			([^\\\;]+)                 # Not a backslash or semicolon which might indicate a namespace
+			([^\\\;]{1})               # Not a backslash or semicolon which might indicate a namespace
 			/x'; //                    # x: ignore whitespace in regex.
 
         $contents = preg_replace_callback(
             $bodyPattern,
             function ($matches) use ($replacement) {
-                return $matches[1] . $replacement . $matches[2];
+                return $matches[1] . $replacement . $matches[3];
             },
             $contents
         );
