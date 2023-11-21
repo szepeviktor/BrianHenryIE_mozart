@@ -257,10 +257,12 @@ class Compose extends Command
         $classes = $this->changeEnumerator->getDiscoveredClasses();
         $constants = $this->changeEnumerator->getDiscoveredConstants();
 
-        $projectAutoloadPaths = $this->projectComposerPackage->getFlatAutoloadKey();
+        $callSitePaths =
+            $this->config->getUpdateCallSites()
+            ?? $this->projectComposerPackage->getFlatAutoloadKey();
 
         $phpFilesRelativePaths = [];
-        foreach ($projectAutoloadPaths as $relativePath) {
+        foreach ($callSitePaths as $relativePath) {
             $absolutePath = $this->workingDir . $relativePath;
             if (is_dir($absolutePath)) {
                 $phpFilesRelativePaths = array_merge($phpFilesRelativePaths, $this->fileEnumerator->findFilesInDirectory($this->workingDir, $relativePath));

@@ -51,6 +51,8 @@ class StraussConfig
      */
     protected ?string $constantsPrefix = null;
 
+    protected ?array $updateCallSites = null;
+
     /**
      * Packages to copy and (maybe) prefix.
      *
@@ -346,6 +348,21 @@ class StraussConfig
     public function setConstantsPrefix(string $constantsPrefix): void
     {
         $this->constantsPrefix = $constantsPrefix;
+    }
+
+    /**
+     * List of files and directories to update call sites in. Empty to disable. Null infers from the project's autoload key.
+     *
+     * @return string[]|null
+     */
+    public function getUpdateCallSites(): ?array
+    {
+        return $this->updateCallSites;
+    }
+
+    public function setUpdateCallSites(?array $updateCallSites): void
+    {
+        $this->updateCallSites = $updateCallSites;
     }
 
     /**

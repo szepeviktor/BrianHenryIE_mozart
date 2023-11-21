@@ -74,6 +74,8 @@ Strauss potentially requires zero configuration, but likely you'll want to custo
         "constant_prefix": "BHMP_",
         "packages": [
         ],
+        "update_call_sites": [
+        ],
         "override_autoload": {
         },
         "exclude_from_copy": {
@@ -108,6 +110,7 @@ The following configuration is inferred:
 - `classmap_prefix` defines the default string to prefix class names in the global namespace
 - `packages` is the list of packages to process. If absent, all packages in the `require` key of your `composer.json` are included
 - `classmap_output` is a `bool` to decide if Strauss will create `autoload-classmap.php` and `autoload.php`. If it is not set, it is `false` if `target_directory` is in your project's `autoload` key, `true` otherwise.
+- `update_call_sites` is an `array`, which defaults to the directories and files in the project's `autoload` key, whose PHP files will be updated where they call the prefixed classes. Set to an empty array to disable this feature.
 
 The following configuration is default:
 
