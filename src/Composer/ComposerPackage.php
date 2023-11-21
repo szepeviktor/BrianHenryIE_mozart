@@ -10,8 +10,10 @@ namespace BrianHenryIE\Strauss\Composer;
 use Composer\Composer;
 use Composer\Factory;
 use Composer\IO\NullIO;
-use stdClass;
 
+/**
+ * @phpstan-type AutoloadKey array{files?:array<string>,classmap?:array<string>,"psr-4"?:array<string,string|array<string>>}
+ */
 class ComposerPackage
 {
     /**
@@ -50,14 +52,14 @@ class ComposerPackage
     /**
      * The discovered files, classmap, psr0 and psr4 autoload keys discovered (as parsed by Composer).
      *
-     * @var array<string, array<string, string>>
+     * @var AutoloadKey
      */
     protected array $autoload = [];
 
     /**
      * The names in the composer.json's "requires" field (without versions).
      *
-     * @var array
+     * @var string[]
      */
     protected array $requiresNames = [];
 
@@ -67,7 +69,7 @@ class ComposerPackage
      * @param string $absolutePath The absolute path to the vendor folder with the composer.json "name",
      *          i.e. the domain/package definition, which is the vendor subdir from where the package's
      *          composer.json should be read.
-     * @param ?array $overrideAutoload Optional configuration to replace the package's own autoload definition with
+     * @param ?array{files?:array<string>, classmap?:array<string>, psr?:array<string,string|array<string>>} $overrideAutoload Optional configuration to replace the package's own autoload definition with
      *                                    another which Strauss can use.
      * @return ComposerPackage
      */
@@ -83,9 +85,8 @@ class ComposerPackage
     }
 
     /**
-     * @param array $jsonArray composer.json decoded to array
-     * @param ?array $overrideAutoload
-     * @return ComposerPackage
+     * @param array{name?:string, license?:string, requires?:array<string,string>, autoload?:AutoloadKey} $jsonArray composer.json decoded to array
+     * @param ?AutoloadKey $overrideAutoload New autoload rules to replace the existing ones.
      */
     public static function fromComposerJsonArray($jsonArray, array $overrideAutoload = null): ComposerPackage
     {
@@ -99,8 +100,8 @@ class ComposerPackage
     /**
      * Create a PHP object to represent a composer package.
      *
-     * @param array $overrideAutoload Optional configuration to replace the package's own autoload definition with
-     *                                    another which Strauss can use.
+     * @param Composer $composer
+     * @param ?AutoloadKey $overrideAutoload Optional configuration to replace the package's own autoload definition with another which Strauss can use.
      */
     public function __construct(Composer $composer, array $overrideAutoload = null)
     {
@@ -165,7 +166,7 @@ class ComposerPackage
      * e.g. ['psr-4' => [ 'BrianHenryIE\Project' => 'src' ]]
      * e.g. ['psr-4' => [ 'BrianHenryIE\Project' => ['src','lib] ]]
      *
-     * @return array<string, array<int|string, string|array<string>>>
+     * @return AutoloadKey
      */
     public function getAutoload(): array
     {

@@ -15,7 +15,11 @@ class ProjectComposerPackage extends ComposerPackage
 
     protected string $vendorDirectory;
 
-    public function __construct(string $absolutePath, array $overrideAutoload = null)
+    /**
+     * @param string $absolutePath
+     * @param ?array{files?:array<string>,classmap?:array<string>,"psr-4"?:array<string,string|array<string>>} $overrideAutoload
+     */
+    public function __construct(string $absolutePath, ?array $overrideAutoload = null)
     {
         if (is_dir($absolutePath)) {
             $absolutePathDir = $absolutePath;

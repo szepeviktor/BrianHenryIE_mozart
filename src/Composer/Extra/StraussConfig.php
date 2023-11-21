@@ -56,20 +56,26 @@ class StraussConfig
      *
      * If this is empty, the "requires" list in the project composer.json is used.
      *
-     * @var array
+     * @var string[]
      */
     protected array $packages = [];
 
-    // Back-compatibility with Mozart.
+    /**
+     * Back-compatibility with Mozart.
+     *
+     * @var string[]
+     */
     private array $excludePackages;
 
     /**
-     * @var array{packages?: string[], namespaces?: string[], filePatterns?: string[]}
+     * 'exclude_from_copy' in composer/extra config.
+     *
+     * @var array{packages: string[], namespaces: string[], file_patterns: string[]}
      */
-    protected array $excludeFromCopy = array();
+    protected array $excludeFromCopy = array('file_patterns'=>array(),'namespaces'=>array(),'packages'=>array());
 
     /**
-     * @var array{packages: string[], namespaces: string[], filePatterns: string[]}
+     * @var array{packages: string[], namespaces: string[], file_patterns: string[]}
      */
     protected array $excludeFromPrefix = array('file_patterns'=>array(),'namespaces'=>array(),'packages'=>array());
 
@@ -81,28 +87,32 @@ class StraussConfig
      * * A package specified both a PSR-4 and a classmap but only needs one
      * ...
      *
-     * @var array
+     * @var array<string, array{files?:array<string>,classmap?:array<string>,"psr-4":array<string|array<string>>}>|array{} $overrideAutoload
      */
-    protected $overrideAutoload = [];
+    protected array $overrideAutoload = [];
 
     /**
      * After completing prefixing should the source files be deleted?
      * This does not affect symlinked directories.
-     *
-     * @var bool
      */
-    protected $deleteVendorFiles = false;
+    protected bool $deleteVendorFiles = false;
 
     /**
      * After completing prefixing should the source packages be deleted?
      * This does not affect symlinked directories.
-     *
-     * @var bool
      */
-    protected $deleteVendorPackages = false;
+    protected bool $deleteVendorPackages = false;
 
     protected bool $classmapOutput;
 
+    /**
+     * A dictionary of regex captures => regex replacements.
+     *
+     * E.g. used to avoid repetition of the plugin vendor name in namespaces.
+     * `"~BrianHenryIE\\\\(.*)~" : "BrianHenryIE\\WC_Cash_App_Gateway\\\\$1"`.
+     *
+     * @var array<string, string> $namespaceReplacementPatterns
+     */
     protected array $namespaceReplacementPatterns = array();
 
     /**
@@ -338,27 +348,45 @@ class StraussConfig
         $this->constantsPrefix = $constantsPrefix;
     }
 
+    /**
+     * @param array{packages?:array<string>, namespaces?:array<string>, file_patterns?:array<string>} $excludeFromCopy
+     */
     public function setExcludeFromCopy(array $excludeFromCopy): void
     {
-        $this->excludeFromCopy = $excludeFromCopy;
+        foreach (array( 'packages', 'namespaces', 'file_patterns' ) as $key) {
+            if (isset($excludeFromCopy[$key])) {
+                $this->excludeFromCopy[$key] = $excludeFromCopy[$key];
+            }
+        }
     }
 
+    /**
+     * @return string[]
+     */
     public function getExcludePackagesFromCopy(): array
     {
         return $this->excludeFromCopy['packages'] ?? array();
     }
 
+    /**
+     * @return string[]
+     */
     public function getExcludeNamespacesFromCopy(): array
     {
         return $this->excludeFromCopy['namespaces'] ?? array();
     }
 
+    /**
+     * @return string[]
+     */
     public function getExcludeFilePatternsFromCopy(): array
     {
         return $this->excludeFromCopy['file_patterns'] ?? array();
     }
 
-
+    /**
+     * @param array{packages?:array<string>, namespaces?:array<string>, file_patterns?:array<string>} $excludeFromPrefix
+     */
     public function setExcludeFromPrefix(array $excludeFromPrefix): void
     {
         if (isset($excludeFromPrefix['packages'])) {
@@ -375,23 +403,32 @@ class StraussConfig
     /**
      * When prefixing, do not prefix these packages (which have been copied).
      *
-     * @var string[]
+     * @return string[]
      */
     public function getExcludePackagesFromPrefixing(): array
     {
         return $this->excludeFromPrefix['packages'] ?? array();
     }
 
+    /**
+     * @param string[] $excludePackagesFromPrefixing
+     */
     public function setExcludePackagesFromPrefixing(array $excludePackagesFromPrefixing): void
     {
         $this->excludeFromPrefix['packages'] = $excludePackagesFromPrefixing;
     }
 
+    /**
+     * @return string[]
+     */
     public function getExcludeNamespacesFromPrefixing(): array
     {
         return $this->excludeFromPrefix['namespaces'] ?? array();
     }
 
+    /**
+     * @return string[]
+     */
     public function getExcludeFilePatternsFromPrefixing(): array
     {
         return $this->excludeFromPrefix['file_patterns'] ?? array();
@@ -399,7 +436,7 @@ class StraussConfig
 
 
     /**
-     * @return array
+     * @return array{}|array<string, array{files?:array<string>,classmap?:array<string>,"psr-4":array<string|array<string>>}> $overrideAutoload Dictionary of package name: autoload rules.
      */
     public function getOverrideAutoload(): array
     {
@@ -407,7 +444,7 @@ class StraussConfig
     }
 
     /**
-     * @param array $overrideAutoload
+     * @param array<string, array{files?:array<string>,classmap?:array<string>,"psr-4":array<string|array<string>>}> $overrideAutoload Dictionary of package name: autoload rules.
      */
     public function setOverrideAutoload(array $overrideAutoload): void
     {
@@ -447,7 +484,7 @@ class StraussConfig
     }
 
     /**
-     * @return array
+     * @return string[]
      */
     public function getPackages(): array
     {
@@ -455,7 +492,7 @@ class StraussConfig
     }
 
     /**
-     * @param array $packages
+     * @param string[] $packages
      */
     public function setPackages(array $packages): void
     {
@@ -480,20 +517,17 @@ class StraussConfig
 
     /**
      * Backwards compatibility with Mozart.
+     *
+     * @param string[] $excludePackages
      */
-    public function setExcludePackages(array $excludePackages)
+    public function setExcludePackages(array $excludePackages): void
     {
-
-        if (! isset($this->excludeFromPrefix)) {
-            $this->excludeFromPrefix = array();
-        }
-
         $this->excludeFromPrefix['packages'] = $excludePackages;
     }
 
 
     /**
-     * @return array
+     * @return array<string,string>
      */
     public function getNamespaceReplacementPatterns(): array
     {
@@ -501,7 +535,7 @@ class StraussConfig
     }
 
     /**
-     * @param array $namespaceReplacementPatterns
+     * @param array<string,string> $namespaceReplacementPatterns
      */
     public function setNamespaceReplacementPatterns(array $namespaceReplacementPatterns): void
     {
@@ -534,7 +568,7 @@ class StraussConfig
     }
 
     /**
-     * @param bool $includeModifiedDate
+     * @param bool $includeAuthor
      */
     public function setIncludeAuthor(bool $includeAuthor): void
     {

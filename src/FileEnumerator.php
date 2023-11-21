@@ -30,8 +30,13 @@ class FileEnumerator
     /** @var ComposerPackage[] */
     protected array $dependencies;
 
+    /** @var string[]  */
     protected array $excludePackageNames = array();
+
+    /** @var string[]  */
     protected array $excludeNamespaces = array();
+
+    /** @var string[]  */
     protected array $excludeFilePatterns = array();
 
     /** @var Filesystem */
@@ -45,9 +50,11 @@ class FileEnumerator
     protected array $filesWithDependencies = [];
 
     /**
-     * Record the files autolaoders for later use in building our own autoloader.
+     * Record the files autoloaders for later use in building our own autoloader.
      *
-     * @var array
+     * Package-name: [ dir1, file1, file2, ... ].
+     *
+     * @var array<string, string[]>
      */
     protected array $filesAutoloaders = [];
 
@@ -76,7 +83,7 @@ class FileEnumerator
     /**
      * Read the autoload keys of the dependencies and generate a list of the files referenced.
      */
-    public function compileFileList()
+    public function compileFileList(): void
     {
 
         $prefixToRemove = $this->workingDir . $this->vendorDir;
@@ -123,6 +130,9 @@ class FileEnumerator
 
                             $outputRelativeFilepath = str_replace($prefixToRemove, '', $sourceAbsoluteFilepath);
                             $outputRelativeFilepath = preg_replace('#[\\\/]+#', DIRECTORY_SEPARATOR, $outputRelativeFilepath);
+                            if (is_null($outputRelativeFilepath)) {
+                                throw new \Exception('Error replacing directory separator in outputRelativeFilepath.');
+                            }
 
                             $file                                                   = array(
                                 'dependency'             => $dependency,
@@ -160,6 +170,9 @@ class FileEnumerator
                                 // lines above before being used.
                                 // Replace multiple \ and/or / with OS native DIRECTORY_SEPARATOR.
                                 $outputRelativeFilepath = preg_replace('#[\\\/]+#', DIRECTORY_SEPARATOR, $outputRelativeFilepath);
+                                if (is_null($outputRelativeFilepath)) {
+                                    throw new \Exception('Error replacing directory separator in outputRelativeFilepath.');
+                                }
 
                                 foreach ($this->excludeFilePatterns as $excludePattern) {
                                     if (1 === preg_match($excludePattern, $outputRelativeFilepath)) {

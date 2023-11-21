@@ -20,10 +20,14 @@ class ChangeEnumerator
      * @var string[]
      */
     protected array $excludePackagesFromPrefixing = array();
+
+    /** @var string[]  */
     protected array $excludeNamespacesFromPrefixing = array();
 
+    /** @var string[]  */
     protected array $excludeFilePatternsFromPrefixing = array();
 
+    /** @var string[]  */
     protected array $namespaceReplacementPatterns = array();
 
     /** @var string[] */
@@ -88,7 +92,7 @@ class ChangeEnumerator
      * @param string $absoluteTargetDir
      * @param array<string,array{dependency:ComposerPackage,sourceAbsoluteFilepath:string,targetRelativeFilepath:string}> $filesArray
      */
-    public function findInFiles($absoluteTargetDir, $filesArray)
+    public function findInFiles($absoluteTargetDir, $filesArray): void
     {
 //      $relativeFilepaths = array_keys( $filesArray );
 
@@ -113,6 +117,9 @@ class ChangeEnumerator
             // $contents = $this->filesystem->read($targetFile);
 
             $contents = file_get_contents($filepath);
+            if (false === $contents) {
+                throw new \Exception("Failed to read file at {$filepath}");
+            }
 
             $this->find($contents);
         }
@@ -193,7 +200,7 @@ class ChangeEnumerator
         );
     }
 
-    protected function addDiscoveredNamespaceChange(string $namespace)
+    protected function addDiscoveredNamespaceChange(string $namespace): void
     {
 
         foreach ($this->excludeNamespacesFromPrefixing as $excludeNamespace) {

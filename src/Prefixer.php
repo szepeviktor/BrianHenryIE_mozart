@@ -22,8 +22,13 @@ class Prefixer
     protected string $classmapPrefix;
     protected ?string $constantsPrefix;
 
+    /** @var string[]  */
     protected array $excludePackageNamesFromPrefixing;
+
+    /** @var string[]  */
     protected array $excludeNamespacesFromPrefixing;
+
+    /** @var string[]  */
     protected array $excludeFilePatternsFromPrefixing;
 
     /** @var array<string, ComposerPackage> */
@@ -49,11 +54,12 @@ class Prefixer
 
     /**
      * @param array<string, string> $namespaceChanges
-     * @param array<string, string> $classChanges
+     * @param string[] $classChanges
+     * @param string[] $constants
      * @param array<string,array{dependency:ComposerPackage,sourceAbsoluteFilepath:string,targetRelativeFilepath:string}> $phpFileArrays
      * @throws FileNotFoundException
      */
-    public function replaceInFiles(array $namespaceChanges, array $classChanges, array $constants, array $phpFileArrays)
+    public function replaceInFiles(array $namespaceChanges, array $classChanges, array $constants, array $phpFileArrays): void
     {
 
         foreach ($phpFileArrays as $targetRelativeFilepath => $fileArray) {
@@ -75,6 +81,9 @@ class Prefixer
 
             // Throws an exception, but unlikely to happen.
             $contents = $this->filesystem->read($targetRelativeFilepathFromProject);
+            if (false === $contents) {
+                throw new Exception("Failed to read file: {$targetRelativeFilepathFromProject}");
+            }
 
             $updatedContents = $this->replaceInString($namespaceChanges, $classChanges, $constants, $contents);
 
@@ -85,6 +94,12 @@ class Prefixer
         }
     }
 
+    /**
+     * @param array<string, string> $namespacesChanges
+     * @param string[] $classes
+     * @param string[] $originalConstants
+     * @param string $contents
+     */
     public function replaceInString(array $namespacesChanges, array $classes, array $originalConstants, string $contents): string
     {
 
@@ -119,10 +134,12 @@ class Prefixer
      * TODO: Test against traits.
      *
      * @param string $contents The text to make replacements in.
+     * @param string $originalNamespace
+     * @param string $replacement
      *
      * @return string The updated text.
      */
-    public function replaceNamespace($contents, $originalNamespace, $replacement)
+    public function replaceNamespace(string $contents, string $originalNamespace, string $replacement): string
     {
 
         $searchNamespace = '\\'.rtrim($originalNamespace, '\\') . '\\';
@@ -221,10 +238,9 @@ class Prefixer
      * @param string $contents
      * @param string $originalClassname
      * @param string $classnamePrefix
-     * @return array|string|string[]|null
      * @throws \Exception
      */
-    public function replaceClassname($contents, $originalClassname, $classnamePrefix)
+    public function replaceClassname(string $contents, string $originalClassname, string $classnamePrefix): string
     {
         $searchClassname = preg_quote($originalClassname, '/');
 
@@ -272,6 +288,10 @@ class Prefixer
         };
 
         $result = preg_replace_callback($pattern, $replacingFunction, $contents);
+
+        if (is_null($result)) {
+            throw new Exception('preg_replace_callback returned null');
+        }
 
         $matchingError = preg_last_error();
         if (0 !== $matchingError) {
@@ -330,7 +350,12 @@ class Prefixer
         return $contents;
     }
 
-    protected function replaceConstants($contents, $originalConstants, $prefix): string
+    /**
+     * @param string $contents
+     * @param string[] $originalConstants
+     * @param string $prefix
+     */
+    protected function replaceConstants(string $contents, array $originalConstants, string $prefix): string
     {
 
         foreach ($originalConstants as $constant) {
@@ -340,7 +365,7 @@ class Prefixer
         return $contents;
     }
 
-    protected function replaceConstant($contents, $originalConstant, $replacementConstant): string
+    protected function replaceConstant(string $contents, string $originalConstant, string $replacementConstant): string
     {
         return str_replace($originalConstant, $replacementConstant, $contents);
     }
