@@ -37,14 +37,14 @@ Its use should be automated in Composer scripts.
 
 ```json
 "scripts": {
-    "strauss": [
-        "vendor/bin/strauss"
+    "prefix-namespaces": [
+        "strauss"
     ],
     "post-install-cmd": [
-        "@strauss"
+        "@prefix-namespaces"
     ],
     "post-update-cmd": [
-        "@strauss"
+        "@prefix-namespaces"
     ]
 }
 ```
@@ -53,7 +53,7 @@ or
 
 ```json
 "scripts": {
-    "strauss": [
+    "prefix-namespaces": [
         "@php strauss.phar"
     ]
 }
@@ -92,7 +92,6 @@ Strauss potentially requires zero configuration, but likely you'll want to custo
             "namespaces": [
             ],
             "file_patterns": [
-                "/^psr.*$/"
             ]
         },
         "namespace_replacement_patterns" : {
