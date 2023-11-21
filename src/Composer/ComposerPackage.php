@@ -165,6 +165,8 @@ class ComposerPackage
      *
      * e.g. ['psr-4' => [ 'BrianHenryIE\Project' => 'src' ]]
      * e.g. ['psr-4' => [ 'BrianHenryIE\Project' => ['src','lib] ]]
+     * e.g. ['classmap' => [ 'src', 'lib' ]]
+     * e.g. ['files' => [ 'lib', 'functions.php' ]]
      *
      * @return AutoloadKey
      */

@@ -8,6 +8,8 @@ namespace BrianHenryIE\Strauss\Composer;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use Composer\Factory;
 use Composer\IO\NullIO;
+use RecursiveArrayIterator;
+use RecursiveIteratorIterator;
 
 class ProjectComposerPackage extends ComposerPackage
 {
@@ -70,5 +72,23 @@ class ProjectComposerPackage extends ComposerPackage
     public function getVendorDirectory(): string
     {
         return rtrim($this->vendorDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+    }
+
+    /**
+     * Get all values in the autoload key as a flattened array.
+     *
+     * @return string[]
+     */
+    public function getFlatAutoloadKey(): array
+    {
+        $autoload = $this->getAutoload();
+        $values = [];
+        array_walk_recursive(
+            $autoload,
+            function ($value, $key) use (&$values) {
+                $values[] = $value;
+            }
+        );
+        return $values;
     }
 }
