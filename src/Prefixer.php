@@ -132,9 +132,9 @@ class Prefixer
         $pattern = "
             /                              # Start the pattern
             (
-            ^\s*                           # start of the string
+            ^\s*                          # start of the string
             |\\n\s*                        # start of the line
-            |(^\s*namespace|[\r\n]+\s*namespace)\s+                  # the namespace keyword
+            |(<?php\s+namespace|^\s*namespace|[\r\n]+\s*namespace)\s+                  # the namespace keyword
             |use\s+                        # the use keyword
             |use\s+function\s+			   # the use function syntax
             |new\s+

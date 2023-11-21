@@ -1711,4 +1711,31 @@ EOD;
 
         $this->assertEquals($expected, $result);
     }
+
+    /**
+     * @see https://github.com/BrianHenryIE/strauss/issues/80
+     */
+    public function test_prefix_no_newline_after_opening_php_replace_namespace(): void
+    {
+
+        $contents = <<<'EOD'
+<?php namespace League\OAuth2\Client\Provider;
+
+use League\OAuth2\Client\Tool\ArrayAccessorTrait;
+EOD;
+
+        $expected = <<<'EOD'
+<?php namespace Company\Project\League\OAuth2\Client\Provider;
+
+use Company\Project\League\OAuth2\Client\Tool\ArrayAccessorTrait;
+EOD;
+
+        $config = $this->createMock(StraussConfig::class);
+
+        $replacer = new Prefixer($config, __DIR__);
+
+        $result = $replacer->replaceNamespace($contents, 'League\\OAuth2', 'Company\\Project\\League\\OAuth2');
+
+        $this->assertEquals($expected, $result);
+    }
 }

@@ -130,9 +130,13 @@ class ChangeEnumerator
     {
 
         // If the entire file is under one namespace, all we want is the namespace.
+        // If there were more than one namespace, it would appear as `namespace MyNamspace { ...`,
+        // a file with only a single namespace will appear as `namespace MyNamspace;`.
         $singleNamespacePattern = '/
-            [\r\n]+\s*namespace\s+([0-9A-Za-z_\x7f-\xff\\\\]+)[\s\S]*;    # A single namespace in the file.... should return
-        /x';
+            [\r\n(<php )]                                     # A new line or the beginning of the file.
+            \s*                                               # Allow whitespace before
+            namespace\s+([0-9A-Za-z_\x7f-\xff\\\\]+)[\s\S]*;  # Match a single namespace in the file.
+        /x'; //  # x: ignore whitespace in regex.
         if (1 === preg_match($singleNamespacePattern, $contents, $matches)) {
             $this->addDiscoveredNamespaceChange($matches[1]);
             return $contents;

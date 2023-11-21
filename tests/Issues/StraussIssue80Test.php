@@ -1,0 +1,60 @@
+<?php
+/**
+ * Incorrectly not prefixing when the word "namespace" is on the same line as `<?php `.
+ *
+ * @see https://github.com/BrianHenryIE/strauss/issues/80
+ */
+
+namespace BrianHenryIE\Strauss\Tests\Issues;
+
+use BrianHenryIE\Strauss\Console\Commands\Compose;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+
+/**
+ * @package BrianHenryIE\Strauss\Tests\Issues
+ * @coversNothing
+ */
+class StraussIssue80Test extends \BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase
+{
+
+    /**
+     */
+    public function test_namespace_keyword_on_opening_line()
+    {
+
+        $composerJsonString = <<<'EOD'
+{
+  "name": "issue/80",
+  "require": {
+    "league/oauth2-linkedin": "*"
+  },
+  "extra": {
+    "strauss": {
+      "namespace_prefix": "Company\\Project\\",
+      "classmap_prefix": "Issue_80_"
+    }
+  }
+}
+EOD;
+
+        chdir($this->testsWorkingDir);
+
+        file_put_contents($this->testsWorkingDir . '/composer.json', $composerJsonString);
+
+        exec('composer install');
+
+        $inputInterfaceMock = $this->createMock(InputInterface::class);
+        $outputInterfaceMock = $this->createMock(OutputInterface::class);
+
+        $strauss = new Compose();
+
+        $result = $strauss->run($inputInterfaceMock, $outputInterfaceMock);
+
+        self::assertEquals(0, $result);
+
+        $php_string = file_get_contents($this->testsWorkingDir . 'vendor-prefixed/league/oauth2-linkedin/src/Provider/LinkedInResourceOwner.php');
+        self::assertStringNotContainsString('class Issue_80_LinkedInResourceOwner extends GenericResourceOwner', $php_string);
+        self::assertStringContainsString('namespace Company\Project\League\OAuth2\Client\Provider;', $php_string);
+    }
+}
