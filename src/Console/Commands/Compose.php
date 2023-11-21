@@ -13,12 +13,15 @@ use BrianHenryIE\Strauss\Licenser;
 use BrianHenryIE\Strauss\Prefixer;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use Exception;
+use RegexIterator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Compose extends Command
 {
+    protected OutputInterface $output;
+
     /** @var string */
     protected string $workingDir;
 
@@ -57,6 +60,8 @@ class Compose extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $this->output = $output;
+
         $workingDir = getcwd() . DIRECTORY_SEPARATOR;
         $this->workingDir = $workingDir;
 
@@ -72,6 +77,8 @@ class Compose extends Command
             $this->determineChanges();
 
             $this->performReplacements();
+
+            $this->performReplacementsInProjectFiles();
 
             $this->addLicenses();
 
@@ -240,6 +247,31 @@ class Compose extends Command
         $phpFiles = $this->fileEnumerator->getPhpFilesAndDependencyList();
 
         $this->replacer->replaceInFiles($namespaces, $classes, $constants, $phpFiles);
+    }
+
+    protected function performReplacementsInProjectFiles(): void
+    {
+        $projectReplace = new Prefixer($this->config, $this->workingDir);
+
+        $namespaces = $this->changeEnumerator->getDiscoveredNamespaceReplacements();
+        $classes = $this->changeEnumerator->getDiscoveredClasses();
+        $constants = $this->changeEnumerator->getDiscoveredConstants();
+
+        $projectAutoloadPaths = $this->projectComposerPackage->getFlatAutoloadKey();
+
+        $phpFilesRelativePaths = [];
+        foreach ($projectAutoloadPaths as $relativePath) {
+            $absolutePath = $this->workingDir . $relativePath;
+            if (is_dir($absolutePath)) {
+                $phpFilesRelativePaths = array_merge($phpFilesRelativePaths, $this->fileEnumerator->findFilesInDirectory($this->workingDir, $relativePath));
+            } elseif (is_readable($absolutePath)) {
+                $phpFilesRelativePaths[] = $relativePath;
+            } else {
+                $this->output->write('Expected file not found from project autoload: ' . $absolutePath);
+            }
+        }
+
+        $projectReplace->replaceInProjectFiles($namespaces, $classes, $constants, $phpFilesRelativePaths);
     }
 
     protected function addLicenses(): void

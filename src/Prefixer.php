@@ -31,7 +31,9 @@ class Prefixer
     /** @var string[]  */
     protected array $excludeFilePatternsFromPrefixing;
 
-    /** @var array<string, ComposerPackage> */
+    /**
+     * @var array<string, ComposerPackage>
+     */
     protected array $changedFiles = array();
 
     public function __construct(StraussConfig $config, string $workingDir)
@@ -90,6 +92,33 @@ class Prefixer
             if ($updatedContents !== $contents) {
                 $this->changedFiles[$targetRelativeFilepath] = $package;
                 $this->filesystem->put($targetRelativeFilepathFromProject, $updatedContents);
+            }
+        }
+    }
+
+    /**
+     * @param array<string, string> $namespaceChanges
+     * @param string[] $classChanges
+     * @param string[] $constants
+     * @param string[] $relativeFilePaths
+     *
+     * @throws FileNotFoundException
+     * @throws Exception
+     */
+    public function replaceInProjectFiles(array $namespaceChanges, array $classChanges, array $constants, array $relativeFilePaths): void
+    {
+        foreach ($relativeFilePaths as $workingDirRelativeFilepath) {
+            // Throws an exception, but unlikely to happen.
+            $contents = $this->filesystem->read($workingDirRelativeFilepath);
+            if (false === $contents) {
+                throw new Exception("Failed to read file: {$workingDirRelativeFilepath}");
+            }
+
+            $updatedContents = $this->replaceInString($namespaceChanges, $classChanges, $constants, $contents);
+
+            if ($updatedContents !== $contents) {
+                $this->changedFiles[ $workingDirRelativeFilepath ] = '';
+                $this->filesystem->put($workingDirRelativeFilepath, $updatedContents);
             }
         }
     }
@@ -351,6 +380,8 @@ class Prefixer
     }
 
     /**
+     * TODO: This should be split and brought to ChangeEnumerator.
+     *
      * @param string $contents
      * @param string[] $originalConstants
      * @param string $prefix

@@ -11,6 +11,9 @@ use BrianHenryIE\Strauss\Composer\ComposerPackage;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RegexIterator;
 use Symfony\Component\Finder\Finder;
 
 class FileEnumerator
@@ -229,5 +232,24 @@ class FileEnumerator
     public function getFilesAutoloaders(): array
     {
         return $this->filesAutoloaders;
+    }
+
+    /**
+     * @param string $workingDir Absolute path to the working directory, results will be relative to this.
+     * @param string $relativeDirectory
+     * @param string $regexPattern Default to PHP files.
+     *
+     * @return string[]
+     */
+    public function findFilesInDirectory(string $workingDir, string $relativeDirectory = '.', string $regexPattern = '/.+\.php$/'): array
+    {
+        $dir = new RecursiveDirectoryIterator($workingDir . $relativeDirectory);
+        $ite = new RecursiveIteratorIterator($dir);
+        $files = new RegexIterator($ite, $regexPattern, RegexIterator::GET_MATCH);
+        $fileList = array();
+        foreach ($files as $file) {
+            $fileList = array_merge($fileList, str_replace($workingDir, '', $file));
+        }
+        return $fileList;
     }
 }
