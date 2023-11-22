@@ -201,13 +201,13 @@ class Prefixer
             |\?\s*                         # In a ternary operator
             |:\s*                          # In a ternary operator
             )
-            (
+            (?<searchNamespace>
             {$searchNamespace}             # followed by the namespace to replace
             )
             (?!:)                          # Not followed by : which would only be valid after a classname
             (
             \s*;                           # followed by a semicolon 
-            |\\\\{1,2}[a-zA-Z0-9_\x7f-\xff]+         # or a classname no slashes 
+            |\\\\{1,2}[a-zA-Z0-9_\x7f-\xff]{1,}         # or a classname no slashes 
             |\s+as                         # or the keyword as 
             |\"                            # or quotes
             |'                             # or single quote         
@@ -220,7 +220,7 @@ class Prefixer
             $singleBackslash = '\\';
             $doubleBackslash = '\\\\';
 
-            if (false !== strpos($matches[3], $doubleBackslash)) {
+            if (false !== strpos($matches['0'], $doubleBackslash)) {
                 $originalNamespace = str_replace($singleBackslash, $doubleBackslash, $originalNamespace);
                 $replacement = str_replace($singleBackslash, $doubleBackslash, $replacement);
             }
