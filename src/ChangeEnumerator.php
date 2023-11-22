@@ -115,8 +115,6 @@ class ChangeEnumerator
      */
     public function findInFiles($absoluteTargetDir, $filesArray): void
     {
-//      $relativeFilepaths = array_keys( $filesArray );
-
         foreach ($filesArray as $relativeFilepath => $fileArray) {
             $package = $fileArray['dependency'];
             foreach ($this->excludePackagesFromPrefixing as $excludePackagesName) {
@@ -130,7 +128,6 @@ class ChangeEnumerator
                     continue 2;
                 }
             }
-
 
             $filepath = $absoluteTargetDir . $relativeFilepath;
 

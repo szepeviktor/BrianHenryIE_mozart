@@ -142,8 +142,6 @@ class Prefixer
             $contents = $this->replaceClassname($contents, $originalClassname, $classmapPrefix);
         }
 
-        // Reorder this so substrings are always ahead of what they might be substrings of.
-        asort($namespacesChanges);
         foreach ($namespacesChanges as $originalNamespace => $replacement) {
             if (in_array($originalNamespace, $this->excludeNamespacesFromPrefixing)) {
                 continue;
