@@ -60,9 +60,15 @@ class ChangeEnumerator
      *
      * @return string[]
      */
-    public function getDiscoveredNamespaceReplacements(): array
+    public function getDiscoveredNamespaceReplacements(?string $namespacePrefix = ''): array
     {
-        $discoveredNamespaceReplacements = $this->discoveredNamespaces;
+        $discoveredNamespaceReplacements = array_filter(
+            $this->discoveredNamespaces,
+            function (string $replacement) use ($namespacePrefix) {
+                return empty($namespacePrefix) || ! str_starts_with($replacement, $namespacePrefix);
+            },
+            ARRAY_FILTER_USE_KEY
+        );
 
         uksort($discoveredNamespaceReplacements, function ($a, $b) {
             return strlen($b) <=> strlen($a);
@@ -74,18 +80,33 @@ class ChangeEnumerator
     /**
      * @return string[]
      */
-    public function getDiscoveredClasses(): array
+    public function getDiscoveredClasses(?string $classmapPrefix = ''): array
     {
         unset($this->discoveredClasses['ReturnTypeWillChange']);
-        return array_keys($this->discoveredClasses);
+
+        $discoveredClasses = array_filter(
+            array_keys($this->discoveredClasses),
+            function (string $replacement) use ($classmapPrefix) {
+                return empty($classmapPrefix) || ! str_starts_with($replacement, $classmapPrefix);
+            }
+        );
+
+        return $discoveredClasses;
     }
 
     /**
      * @return string[]
      */
-    public function getDiscoveredConstants(): array
+    public function getDiscoveredConstants(?string $constantsPrefix = ''): array
     {
-        return array_keys($this->discoveredConstants);
+        $discoveredConstants = array_filter(
+            array_keys($this->discoveredConstants),
+            function (string $replacement) use ($constantsPrefix) {
+                return empty($constantsPrefix) || ! str_starts_with($replacement, $constantsPrefix);
+            }
+        );
+
+        return $discoveredConstants;
     }
 
     /**

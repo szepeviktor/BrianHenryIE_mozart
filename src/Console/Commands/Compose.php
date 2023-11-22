@@ -240,9 +240,9 @@ class Compose extends Command
     {
         $this->replacer = new Prefixer($this->config, $this->workingDir);
 
-        $namespaces = $this->changeEnumerator->getDiscoveredNamespaceReplacements();
-        $classes = $this->changeEnumerator->getDiscoveredClasses();
-        $constants = $this->changeEnumerator->getDiscoveredConstants();
+        $namespaces = $this->changeEnumerator->getDiscoveredNamespaceReplacements($this->config->getNamespacePrefix());
+        $classes = $this->changeEnumerator->getDiscoveredClasses($this->config->getClassmapPrefix());
+        $constants = $this->changeEnumerator->getDiscoveredConstants($this->config->getConstantsPrefix());
         
         $phpFiles = $this->fileEnumerator->getPhpFilesAndDependencyList();
 
@@ -253,9 +253,9 @@ class Compose extends Command
     {
         $projectReplace = new Prefixer($this->config, $this->workingDir);
 
-        $namespaces = $this->changeEnumerator->getDiscoveredNamespaceReplacements();
-        $classes = $this->changeEnumerator->getDiscoveredClasses();
-        $constants = $this->changeEnumerator->getDiscoveredConstants();
+        $namespaces = $this->changeEnumerator->getDiscoveredNamespaceReplacements($this->config->getNamespacePrefix());
+        $classes = $this->changeEnumerator->getDiscoveredClasses($this->config->getClassmapPrefix());
+        $constants = $this->changeEnumerator->getDiscoveredConstants($this->config->getConstantsPrefix());
 
         $callSitePaths =
             $this->config->getUpdateCallSites()

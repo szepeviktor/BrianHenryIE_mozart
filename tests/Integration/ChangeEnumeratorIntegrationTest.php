@@ -72,15 +72,15 @@ EOD;
 
         $config = $this->createStub(StraussConfig::class);
 
-        $config->method('getExcludePackagesFromPrefixing')->willReturn(array());
+        $config->method('getNamespacePrefix')->willReturn("Prefix");
         $config->method('getExcludeNamespacesFromPrefixing')->willReturn(array());
+        $config->method('getExcludePackagesFromPrefixing')->willReturn(array());
 
         $changeEnumerator = new ChangeEnumerator($config);
 
         $phpFileList = $fileEnumerator->getPhpFilesAndDependencyList();
 
         $changeEnumerator->findInFiles($workingDir . $relativeTargetDir, $phpFileList);
-
 
         $classes = $changeEnumerator->getDiscoveredClasses();
 
