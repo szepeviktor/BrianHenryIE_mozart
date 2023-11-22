@@ -78,6 +78,8 @@ class Compose extends Command
 
             $this->performReplacements();
 
+            $this->performReplacementsInComposerFiles();
+
             $this->performReplacementsInProjectFiles();
 
             $this->addLicenses();
@@ -247,6 +249,27 @@ class Compose extends Command
         $phpFiles = $this->fileEnumerator->getPhpFilesAndDependencyList();
 
         $this->replacer->replaceInFiles($namespaces, $classes, $constants, $phpFiles);
+    }
+
+    protected function performReplacementsInComposerFiles(): void
+    {
+        if ($this->config->getTargetDirectory() !== $this->config->getVendorDirectory()) {
+            // Nothing to do.
+            return;
+        }
+
+        $projectReplace = new Prefixer($this->config, $this->workingDir);
+
+        $namespaces = $this->changeEnumerator->getDiscoveredNamespaceReplacements($this->config->getNamespacePrefix());
+        $classes = $this->changeEnumerator->getDiscoveredClasses($this->config->getClassmapPrefix());
+        $constants = $this->changeEnumerator->getDiscoveredConstants($this->config->getConstantsPrefix());
+
+        $composerPhpFileRelativePaths = $this->fileEnumerator->findFilesInDirectory(
+            $this->workingDir,
+            $this->config->getVendorDirectory() . 'composer'
+        );
+
+        $projectReplace->replaceInProjectFiles($namespaces, $classes, $constants, $composerPhpFileRelativePaths);
     }
 
     protected function performReplacementsInProjectFiles(): void
