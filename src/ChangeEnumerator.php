@@ -60,7 +60,7 @@ class ChangeEnumerator
      *
      * @return string[]
      */
-    public function getDiscoveredNamespaceReplacements(?string $namespacePrefix = ''): array
+    public function getDiscoveredNamespaces(?string $namespacePrefix = ''): array
     {
         $discoveredNamespaceReplacements = array_filter(
             $this->discoveredNamespaces,

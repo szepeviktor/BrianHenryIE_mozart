@@ -84,7 +84,7 @@ EOD;
 
         $classes = $changeEnumerator->getDiscoveredClasses();
 
-        $namespaces = $changeEnumerator->getDiscoveredNamespaceReplacements();
+        $namespaces = $changeEnumerator->getDiscoveredNamespaces();
 
         $this->assertNotEmpty($classes);
         $this->assertNotEmpty($namespaces);

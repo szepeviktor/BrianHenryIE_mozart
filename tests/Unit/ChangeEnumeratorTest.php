@@ -38,8 +38,8 @@ EOD;
 
         $sut->find($validPhp);
 
-        $this->assertArrayHasKey('MyNamespace', $sut->getDiscoveredNamespaceReplacements(), 'Found: ' . implode(',', $sut->getDiscoveredNamespaceReplacements()));
-        $this->assertContains('Prefix\MyNamespace', $sut->getDiscoveredNamespaceReplacements());
+        $this->assertArrayHasKey('MyNamespace', $sut->getDiscoveredNamespaces(), 'Found: ' . implode(',', $sut->getDiscoveredNamespaces()));
+        $this->assertContains('Prefix\MyNamespace', $sut->getDiscoveredNamespaces());
 
         $this->assertNotContains('MyClass', $sut->getDiscoveredClasses());
     }
@@ -84,7 +84,7 @@ EOD;
 
         $sut->find($validPhp);
 
-        $this->assertContains('\MyNamespace', $sut->getDiscoveredNamespaceReplacements());
+        $this->assertContains('\MyNamespace', $sut->getDiscoveredNamespaces());
 
         $this->assertContains('MyClass', $sut->getDiscoveredClasses());
     }
@@ -114,7 +114,7 @@ EOD;
 
         $sut->find($validPhp);
 
-        $this->assertContains('\MyNamespace', $sut->getDiscoveredNamespaceReplacements());
+        $this->assertContains('\MyNamespace', $sut->getDiscoveredNamespaces());
 
         $this->assertContains('MyClass', $sut->getDiscoveredClasses());
         $this->assertNotContains('MyOtherClass', $sut->getDiscoveredClasses());
@@ -345,7 +345,7 @@ EOD;
         $changeEnumerator = new ChangeEnumerator($config);
         $changeEnumerator->findInFiles($dir, $filesArray);
 
-        $this->assertEmpty($changeEnumerator->getDiscoveredNamespaceReplacements());
+        $this->assertEmpty($changeEnumerator->getDiscoveredNamespaces());
     }
 
 
@@ -368,7 +368,7 @@ EOD;
         $changeEnumerator = new ChangeEnumerator($config);
         $changeEnumerator->findInFiles($dir, $filesArray);
 
-        $this->assertEmpty($changeEnumerator->getDiscoveredNamespaceReplacements());
+        $this->assertEmpty($changeEnumerator->getDiscoveredNamespaces());
     }
 
     /**
@@ -392,9 +392,9 @@ EOD;
         $changeEnumerator = new ChangeEnumerator($config);
         $changeEnumerator->find($contents);
 
-        $this->assertArrayHasKey('BrianHenryIE\PdfHelpers', $changeEnumerator->getDiscoveredNamespaceReplacements());
-        $this->assertContains('BrianHenryIE\Prefix\PdfHelpers', $changeEnumerator->getDiscoveredNamespaceReplacements());
-        $this->assertNotContains('BrianHenryIE\Prefix\BrianHenryIE\PdfHelpers', $changeEnumerator->getDiscoveredNamespaceReplacements());
+        $this->assertArrayHasKey('BrianHenryIE\PdfHelpers', $changeEnumerator->getDiscoveredNamespaces());
+        $this->assertContains('BrianHenryIE\Prefix\PdfHelpers', $changeEnumerator->getDiscoveredNamespaces());
+        $this->assertNotContains('BrianHenryIE\Prefix\BrianHenryIE\PdfHelpers', $changeEnumerator->getDiscoveredNamespaces());
     }
 
     /**
@@ -491,7 +491,7 @@ EOD;
         $changeEnumerator = new ChangeEnumerator($config);
         $changeEnumerator->find($contents);
 
-        self::assertArrayNotHasKey('WPGraphQL', $changeEnumerator->getDiscoveredNamespaceReplacements());
+        self::assertArrayNotHasKey('WPGraphQL', $changeEnumerator->getDiscoveredNamespaces());
         self::assertContains('WPGraphQL', $changeEnumerator->getDiscoveredClasses());
     }
 }

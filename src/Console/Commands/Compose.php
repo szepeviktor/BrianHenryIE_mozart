@@ -242,7 +242,7 @@ class Compose extends Command
     {
         $this->replacer = new Prefixer($this->config, $this->workingDir);
 
-        $namespaces = $this->changeEnumerator->getDiscoveredNamespaceReplacements($this->config->getNamespacePrefix());
+        $namespaces = $this->changeEnumerator->getDiscoveredNamespaces($this->config->getNamespacePrefix());
         $classes = $this->changeEnumerator->getDiscoveredClasses($this->config->getClassmapPrefix());
         $constants = $this->changeEnumerator->getDiscoveredConstants($this->config->getConstantsPrefix());
         
@@ -260,7 +260,7 @@ class Compose extends Command
 
         $projectReplace = new Prefixer($this->config, $this->workingDir);
 
-        $namespaces = $this->changeEnumerator->getDiscoveredNamespaceReplacements($this->config->getNamespacePrefix());
+        $namespaces = $this->changeEnumerator->getDiscoveredNamespaces($this->config->getNamespacePrefix());
         $classes = $this->changeEnumerator->getDiscoveredClasses($this->config->getClassmapPrefix());
         $constants = $this->changeEnumerator->getDiscoveredConstants($this->config->getConstantsPrefix());
 
@@ -276,7 +276,7 @@ class Compose extends Command
     {
         $projectReplace = new Prefixer($this->config, $this->workingDir);
 
-        $namespaces = $this->changeEnumerator->getDiscoveredNamespaceReplacements($this->config->getNamespacePrefix());
+        $namespaces = $this->changeEnumerator->getDiscoveredNamespaces($this->config->getNamespacePrefix());
         $classes = $this->changeEnumerator->getDiscoveredClasses($this->config->getClassmapPrefix());
         $constants = $this->changeEnumerator->getDiscoveredConstants($this->config->getConstantsPrefix());
 

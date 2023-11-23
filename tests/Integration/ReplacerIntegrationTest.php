@@ -75,7 +75,7 @@ EOD;
         $changeEnumerator = new ChangeEnumerator($config);
         $changeEnumerator->findInFiles($absoluteTargetDir, $phpFileList);
 
-        $namespaces = $changeEnumerator->getDiscoveredNamespaceReplacements();
+        $namespaces = $changeEnumerator->getDiscoveredNamespaces();
         $classes = $changeEnumerator->getDiscoveredClasses();
         $constants = array();
 
