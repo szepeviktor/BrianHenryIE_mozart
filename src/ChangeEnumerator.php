@@ -62,13 +62,16 @@ class ChangeEnumerator
      */
     public function getDiscoveredNamespaces(?string $namespacePrefix = ''): array
     {
-        $discoveredNamespaceReplacements = array_filter(
-            $this->discoveredNamespaces,
-            function (string $replacement) use ($namespacePrefix) {
-                return empty($namespacePrefix) || ! str_starts_with($replacement, $namespacePrefix);
-            },
-            ARRAY_FILTER_USE_KEY
-        );
+        $discoveredNamespaceReplacements = [];
+
+        // When running subsequent times, try to discover the original namespaces.
+        // This is naive: it will not work where namespace replacement patterns have been used.
+        foreach ($this->discoveredNamespaces as $key => $value) {
+            $unprefixed = str_starts_with($this->namespacePrefix, $key)
+                ? ltrim(substr($key, strlen($this->namespacePrefix)), '\\')
+                : $key;
+            $discoveredNamespaceReplacements[ $unprefixed ] = $value;
+        }
 
         uksort($discoveredNamespaceReplacements, function ($a, $b) {
             return strlen($a) <=> strlen($b);
