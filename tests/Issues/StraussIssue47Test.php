@@ -41,7 +41,7 @@ class StraussIssue47Test extends \BrianHenryIE\Strauss\Tests\Integration\Util\In
     }
   },  
   "require": {
-	"dragon-public/framework": "*"
+	"dragon-public/framework": "1.3.0"
   },
   "extra": {
     "strauss": {
@@ -81,7 +81,6 @@ EOD;
      */
     public function test_double_namespace_dont_copy_dependencies()
     {
-
         $composerJsonString = <<<'EOD'
 {
   "name": "brianhenryie/double-namespace-47",

@@ -71,7 +71,7 @@ class ChangeEnumerator
         );
 
         uksort($discoveredNamespaceReplacements, function ($a, $b) {
-            return strlen($b) <=> strlen($a);
+            return strlen($a) <=> strlen($b);
         });
 
         return $discoveredNamespaceReplacements;
