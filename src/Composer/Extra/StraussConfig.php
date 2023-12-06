@@ -9,6 +9,7 @@ use Composer\Composer;
 use Exception;
 use JsonMapper\JsonMapperFactory;
 use JsonMapper\Middleware\Rename\Rename;
+use Symfony\Component\Console\Input\InputInterface;
 
 class StraussConfig
 {
@@ -51,6 +52,18 @@ class StraussConfig
      */
     protected ?string $constantsPrefix = null;
 
+    /**
+     * Should replacements be performed in project files?
+     *
+     * When null, files in the project's `autoload` key are scanned and changes which have been performed on the
+     * vendor packages are reflected in the project files.
+     *
+     * When an array of relative file paths are provided, the files in those directories are updated.
+     *
+     * An empty array disables updating project files.
+     *
+     * @var ?string[]
+     */
     protected ?array $updateCallSites = null;
 
     /**
@@ -138,7 +151,7 @@ class StraussConfig
      *
      * @throws Exception
      */
-    public function __construct(Composer $composer)
+    public function __construct(Composer $composer, InputInterface $input)
     {
 
         $configExtraSettings = null;
@@ -258,6 +271,34 @@ class StraussConfig
         // TODO: Throw an exception if any regex patterns in config are invalid.
         // https://stackoverflow.com/questions/4440626/how-can-i-validate-regex
         // preg_match('~Valid(Regular)Expression~', null) === false);
+
+        if (isset($configExtraSettings->updateCallSites)) {
+            if (true === $configExtraSettings->updateCallSites) {
+                $this->updateCallSites = null;
+            } elseif (false === $configExtraSettings->updateCallSites) {
+                $this->updateCallSites = array();
+            } elseif (is_array($configExtraSettings->updateCallSites)) {
+                $this->updateCallSites = $configExtraSettings->updateCallSites;
+            } else {
+                // uh oh.
+            }
+        }
+
+        // strauss --updateCallSites=false (default)
+        // strauss --updateCallSites=true
+        // strauss --updateCallSites=src,input,extra
+
+        if ($input->hasOption('updateCallSites')) {
+            $updateCallSitesInput = $input->getOption('updateCallSites');
+
+            if ('false' === $updateCallSitesInput) {
+                $this->updateCallSites = array();
+            } elseif ('true' === $updateCallSitesInput) {
+                $this->updateCallSites = null;
+            } elseif (! is_null($updateCallSitesInput)) {
+                $this->updateCallSites = explode(',', $updateCallSitesInput);
+            }
+        }
     }
 
     /**
@@ -360,6 +401,9 @@ class StraussConfig
         return $this->updateCallSites;
     }
 
+    /**
+     * @param string[]|null $updateCallSites
+     */
     public function setUpdateCallSites(?array $updateCallSites): void
     {
         $this->updateCallSites = $updateCallSites;

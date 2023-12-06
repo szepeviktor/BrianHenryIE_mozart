@@ -66,7 +66,8 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $straussConfig = new StraussConfig($composer);
+        $input = $this->createMock(InputInterface::class);
+        $straussConfig = new StraussConfig($composer, $input);
 
         $this->assertEquals('src/Mozart/', $straussConfig->getTargetDirectory());
 

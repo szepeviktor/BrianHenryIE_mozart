@@ -15,6 +15,7 @@ use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use Exception;
 use RegexIterator;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -40,7 +41,6 @@ class Compose extends Command
      */
     protected ChangeEnumerator $changeEnumerator;
 
-
     /**
      * @return void
      */
@@ -49,6 +49,13 @@ class Compose extends Command
         $this->setName('compose');
         $this->setDescription("Copy composer's `require` and prefix their namespace and classnames.");
         $this->setHelp('');
+
+        $this->addOption(
+            'updateCallSites',
+            null,
+            InputArgument::OPTIONAL,
+            'Should replacements also be performed in project files? true|list,of,paths|false'
+        );
     }
 
     /**
@@ -66,7 +73,7 @@ class Compose extends Command
         $this->workingDir = $workingDir;
 
         try {
-            $this->loadProjectComposerPackage();
+            $this->loadProjectComposerPackage($input);
 
             $this->buildDependencyList();
 
@@ -92,8 +99,7 @@ class Compose extends Command
             return 1;
         }
 
-        // What should this be?!
-        return 0;
+        return Command::SUCCESS;
     }
 
 
@@ -102,16 +108,18 @@ class Compose extends Command
      *
      * @throws Exception
      */
-    protected function loadProjectComposerPackage(): void
+    protected function loadProjectComposerPackage(InputInterface $input): void
     {
 
         $this->projectComposerPackage = new ProjectComposerPackage($this->workingDir);
 
-        $config = $this->projectComposerPackage->getStraussConfig();
+        $config = $this->projectComposerPackage->getStraussConfig($input);
 
         $this->config = $config;
-    }
 
+        // TODO: Print the config that Strauss is using.
+        // Maybe even highlight what is default config and what is custom config.
+    }
 
     /** @var ComposerPackage[] */
     protected array $flatDependencyTree = [];
@@ -129,6 +137,8 @@ class Compose extends Command
         $requiredPackageNames = $this->config->getPackages();
 
         $this->recursiveGetAllDependencies($requiredPackageNames);
+
+        // TODO: Print the dependency tree that Strauss has determined.
     }
 
     /** @var string[]  */
@@ -141,7 +151,6 @@ class Compose extends Command
      */
     protected function recursiveGetAllDependencies(array $requiredPackageNames): void
     {
-
         $virtualPackages = $this->virtualPackages;
 
         // Unset PHP, ext-*, ...
@@ -213,6 +222,8 @@ class Compose extends Command
             return;
         }
 
+        $this->logger->info('Copying files...');
+
         $this->copier = new Copier(
             $this->fileEnumerator->getAllFilesAndDependencyList(),
             $this->workingDir,
@@ -274,15 +285,20 @@ class Compose extends Command
 
     protected function performReplacementsInProjectFiles(): void
     {
+
+        $callSitePaths =
+            $this->config->getUpdateCallSites()
+            ?? $this->projectComposerPackage->getFlatAutoloadKey();
+
+        if (empty($callSitePaths)) {
+            return;
+        }
+
         $projectReplace = new Prefixer($this->config, $this->workingDir);
 
         $namespaces = $this->changeEnumerator->getDiscoveredNamespaces($this->config->getNamespacePrefix());
         $classes = $this->changeEnumerator->getDiscoveredClasses($this->config->getClassmapPrefix());
         $constants = $this->changeEnumerator->getDiscoveredConstants($this->config->getConstantsPrefix());
-
-        $callSitePaths =
-            $this->config->getUpdateCallSites()
-            ?? $this->projectComposerPackage->getFlatAutoloadKey();
 
         $phpFilesRelativePaths = [];
         foreach ($callSitePaths as $relativePath) {
@@ -331,6 +347,13 @@ class Compose extends Command
         $classmap->generate();
     }
 
+    /**
+     * When namespaces are prefixed which are used by by require and require-dev dependencies,
+     * the require-dev dependencies need class aliases specified to point to the new class names/namespaces.
+     */
+    protected function generateClassAliasList(): void
+    {
+    }
 
     /**
      * 7.

@@ -10,6 +10,7 @@ namespace BrianHenryIE\Strauss\Composer\Extra;
 use Composer\Factory;
 use Composer\IO\NullIO;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Input\InputInterface;
 
 /**
  * @covers \BrianHenryIE\Strauss\Composer\Extra\StraussConfig
@@ -58,7 +59,7 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $sut = new StraussConfig($composer);
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
         $this->assertContains('pimple/pimple', $sut->getPackages());
 
@@ -120,7 +121,7 @@ EOD;
         $exception = null;
 
         try {
-            $sut = new StraussConfig($composer);
+            $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
         } catch (\Exception $e) {
             $exception = $e;
         }
@@ -168,7 +169,7 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $sut = new StraussConfig($composer);
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
         $this->assertEquals('vendor-prefixed'. DIRECTORY_SEPARATOR, $sut->getTargetDirectory());
     }
@@ -199,7 +200,7 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $sut = new StraussConfig($composer);
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
         $this->assertEquals("BrianHenryIE\\Strauss", $sut->getNamespacePrefix());
     }
@@ -229,7 +230,7 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $sut = new StraussConfig($composer);
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
         $this->assertEquals("BrianHenryIE\\Strauss", $sut->getNamespacePrefix());
     }
@@ -256,7 +257,7 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $sut = new StraussConfig($composer);
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
         $this->assertEquals("Brianhenryie\\Strauss_Config_Test", $sut->getNamespacePrefix());
     }
@@ -287,7 +288,7 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $sut = new StraussConfig($composer);
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
         $this->assertEquals("BrianHenryIE_Strauss_", $sut->getClassmapPrefix());
     }
@@ -318,7 +319,7 @@ EOD;
         $composer = Factory::create(new NullIO(), $tmpfname);
 
 
-        $sut = new StraussConfig($composer);
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
         $this->assertEquals("BrianHenryIE_Strauss_", $sut->getClassmapPrefix());
     }
@@ -345,7 +346,7 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $sut = new StraussConfig($composer);
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
         $this->assertEquals("Brianhenryie_Strauss_Config_Test", $sut->getClassmapPrefix());
     }
@@ -391,7 +392,7 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $sut = new StraussConfig($composer);
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
         $this->assertContains('pimple/pimple', $sut->getPackages());
     }
@@ -419,7 +420,7 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $sut = new StraussConfig($composer);
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
         $this->assertContains('psr/container', $sut->getExcludePackagesFromPrefixing());
     }
@@ -448,7 +449,7 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $sut = new StraussConfig($composer);
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
         $this->assertContains('psr/container', $sut->getExcludePackagesFromPrefixing());
     }
@@ -468,7 +469,7 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $sut = new StraussConfig($composer);
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
         // Changed in v0.14.0.
         $this->assertNotContains('/^psr.*$/', $sut->getExcludeFilePatternsFromPrefixing());
@@ -500,7 +501,7 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $sut = new StraussConfig($composer);
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
         // Changed in v0.14.0.
         self::assertNotContains('/^psr.*$/', $sut->getExcludeFilePatternsFromPrefixing());
@@ -543,7 +544,7 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $sut = new StraussConfig($composer);
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
         $this->assertContains('league/container', $sut->getPackages());
     }
@@ -584,7 +585,7 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $sut = new StraussConfig($composer);
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
         $this->assertContains('pimple/pimple', $sut->getPackages());
 
@@ -627,7 +628,7 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $sut = new StraussConfig($composer);
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
         $this->assertEquals("My_Mozart_Config", $sut->getNamespacePrefix());
     }
@@ -649,7 +650,7 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $sut = new StraussConfig($composer);
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
         $this->assertTrue($sut->isIncludeModifiedDate());
     }
@@ -677,7 +678,7 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $sut = new StraussConfig($composer);
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
         $this->assertFalse($sut->isIncludeModifiedDate());
     }
@@ -700,7 +701,7 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $sut = new StraussConfig($composer);
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
         $this->assertTrue($sut->isIncludeAuthor());
     }
@@ -724,7 +725,7 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $sut = new StraussConfig($composer);
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
         $this->assertFalse($sut->isIncludeAuthor());
     }
@@ -747,8 +748,172 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $sut = new StraussConfig($composer);
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
         $this->assertTrue($sut->isDeleteVendorPackages());
+    }
+
+
+    public function testUpdateCallSitesConfigTrue()
+    {
+
+        $composerExtraStraussJson = <<<'EOD'
+{
+ "extra":{
+  "strauss": {
+   "namespace_prefix": "BrianHenryIE\\Strauss\\",
+   "delete_vendor_packages": true,
+   "update_call_sites": true
+  }
+ }
+}
+EOD;
+        $tmpfname = tempnam(sys_get_temp_dir(), 'strauss-test-');
+        file_put_contents($tmpfname, $composerExtraStraussJson);
+
+        $composer = Factory::create(new NullIO(), $tmpfname);
+
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
+
+        $this->assertNull($sut->getUpdateCallSites());
+    }
+
+    public function testUpdateCallSitesConfigFalse()
+    {
+
+        $composerExtraStraussJson = <<<'EOD'
+{
+ "extra":{
+  "strauss": {
+   "namespace_prefix": "BrianHenryIE\\Strauss\\",
+   "delete_vendor_packages": true,
+   "update_call_sites": false
+  }
+ }
+}
+EOD;
+        $tmpfname = tempnam(sys_get_temp_dir(), 'strauss-test-');
+        file_put_contents($tmpfname, $composerExtraStraussJson);
+
+        $composer = Factory::create(new NullIO(), $tmpfname);
+
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
+
+        $this->assertIsArray($sut->getUpdateCallSites());
+        $this->assertEmpty($sut->getUpdateCallSites());
+    }
+
+
+    public function testUpdateCallSitesConfigList()
+    {
+
+        $composerExtraStraussJson = <<<'EOD'
+{
+ "extra":{
+  "strauss": {
+   "namespace_prefix": "BrianHenryIE\\Strauss\\",
+   "delete_vendor_packages": true,
+   "update_call_sites": [ "src", "templates" ]
+  }
+ }
+}
+EOD;
+        $tmpfname = tempnam(sys_get_temp_dir(), 'strauss-test-');
+        file_put_contents($tmpfname, $composerExtraStraussJson);
+
+        $composer = Factory::create(new NullIO(), $tmpfname);
+
+        $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
+
+        $this->assertIsArray($sut->getUpdateCallSites());
+        $this->assertCount(2, $sut->getUpdateCallSites());
+    }
+
+
+    public function testUpdateCallSitesCliTrue()
+    {
+
+        $composerExtraStraussJson = <<<'EOD'
+{
+ "extra":{
+  "strauss": {
+   "namespace_prefix": "BrianHenryIE\\Strauss\\",
+   "delete_vendor_packages": true,
+   "update_call_sites": false
+  }
+ }
+}
+EOD;
+        $tmpfname = tempnam(sys_get_temp_dir(), 'strauss-test-');
+        file_put_contents($tmpfname, $composerExtraStraussJson);
+
+        $composer = Factory::create(new NullIO(), $tmpfname);
+
+        $input = $this->createMock(InputInterface::class);
+        $input->method('hasOption')->with('updateCallSites')->willReturn(true);
+        $input->method('getOption')->with('updateCallSites')->willReturn('true');
+
+        $sut = new StraussConfig($composer, $input);
+
+        $this->assertNull($sut->getUpdateCallSites());
+    }
+
+    public function testUpdateCallSitesCliFalse()
+    {
+
+        $composerExtraStraussJson = <<<'EOD'
+{
+ "extra":{
+  "strauss": {
+   "namespace_prefix": "BrianHenryIE\\Strauss\\",
+   "delete_vendor_packages": true,
+   "update_call_sites": true
+  }
+ }
+}
+EOD;
+        $tmpfname = tempnam(sys_get_temp_dir(), 'strauss-test-');
+        file_put_contents($tmpfname, $composerExtraStraussJson);
+
+        $composer = Factory::create(new NullIO(), $tmpfname);
+
+        $input = $this->createMock(InputInterface::class);
+        $input->method('hasOption')->with('updateCallSites')->willReturn(true);
+        $input->method('getOption')->with('updateCallSites')->willReturn('false');
+
+        $sut = new StraussConfig($composer, $input);
+
+        $this->assertIsArray($sut->getUpdateCallSites());
+        $this->assertEmpty($sut->getUpdateCallSites());
+    }
+
+
+    public function testUpdateCallSitesCliList()
+    {
+
+        $composerExtraStraussJson = <<<'EOD'
+{
+ "extra":{
+  "strauss": {
+   "namespace_prefix": "BrianHenryIE\\Strauss\\",
+   "delete_vendor_packages": true,
+   "update_call_sites": false
+  }
+ }
+}
+EOD;
+        $tmpfname = tempnam(sys_get_temp_dir(), 'strauss-test-');
+        file_put_contents($tmpfname, $composerExtraStraussJson);
+
+        $composer = Factory::create(new NullIO(), $tmpfname);
+
+        $input = $this->createMock(InputInterface::class);
+        $input->method('hasOption')->with('updateCallSites')->willReturn(true);
+        $input->method('getOption')->with('updateCallSites')->willReturn('src,templates');
+
+        $sut = new StraussConfig($composer, $input);
+
+        $this->assertIsArray($sut->getUpdateCallSites());
+        $this->assertCount(2, $sut->getUpdateCallSites());
     }
 }

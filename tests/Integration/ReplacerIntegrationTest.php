@@ -48,7 +48,8 @@ EOD;
         exec('composer install');
 
         $projectComposerPackage = new ProjectComposerPackage($this->testsWorkingDir);
-        $config = $projectComposerPackage->getStraussConfig();
+        $input = $this->createMock(InputInterface::class);
+        $config = $projectComposerPackage->getStraussConfig($input);
 
         $dependencies = array_map(function ($element) {
             $dir = $this->testsWorkingDir . 'vendor'. DIRECTORY_SEPARATOR . $element;

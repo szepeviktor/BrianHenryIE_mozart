@@ -33,6 +33,10 @@ curl -o strauss.phar -L -C - https://github.com/BrianHenryIE/strauss/releases/la
 
 Then run it from the root of your project folder using `php strauss.phar`. 
 
+To update the files that call the prefixed classes, you can use `--updateCallSites=true` which uses your autoload key, or `--updateCallSites=includes,templates` to explicitly specify the files and directories.
+
+```shell
+
 Its use should be automated in Composer scripts. 
 
 ```json
@@ -74,8 +78,7 @@ Strauss potentially requires zero configuration, but likely you'll want to custo
         "constant_prefix": "BHMP_",
         "packages": [
         ],
-        "update_call_sites": [
-        ],
+        "update_call_sites": false,
         "override_autoload": {
         },
         "exclude_from_copy": {
@@ -109,20 +112,22 @@ The following configuration is inferred:
 - `classmap_prefix` defines the default string to prefix class names in the global namespace
 - `packages` is the list of packages to process. If absent, all packages in the `require` key of your `composer.json` are included
 - `classmap_output` is a `bool` to decide if Strauss will create `autoload-classmap.php` and `autoload.php`. If it is not set, it is `false` if `target_directory` is in your project's `autoload` key, `true` otherwise.
-- `update_call_sites` is an `array`, which defaults to the directories and files in the project's `autoload` key, whose PHP files will be updated where they call the prefixed classes. Set to an empty array to disable this feature.
 
 The following configuration is default:
 
 - `delete_vendor_packages`: `false` a boolean flag to indicate if the packages' vendor directories should be deleted after being processed. It defaults to false, so any destructive change is opt-in.
 - `delete_vendor_files`: `false` a boolean flag to indicate if files copied from the packages' vendor directories should be deleted after being processed. It defaults to false, so any destructive change is opt-in. This is maybe deprecated! Is there any use to this that is more appropriate than `delete_vendor_packages`? 
-- `exclude_from_prefix` / [`file_patterns`](https://github.com/BrianHenryIE/strauss/blob/83484b79cfaa399bba55af0bf4569c24d6eb169d/src/ChangeEnumerator.php#L92-L96)
 - `include_modified_date` is a `bool` to decide if Strauss should include a date in the (phpdoc) header written to modified files. Defaults to `true`.
 - `include_author` is a `bool` to decide if Strauss should include the author name in the (phpdoc) header written to modified files. Defaults to `true`.
+
+
+- `update_call_sites`: `false`. This can be `true`, `false` or an `array` of directories/filepaths. When set to `true` it defaults to the directories and files in the project's `autoload` key. The PHP files and directories' PHP files will be updated where they call the prefixed classes.
 
 The remainder is empty:
 
 - `constant_prefix` is for `define( "A_CONSTANT", value );` -> `define( "MY_PREFIX_A_CONSTANT", value );`. If it is empty, constants are not prefixed (this may change to an inferred value).
 - `override_autoload` a dictionary, keyed with the package names, of autoload settings to replace those in the original packages' `composer.json` `autoload` property.
+- `exclude_from_prefix` / [`file_patterns`](https://github.com/BrianHenryIE/strauss/blob/83484b79cfaa399bba55af0bf4569c24d6eb169d/src/ChangeEnumerator.php#L92-L96)
 - `exclude_from_copy` 
   - [`packages`](https://github.com/BrianHenryIE/strauss/blob/83484b79cfaa399bba55af0bf4569c24d6eb169d/src/FileEnumerator.php#L77-L79) array of package names to be skipped
   - [`namespaces`](https://github.com/BrianHenryIE/strauss/blob/83484b79cfaa399bba55af0bf4569c24d6eb169d/src/FileEnumerator.php#L95-L97) array of namespaces to skip (exact match from the package autoload keys)

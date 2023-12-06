@@ -10,6 +10,7 @@ use Composer\Factory;
 use Composer\IO\NullIO;
 use RecursiveArrayIterator;
 use RecursiveIteratorIterator;
+use Symfony\Component\Console\Input\InputInterface;
 
 class ProjectComposerPackage extends ComposerPackage
 {
@@ -56,9 +57,9 @@ class ProjectComposerPackage extends ComposerPackage
      * @return StraussConfig
      * @throws \Exception
      */
-    public function getStraussConfig(): StraussConfig
+    public function getStraussConfig(InputInterface $input): StraussConfig
     {
-        $config = new StraussConfig($this->composer);
+        $config = new StraussConfig($this->composer, $input);
         $config->setVendorDirectory($this->getVendorDirectory());
         return $config;
     }
