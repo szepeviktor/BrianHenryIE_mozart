@@ -200,6 +200,10 @@ class Compose extends Command
                 $requiredComposerPackage = ComposerPackage::fromComposerJsonArray($requiredPackageComposerJson, $overrideAutoload);
             }
 
+            if (isset($this->flatDependencyTree[$requiredComposerPackage->getPackageName()])) {
+                continue;
+            }
+
             $this->flatDependencyTree[$requiredComposerPackage->getPackageName()] = $requiredComposerPackage;
             $nextRequiredPackageNames                                             = $requiredComposerPackage->getRequiresNames();
 
