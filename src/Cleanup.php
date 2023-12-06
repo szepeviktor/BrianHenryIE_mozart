@@ -56,6 +56,10 @@ class Cleanup
 
                 $absolutePath = $this->workingDir . $relativeDirectoryPath;
 
+                if (is_link($absolutePath)) {
+                    unlink($absolutePath);
+                }
+
                 if ($absolutePath !== realpath($absolutePath)) {
                     continue;
                 }
