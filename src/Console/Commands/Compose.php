@@ -13,14 +13,17 @@ use BrianHenryIE\Strauss\Licenser;
 use BrianHenryIE\Strauss\Prefixer;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use Exception;
-use RegexIterator;
+use Psr\Log\LoggerAwareTrait;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class Compose extends Command
 {
+    use LoggerAwareTrait;
+
     protected OutputInterface $output;
 
     /** @var string */
@@ -69,6 +72,8 @@ class Compose extends Command
     {
         $this->output = $output;
 
+        $this->setLogger(new ConsoleLogger($output));
+
         $workingDir = getcwd() . DIRECTORY_SEPARATOR;
         $this->workingDir = $workingDir;
 
@@ -110,6 +115,7 @@ class Compose extends Command
      */
     protected function loadProjectComposerPackage(InputInterface $input): void
     {
+        $this->logger->info('Loading config...');
 
         $this->projectComposerPackage = new ProjectComposerPackage($this->workingDir);
 
@@ -133,6 +139,7 @@ class Compose extends Command
      */
     protected function buildDependencyList(): void
     {
+        $this->logger->info('Building dependency list...');
 
         $requiredPackageNames = $this->config->getPackages();
 
@@ -204,6 +211,7 @@ class Compose extends Command
 
     protected function enumerateFiles(): void
     {
+        $this->logger->info('Enumerating files...');
 
         $this->fileEnumerator = new FileEnumerator(
             $this->flatDependencyTree,
@@ -239,6 +247,7 @@ class Compose extends Command
     // 4. Determine namespace and classname changes
     protected function determineChanges(): void
     {
+        $this->logger->info('Determining changes...');
 
         $this->changeEnumerator = new ChangeEnumerator($this->config);
 
@@ -251,6 +260,8 @@ class Compose extends Command
     // Replace references to updated namespaces and classnames throughout the dependencies.
     protected function performReplacements(): void
     {
+        $this->logger->info('Performing replacements...');
+
         $this->replacer = new Prefixer($this->config, $this->workingDir);
 
         $namespaces = $this->changeEnumerator->getDiscoveredNamespaces($this->config->getNamespacePrefix());
@@ -317,6 +328,7 @@ class Compose extends Command
 
     protected function addLicenses(): void
     {
+        $this->logger->info('Adding licenses...');
 
         $author = $this->projectComposerPackage->getAuthor();
 
@@ -339,6 +351,8 @@ class Compose extends Command
             // Nothing to do.
             return;
         }
+
+        $this->logger->info('Generating autoloader...');
 
         $files = $this->fileEnumerator->getFilesAutoloaders();
 
@@ -367,9 +381,13 @@ class Compose extends Command
             return;
         }
 
+        $this->logger->info('Cleaning up...');
+
         $cleanup = new Cleanup($this->config, $this->workingDir);
 
         $sourceFiles = array_keys($this->fileEnumerator->getAllFilesAndDependencyList());
+
+        // TODO: For files autoloaders, delete the contents of the file, not the file itself.
 
         // This will check the config to check should it delete or not.
         $cleanup->cleanup($sourceFiles);
