@@ -25,6 +25,7 @@ class Cleanup
     public function __construct(StraussConfig $config, string $workingDir)
     {
         $this->vendorDirectory = $config->getVendorDirectory();
+        $this->workingDir = $workingDir;
 
         $this->isDeleteVendorFiles = $config->isDeleteVendorFiles() && $config->getTargetDirectory() !== $config->getVendorDirectory();
         $this->isDeleteVendorPackages = $config->isDeleteVendorPackages() && $config->getTargetDirectory() !== $config->getVendorDirectory();
@@ -53,11 +54,23 @@ class Cleanup
             foreach ($package_dirs as $package_dir) {
                 $relativeDirectoryPath = $this->vendorDirectory . $package_dir;
 
+                $absolutePath = $this->workingDir . $relativeDirectoryPath;
+
+                if ($absolutePath !== realpath($absolutePath)) {
+                    continue;
+                }
+
                 $this->filesystem->deleteDir($relativeDirectoryPath);
             }
         } elseif ($this->isDeleteVendorFiles) {
             foreach ($sourceFiles as $sourceFile) {
                 $relativeFilepath = $this->vendorDirectory . $sourceFile;
+
+                $absolutePath = $this->workingDir . $relativeFilepath;
+
+                if ($absolutePath !== realpath($absolutePath)) {
+                    continue;
+                }
 
                 $this->filesystem->delete($relativeFilepath);
             }
