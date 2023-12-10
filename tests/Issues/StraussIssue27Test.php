@@ -22,6 +22,10 @@ class StraussIssue27Test extends \BrianHenryIE\Strauss\Tests\Integration\Util\In
      */
     public function test_virtual_package()
     {
+        /**
+         * @see https://github.com/BrianHenryIE/strauss/commit/1bd20b75a4e6b5c07a428c04e8b9e514034b6b5c
+         */
+        self::markTestSkipped('Polyfills are no longer prefixed.');
 
         $composerJsonString = <<<'EOD'
 {

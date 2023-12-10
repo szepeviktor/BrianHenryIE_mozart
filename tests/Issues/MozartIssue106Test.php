@@ -25,6 +25,10 @@ class MozartIssue106Test extends IntegrationTestCase
      */
     public function test_only_prefix_classmap_classes_once()
     {
+        /**
+         * @see https://github.com/BrianHenryIE/strauss/commit/1bd20b75a4e6b5c07a428c04e8b9e514034b6b5c
+         */
+        self::markTestSkipped('Polyfills are no longer prefixed.');
 
         $composerJsonString = <<<'EOD'
 {
