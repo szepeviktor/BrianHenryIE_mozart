@@ -130,7 +130,13 @@ class FileEnumerator
                             $sourceAbsoluteFilepath = $packagePath . $namespace_relative_path;
                             $outputRelativeFilepath = $dependency->getRelativePath() . DIRECTORY_SEPARATOR . $namespace_relative_path;
 
-                            $file                                                   = array(
+                            foreach ($this->excludeFilePatterns as $excludePattern) {
+                                if (1 === preg_match($excludePattern, $outputRelativeFilepath)) {
+                                    continue 2;
+                                }
+                            }
+
+                            $file = array(
                                 'dependency'             => $dependency,
                                 'sourceAbsoluteFilepath' => $sourceAbsoluteFilepath,
                                 'targetRelativeFilepath' => $outputRelativeFilepath,
