@@ -5,9 +5,9 @@ namespace BrianHenryIE\Strauss;
 use BrianHenryIE\Strauss\Composer\ComposerPackage;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use Exception;
-use League\Flysystem\Adapter\Local;
-use League\Flysystem\FileNotFoundException;
 use League\Flysystem\Filesystem;
+use League\Flysystem\Local\LocalFilesystemAdapter;
+use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 
 class Prefixer
 {
@@ -38,7 +38,7 @@ class Prefixer
 
     public function __construct(StraussConfig $config, string $workingDir)
     {
-        $this->filesystem = new Filesystem(new Local($workingDir));
+        $this->filesystem = new Filesystem(new LocalFilesystemAdapter($workingDir));
 
         $this->targetDirectory = $config->getTargetDirectory();
         $this->namespacePrefix = $config->getNamespacePrefix();
@@ -59,7 +59,6 @@ class Prefixer
      * @param string[] $classChanges
      * @param string[] $constants
      * @param array<string,array{dependency:ComposerPackage,sourceAbsoluteFilepath:string,targetRelativeFilepath:string}> $phpFileArrays
-     * @throws FileNotFoundException
      */
     public function replaceInFiles(array $namespaceChanges, array $classChanges, array $constants, array $phpFileArrays): void
     {
@@ -81,17 +80,18 @@ class Prefixer
 
             $targetRelativeFilepathFromProject = $this->targetDirectory. $targetRelativeFilepath;
 
+            if (! $this->filesystem->fileExists($targetRelativeFilepathFromProject)) {
+                continue;
+            }
+
             // Throws an exception, but unlikely to happen.
             $contents = $this->filesystem->read($targetRelativeFilepathFromProject);
-            if (false === $contents) {
-                throw new Exception("Failed to read file: {$targetRelativeFilepathFromProject}");
-            }
 
             $updatedContents = $this->replaceInString($namespaceChanges, $classChanges, $constants, $contents);
 
             if ($updatedContents !== $contents) {
                 $this->changedFiles[$targetRelativeFilepath] = $package;
-                $this->filesystem->put($targetRelativeFilepathFromProject, $updatedContents);
+                $this->filesystem->write($targetRelativeFilepathFromProject, $updatedContents);
             }
         }
     }
@@ -108,17 +108,18 @@ class Prefixer
     public function replaceInProjectFiles(array $namespaceChanges, array $classChanges, array $constants, array $relativeFilePaths): void
     {
         foreach ($relativeFilePaths as $workingDirRelativeFilepath) {
+            if (! $this->filesystem->fileExists($workingDirRelativeFilepath)) {
+                continue;
+            }
+            
             // Throws an exception, but unlikely to happen.
             $contents = $this->filesystem->read($workingDirRelativeFilepath);
-            if (false === $contents) {
-                throw new Exception("Failed to read file: {$workingDirRelativeFilepath}");
-            }
 
             $updatedContents = $this->replaceInString($namespaceChanges, $classChanges, $constants, $contents);
 
             if ($updatedContents !== $contents) {
                 $this->changedFiles[ $workingDirRelativeFilepath ] = '';
-                $this->filesystem->put($workingDirRelativeFilepath, $updatedContents);
+                $this->filesystem->write($workingDirRelativeFilepath, $updatedContents);
             }
         }
     }

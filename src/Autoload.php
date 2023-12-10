@@ -9,8 +9,8 @@ namespace BrianHenryIE\Strauss;
 
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use Composer\Autoload\ClassMapGenerator;
-use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 
 class Autoload
 {
@@ -41,7 +41,8 @@ class Autoload
         $this->config = $config;
         $this->workingDir = $workingDir;
         $this->discoveredFilesAutoloaders = $discoveredFilesAutoloaders;
-        $this->filesystem = new Filesystem(new Local($workingDir));
+
+        $this->filesystem = new Filesystem(new LocalFilesystemAdapter($workingDir));
     }
 
     public function generate(): void

@@ -6,8 +6,8 @@
 namespace BrianHenryIE\Strauss;
 
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
-use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use RecursiveDirectoryIterator;
 use Symfony\Component\Finder\Finder;
 
@@ -16,6 +16,8 @@ class Cleanup
 
     /** @var Filesystem */
     protected Filesystem $filesystem;
+
+    protected string $workingDir;
 
     protected bool $isDeleteVendorFiles;
     protected bool $isDeleteVendorPackages;
@@ -30,7 +32,7 @@ class Cleanup
         $this->isDeleteVendorFiles = $config->isDeleteVendorFiles() && $config->getTargetDirectory() !== $config->getVendorDirectory();
         $this->isDeleteVendorPackages = $config->isDeleteVendorPackages() && $config->getTargetDirectory() !== $config->getVendorDirectory();
 
-        $this->filesystem = new Filesystem(new Local($workingDir));
+        $this->filesystem = new Filesystem(new LocalFilesystemAdapter($workingDir));
     }
 
     /**
@@ -64,7 +66,7 @@ class Cleanup
                     continue;
                 }
 
-                $this->filesystem->deleteDir($relativeDirectoryPath);
+                $this->filesystem->deleteDirectory($relativeDirectoryPath);
             }
         } elseif ($this->isDeleteVendorFiles) {
             foreach ($sourceFiles as $sourceFile) {
@@ -100,10 +102,8 @@ class Cleanup
             $finder->directories()->path($rootSourceDirectory);
 
             foreach ($finder as $directory) {
-                $metadata = $this->filesystem->getMetadata($directory);
-
                 if ($this->dirIsEmpty($directory)) {
-                    $this->filesystem->deleteDir($directory);
+                    $this->filesystem->deleteDirectory($directory);
                 }
             }
         }

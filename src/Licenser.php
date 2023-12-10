@@ -18,10 +18,9 @@ namespace BrianHenryIE\Strauss;
 
 use BrianHenryIE\Strauss\Composer\ComposerPackage;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
-use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use Symfony\Component\Finder\Finder;
-use function PHPUnit\Framework\stringContains;
 
 class Licenser
 {
@@ -73,7 +72,7 @@ class Licenser
         $this->includeModifiedDate = $config->isIncludeModifiedDate();
         $this->includeAuthor = $config->isIncludeAuthor();
 
-        $this->filesystem = new Filesystem(new Local('/'));
+        $this->filesystem = new Filesystem(new LocalFilesystemAdapter('/'));
     }
 
     public function copyLicenses(): void
@@ -86,12 +85,12 @@ class Licenser
             $targetLicenseFileDir = dirname($targetLicenseFile);
 
             // Don't try copy it if it's already there.
-            if ($this->filesystem->has($targetLicenseFile)) {
+            if ($this->filesystem->fileExists($targetLicenseFile)) {
                 continue;
             }
 
             // Don't add licenses to non-existent directories – there were no files copied there!
-            if (! $this->filesystem->has($targetLicenseFileDir)) {
+            if (! is_dir($targetLicenseFileDir)) {
                 continue;
             }
 
@@ -152,11 +151,11 @@ class Licenser
         foreach ($modifiedFiles as $relativeFilePath => $package) {
             $filepath = $this->workingDir . $this->targetDirectory . $relativeFilePath;
 
-            // Throws an exception, but unlikely to happen.
-            $contents = $this->filesystem->read($filepath);
-            if (false === $contents) {
-                throw new \Exception("Could not read file: {$filepath}");
+            if (!$this->filesystem->fileExists($filepath)) {
+                continue;
             }
+
+            $contents = $this->filesystem->read($filepath);
 
             $updatedContents = $this->addChangeDeclarationToPhpString(
                 $contents,
@@ -166,7 +165,7 @@ class Licenser
             );
 
             if ($updatedContents !== $contents) {
-                $this->filesystem->put($filepath, $updatedContents);
+                $this->filesystem->write($filepath, $updatedContents);
             }
         }
     }

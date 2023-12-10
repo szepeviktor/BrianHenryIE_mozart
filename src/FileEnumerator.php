@@ -9,8 +9,8 @@ namespace BrianHenryIE\Strauss;
 
 use BrianHenryIE\Strauss\Composer\ComposerPackage;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
-use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RegexIterator;
@@ -80,7 +80,7 @@ class FileEnumerator
         $this->excludePackageNames = $config->getExcludePackagesFromCopy();
         $this->excludeFilePatterns = $config->getExcludeFilePatternsFromCopy();
 
-        $this->filesystem = new Filesystem(new Local($this->workingDir));
+        $this->filesystem = new Filesystem(new LocalFilesystemAdapter($this->workingDir));
     }
 
     /**
