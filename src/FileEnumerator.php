@@ -127,15 +127,8 @@ class FileEnumerator
 
                     foreach ($namespace_relative_paths as $namespace_relative_path) {
                         if (is_file($packagePath . $namespace_relative_path)) {
-                            //  $finder->files()->name($file)->in($source_path);
-
                             $sourceAbsoluteFilepath = $packagePath . $namespace_relative_path;
-
-                            $outputRelativeFilepath = str_replace($prefixToRemove, '', $sourceAbsoluteFilepath);
-                            $outputRelativeFilepath = preg_replace('#[\\\/]+#', DIRECTORY_SEPARATOR, $outputRelativeFilepath);
-                            if (is_null($outputRelativeFilepath)) {
-                                throw new \Exception('Error replacing directory separator in outputRelativeFilepath.');
-                            }
+                            $outputRelativeFilepath = $dependency->getRelativePath() . DIRECTORY_SEPARATOR . $namespace_relative_path;
 
                             $file                                                   = array(
                                 'dependency'             => $dependency,
