@@ -14,6 +14,7 @@ use BrianHenryIE\Strauss\Prefixer;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use Exception;
 use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LogLevel;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -72,7 +73,7 @@ class Compose extends Command
     {
         $this->output = $output;
 
-        $this->setLogger(new ConsoleLogger($output));
+        $this->setLogger(new ConsoleLogger($output, [LogLevel::INFO => OutputInterface::VERBOSITY_NORMAL]));
 
         $workingDir = getcwd() . DIRECTORY_SEPARATOR;
         $this->workingDir = $workingDir;
@@ -100,7 +101,7 @@ class Compose extends Command
 
             $this->cleanUp();
         } catch (Exception $e) {
-            $output->write($e->getMessage());
+            $this->logger->error($e->getMessage());
             return 1;
         }
 
