@@ -23,10 +23,12 @@ class Cleanup
     protected bool $isDeleteVendorPackages;
 
     protected string $vendorDirectory = 'vendor'. DIRECTORY_SEPARATOR;
-    
+    protected string $targetDirectory;
+
     public function __construct(StraussConfig $config, string $workingDir)
     {
         $this->vendorDirectory = $config->getVendorDirectory();
+        $this->targetDirectory = $config->getTargetDirectory();
         $this->workingDir = $workingDir;
 
         $this->isDeleteVendorFiles = $config->isDeleteVendorFiles() && $config->getTargetDirectory() !== $config->getVendorDirectory();
@@ -125,6 +127,10 @@ class Cleanup
      */
     protected function cleanupFilesAutoloader(): void
     {
+        if (! file_exists($this->workingDir . 'vendor/composer/autoload_files.php')) {
+            return;
+        }
+
         $files = include $this->workingDir . 'vendor/composer/autoload_files.php';
 
         $missingFiles = array();
@@ -139,22 +145,39 @@ class Cleanup
             return;
         }
 
+        $targetDirectory = $this->targetDirectory;
+
         foreach (array('autoload_static.php', 'autoload_files.php') as $autoloadFile) {
             $autoloadStaticPhp = $this->filesystem->read('vendor/composer/'.$autoloadFile);
 
             $autoloadStaticPhpAsArray = explode(PHP_EOL, $autoloadStaticPhp);
 
-            $newAutoloadStaticPhpAsArray = array_filter(
-                $autoloadStaticPhpAsArray,
-                function (string $line) use ($missingFiles) {
-                    return array_reduce(
+            $newAutoloadStaticPhpAsArray = array_map(
+                function (string $line) use ($missingFiles, $targetDirectory): string {
+                    $containsFile = array_reduce(
                         $missingFiles,
                         function (bool $carry, string $filepath) use ($line): bool {
-                            return $carry && false === strpos($line, $filepath);
+                            return $carry || false !== strpos($line, $filepath);
                         },
-                        true
+                        false
                     );
-                }
+
+                    if (!$containsFile) {
+                        return $line;
+                    }
+
+                    // TODO: Check the file does exist at the new location. It definitely should be.
+                    // TODO: If the Strauss autoloader is being created, just return an empty string here.
+
+                    return str_replace([
+                        "=> __DIR__ . '/..' . '/",
+                        "=> \$vendorDir . '/"
+                    ], [
+                        "=> __DIR__ . '/../../$targetDirectory' . '/",
+                        "=> \$baseDir . '/$targetDirectory"
+                    ], $line);
+                },
+                $autoloadStaticPhpAsArray
             );
 
             $newAutoloadStaticPhp = implode(PHP_EOL, $newAutoloadStaticPhpAsArray);
