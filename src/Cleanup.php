@@ -6,10 +6,11 @@
 namespace BrianHenryIE\Strauss;
 
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
+use FilesystemIterator;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Local\LocalFilesystemAdapter;
 use RecursiveDirectoryIterator;
-use Symfony\Component\Finder\Finder;
+use RecursiveIteratorIterator;
 
 class Cleanup
 {
@@ -93,30 +94,39 @@ class Cleanup
             $dir = $arr[0];
             $rootSourceDirectories[ $dir ] = $dir;
         }
-        $rootSourceDirectories = array_keys($rootSourceDirectories);
-
-
-        $finder = new Finder();
+        $rootSourceDirectories = array_map(
+            function (string $path): string {
+                return $this->vendorDirectory . $path;
+            },
+            array_keys($rootSourceDirectories)
+        );
 
         foreach ($rootSourceDirectories as $rootSourceDirectory) {
             if (!is_dir($rootSourceDirectory) || is_link($rootSourceDirectory)) {
                 continue;
             }
 
-            $finder->directories()->path($rootSourceDirectory);
+            $it = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator(
+                    $this->workingDir . $rootSourceDirectory,
+                    FilesystemIterator::SKIP_DOTS
+                ),
+                RecursiveIteratorIterator::CHILD_FIRST
+            );
 
-            foreach ($finder as $directory) {
-                if ($this->dirIsEmpty($directory)) {
-                    $this->filesystem->deleteDirectory($directory);
+            foreach ($it as $file) {
+                if ($file->isDir() && $this->dirIsEmpty($file)) {
+                    rmdir((string)$file);
                 }
             }
         }
     }
 
     // TODO: Use Symphony or Flysystem functions.
-    protected function dirIsEmpty(string $dir): bool
+    protected function dirIsEmpty($dir): bool
     {
-        $di = new RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS);
+        $absolutePath = $dir;
+        $di = new RecursiveDirectoryIterator($absolutePath, \FilesystemIterator::SKIP_DOTS);
         return iterator_count($di) === 0;
     }
 
