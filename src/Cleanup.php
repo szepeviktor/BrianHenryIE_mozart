@@ -80,6 +80,8 @@ class Cleanup
 
                 $this->filesystem->delete($relativeFilepath);
             }
+
+            $this->cleanupFilesAutoloader();
         }
 
         // Get the root folders of the moved files.
@@ -114,5 +116,50 @@ class Cleanup
     {
         $di = new RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS);
         return iterator_count($di) === 0;
+    }
+
+    /**
+     * After files are deleted, remove them from the Composer files autoloaders.
+     *
+     * @see https://github.com/BrianHenryIE/strauss/issues/34#issuecomment-922503813
+     */
+    protected function cleanupFilesAutoloader(): void
+    {
+        $files = include $this->workingDir . 'vendor/composer/autoload_files.php';
+
+        $missingFiles = array();
+
+        foreach ($files as $file) {
+            if (! file_exists($file)) {
+                $missingFiles[] = str_replace([ $this->workingDir, 'vendor/composer/../', 'vendor/' ], '', $file);
+            }
+        }
+
+        if (empty($missingFiles)) {
+            return;
+        }
+
+        foreach (array('autoload_static.php', 'autoload_files.php') as $autoloadFile) {
+            $autoloadStaticPhp = $this->filesystem->read('vendor/composer/'.$autoloadFile);
+
+            $autoloadStaticPhpAsArray = explode(PHP_EOL, $autoloadStaticPhp);
+
+            $newAutoloadStaticPhpAsArray = array_filter(
+                $autoloadStaticPhpAsArray,
+                function (string $line) use ($missingFiles) {
+                    return array_reduce(
+                        $missingFiles,
+                        function (bool $carry, string $filepath) use ($line): bool {
+                            return $carry && false === strpos($line, $filepath);
+                        },
+                        true
+                    );
+                }
+            );
+
+            $newAutoloadStaticPhp = implode(PHP_EOL, $newAutoloadStaticPhpAsArray);
+
+            $this->filesystem->write('vendor/composer/'.$autoloadFile, $newAutoloadStaticPhp);
+        }
     }
 }
