@@ -138,6 +138,12 @@ class Cleanup
         foreach ($files as $file) {
             if (! file_exists($file)) {
                 $missingFiles[] = str_replace([ $this->workingDir, 'vendor/composer/../', 'vendor/' ], '', $file);
+                // When `composer install --no-dev` is run, it creates an index of files autoload files which
+                // references the non-existant files. This causes a fatal error when the autoloader is included.
+                $this->filesystem->write(
+                    str_replace($this->workingDir, '', $file),
+                    '<?php // This file was deleted by {@see https://github.com/BrianHenryIE/strauss}.'
+                );
             }
         }
 

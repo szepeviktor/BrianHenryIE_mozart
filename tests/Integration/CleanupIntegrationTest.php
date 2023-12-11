@@ -47,8 +47,6 @@ EOD;
 
         $result = $strauss->run($inputInterfaceMock, $outputInterfaceMock);
 
-        self::assertFileDoesNotExist($this->testsWorkingDir . 'vendor/symfony/polyfill-php80/bootstrap.php');
-
         $autoload_static_php = file_get_contents($this->testsWorkingDir .'vendor/composer/autoload_static.php');
         $this->assertStringNotContainsString("__DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php'", $autoload_static_php);
 

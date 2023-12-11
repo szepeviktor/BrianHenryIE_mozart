@@ -96,7 +96,7 @@ class FileEnumerator
                 continue;
             }
 
-            $packagePath = $dependency->getPackageAbsolutePath();
+            $packageAbsolutePath = $dependency->getPackageAbsolutePath();
 
             /**
              * Where $dependency->autoload is ~
@@ -126,8 +126,9 @@ class FileEnumerator
                     }
 
                     foreach ($namespace_relative_paths as $namespace_relative_path) {
-                        if (is_file($packagePath . $namespace_relative_path)) {
-                            $sourceAbsoluteFilepath = $packagePath . $namespace_relative_path;
+                        $sourceAbsolutePath = $packageAbsolutePath . $namespace_relative_path;
+                        $sourceRelativePath = $this->vendorDir . $dependency->getRelativePath() . DIRECTORY_SEPARATOR . $namespace_relative_path;
+                        if (is_file($sourceAbsolutePath)) {
                             $outputRelativeFilepath = $dependency->getRelativePath() . DIRECTORY_SEPARATOR . $namespace_relative_path;
 
                             foreach ($this->excludeFilePatterns as $excludePattern) {
@@ -136,21 +137,26 @@ class FileEnumerator
                                 }
                             }
 
+                            if ('<?php // This file was deleted by {@see https://github.com/BrianHenryIE/strauss}.'
+                                ===
+                                $this->filesystem->read($sourceRelativePath)
+                            ) {
+                                continue;
+                            }
+
                             $file = array(
                                 'dependency'             => $dependency,
-                                'sourceAbsoluteFilepath' => $sourceAbsoluteFilepath,
+                                'sourceAbsoluteFilepath' => $sourceAbsolutePath,
                                 'targetRelativeFilepath' => $outputRelativeFilepath,
                             );
                             $this->filesWithDependencies[ $outputRelativeFilepath ] = $file;
                             continue;
-                        } else {
-                            // else it is a directory.
-
+                        } elseif (is_dir($sourceAbsolutePath)) {
                             // trailingslashit().
                             $namespace_relative_path = rtrim($namespace_relative_path, DIRECTORY_SEPARATOR)
                                                        . DIRECTORY_SEPARATOR;
 
-                            $sourcePath = $packagePath . $namespace_relative_path;
+                            $sourcePath = $packageAbsolutePath . $namespace_relative_path;
 
                             // trailingslashit(). (to remove duplicates).
                             $sourcePath = rtrim($sourcePath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
@@ -160,12 +166,12 @@ class FileEnumerator
 
                             foreach ($finder as $foundFile) {
                                 $sourceAbsoluteFilepath = $foundFile->getPathname();
-
+                                $sourceRelativePath = str_replace($this->workingDir, '', $sourceAbsoluteFilepath);
                                 $outputRelativeFilepath = str_replace($prefixToRemove, '', $sourceAbsoluteFilepath);
 
                                 // For symlinked packages.
                                 if ($outputRelativeFilepath == $sourceAbsoluteFilepath) {
-                                    $outputRelativeFilepath = str_replace($packagePath, $dependency->getPackageName() . DIRECTORY_SEPARATOR, $sourceAbsoluteFilepath);
+                                    $outputRelativeFilepath = str_replace($packageAbsolutePath, $dependency->getPackageName() . DIRECTORY_SEPARATOR, $sourceAbsoluteFilepath);
                                 }
 
                                 // TODO: Is this needed here?! If anything, it's the prefix that needs to be normalised a few
@@ -183,6 +189,13 @@ class FileEnumerator
                                 }
 
                                 if (is_dir($sourceAbsoluteFilepath)) {
+                                    continue;
+                                }
+
+                                if ('<?php // This file was deleted by {@see https://github.com/BrianHenryIE/strauss}.'
+                                    ===
+                                    $this->filesystem->read($sourceRelativePath)
+                                ) {
                                     continue;
                                 }
 
