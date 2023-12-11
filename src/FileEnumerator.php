@@ -192,6 +192,10 @@ class FileEnumerator
                                     continue;
                                 }
 
+                                if (!$this->filesystem->fileExists($sourceRelativePath)) {
+                                    continue;
+                                }
+
                                 if ('<?php // This file was deleted by {@see https://github.com/BrianHenryIE/strauss}.'
                                     ===
                                     $this->filesystem->read($sourceRelativePath)
