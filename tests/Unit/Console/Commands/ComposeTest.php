@@ -6,6 +6,7 @@ namespace BrianHenryIE\Strauss\Tests\Unit\Console\Commands;
 use BrianHenryIE\Strauss\Console\Commands\Compose;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class ComposeTest extends TestCase
@@ -23,10 +24,16 @@ class ComposeTest extends TestCase
         chdir(sys_get_temp_dir());
 
         $inputInterfaceMock = $this->createMock(InputInterface::class);
-        $outputInterfaceMock = $this->createMock(OutputInterface::class);
+        $outputInterfaceMock = $this->createMock(ConsoleOutputInterface::class);
 
+        $outputInterfaceMock->expects($this->any())
+                            ->method('getVerbosity')
+                            ->willReturn(PHP_INT_MAX);
+        $outputInterfaceMock->expects($this->any())
+                            ->method('writeln');
         $outputInterfaceMock->expects($this->exactly(1))
-             ->method('write');
+                            ->method('getErrorOutput')
+                            ->willReturn($outputInterfaceMock);
 
         new class( $inputInterfaceMock, $outputInterfaceMock ) extends Compose {
             public function __construct($inputInterfaceMock, $outputInterfaceMock)
@@ -55,10 +62,17 @@ class ComposeTest extends TestCase
         chdir(dirname($tmpfname));
 
         $inputInterfaceMock = $this->createMock(InputInterface::class);
-        $outputInterfaceMock = $this->createMock(OutputInterface::class);
+        $outputInterfaceMock = $this->createMock(ConsoleOutputInterface::class);
 
+
+        $outputInterfaceMock->expects($this->any())
+                            ->method('getVerbosity')
+                            ->willReturn(PHP_INT_MAX);
+        $outputInterfaceMock->expects($this->any())
+                            ->method('writeln');
         $outputInterfaceMock->expects($this->exactly(1))
-                            ->method('write');
+                            ->method('getErrorOutput')
+                            ->willReturn($outputInterfaceMock);
 
         new class( $inputInterfaceMock, $outputInterfaceMock ) extends Compose {
             public function __construct($inputInterfaceMock, $outputInterfaceMock)
@@ -88,10 +102,16 @@ class ComposeTest extends TestCase
         chdir(dirname($tmpfname));
 
         $inputInterfaceMock = $this->createMock(InputInterface::class);
-        $outputInterfaceMock = $this->createMock(OutputInterface::class);
+        $outputInterfaceMock = $this->createMock(ConsoleOutputInterface::class);
 
+        $outputInterfaceMock->expects($this->any())
+                            ->method('getVerbosity')
+                            ->willReturn(PHP_INT_MAX);
+        $outputInterfaceMock->expects($this->any())
+                            ->method('writeln');
         $outputInterfaceMock->expects($this->exactly(1))
-                            ->method('write');
+                            ->method('getErrorOutput')
+                            ->willReturn($outputInterfaceMock);
 
         new class( $inputInterfaceMock, $outputInterfaceMock ) extends Compose {
             public function __construct($inputInterfaceMock, $outputInterfaceMock)
@@ -121,10 +141,17 @@ class ComposeTest extends TestCase
         chdir(dirname($tmpfname));
 
         $inputInterfaceMock = $this->createMock(InputInterface::class);
-        $outputInterfaceMock = $this->createMock(OutputInterface::class);
+        $outputInterfaceMock = $this->createMock(ConsoleOutputInterface::class);
 
+
+        $outputInterfaceMock->expects($this->any())
+                            ->method('getVerbosity')
+                            ->willReturn(PHP_INT_MAX);
+        $outputInterfaceMock->expects($this->any())
+                            ->method('writeln');
         $outputInterfaceMock->expects($this->exactly(1))
-                            ->method('write');
+                            ->method('getErrorOutput')
+                            ->willReturn($outputInterfaceMock);
 
         new class( $inputInterfaceMock, $outputInterfaceMock ) extends Compose {
             public function __construct($inputInterfaceMock, $outputInterfaceMock)
@@ -153,10 +180,17 @@ class ComposeTest extends TestCase
         chdir(dirname($tmpfname));
 
         $inputInterfaceMock = $this->createMock(InputInterface::class);
-        $outputInterfaceMock = $this->createMock(OutputInterface::class);
+        $outputInterfaceMock = $this->createMock(ConsoleOutputInterface::class);
 
+
+        $outputInterfaceMock->expects($this->any())
+                            ->method('getVerbosity')
+                            ->willReturn(PHP_INT_MAX);
+        $outputInterfaceMock->expects($this->any())
+                            ->method('writeln');
         $outputInterfaceMock->expects($this->exactly(1))
-                            ->method('write');
+                            ->method('getErrorOutput')
+                            ->willReturn($outputInterfaceMock);
 
         new class( $inputInterfaceMock, $outputInterfaceMock ) extends Compose {
             public function __construct($inputInterfaceMock, $outputInterfaceMock)
@@ -187,10 +221,17 @@ class ComposeTest extends TestCase
         chdir(dirname($tmpfname));
 
         $inputInterfaceMock = $this->createMock(InputInterface::class);
-        $outputInterfaceMock = $this->createMock(OutputInterface::class);
+        $outputInterfaceMock = $this->createMock(ConsoleOutputInterface::class);
 
+
+        $outputInterfaceMock->expects($this->any())
+                            ->method('getVerbosity')
+                            ->willReturn(PHP_INT_MAX);
+        $outputInterfaceMock->expects($this->any())
+                            ->method('writeln');
         $outputInterfaceMock->expects($this->exactly(1))
-                            ->method('write');
+                            ->method('getErrorOutput')
+                            ->willReturn($outputInterfaceMock);
 
         new class( $inputInterfaceMock, $outputInterfaceMock ) extends Compose {
             public function __construct($inputInterfaceMock, $outputInterfaceMock)
