@@ -14,6 +14,7 @@ use BrianHenryIE\Strauss\Prefixer;
 use Composer\Composer;
 use Composer\Config;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Input\InputInterface;
 
 /**
  * Class ReplacerTest
@@ -43,7 +44,9 @@ EOD;
         $composer = new Composer();
         $composer->setConfig($composerConfig);
 
-        $this->config = new StraussConfig($composer);
+        $input = $this->createMock(InputInterface::class);
+
+        $this->config = new StraussConfig($composer, $input);
     }
 
     public function testNamespaceReplacer()
@@ -1781,6 +1784,54 @@ EOD;
         $replacer = new Prefixer($config, __DIR__);
 
         $result = $replacer->replaceClassname($contents, $originalClassname, $classnamePrefix);
+
+        $this->assertEquals($expected, $result);
+    }
+
+    /**
+     * @see https://github.com/BrianHenryIE/strauss/issues/83
+     * @see vendor-prefixed/aws/aws-sdk-php/src/ClientResolver.php:955
+     */
+    public function testPrefixesFullNamespaceInInstanceOf(): void
+    {
+        $contents = <<<'EOD'
+<?php
+namespace Aws;
+
+class ClientResolver
+	public static function _apply_user_agent($inputUserAgent, array &$args, HandlerList $list)
+    {
+            if (($args['endpoint_discovery'] instanceof \Aws\EndpointDiscovery\Configuration
+                && $args['endpoint_discovery']->isEnabled())
+            ) {
+            
+            }
+	}
+}
+EOD;
+
+        $expected = <<<'EOD'
+<?php
+namespace Company\Project\Aws;
+
+class ClientResolver
+	public static function _apply_user_agent($inputUserAgent, array &$args, HandlerList $list)
+    {
+            if (($args['endpoint_discovery'] instanceof \Company\Project\Aws\EndpointDiscovery\Configuration
+                && $args['endpoint_discovery']->isEnabled())
+            ) {
+            
+            }
+	}
+}
+EOD;
+
+        $config = $this->createMock(StraussConfig::class);
+
+        $replacer = new Prefixer($config, __DIR__);
+
+        $result = $replacer->replaceNamespace($contents, 'Aws\\EndpointDiscovery', 'Company\\Project\\Aws\\EndpointDiscovery');
+        $result = $replacer->replaceNamespace($result, 'Aws', 'Company\\Project\\Aws');
 
         $this->assertEquals($expected, $result);
     }

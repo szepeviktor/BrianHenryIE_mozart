@@ -189,6 +189,7 @@ class Prefixer
             |implements\s+
             |extends\s+                    # when the class being extended is namespaced inline
             |return\s+
+            |instanceof\s+                 # when checking the class type of an object in a conditional
             |\(\s*                         # inside a function declaration as the first parameters type
             |,\s*                          # inside a function declaration as a subsequent parameter type
             |\.\s*                         # as part of a concatenated string
