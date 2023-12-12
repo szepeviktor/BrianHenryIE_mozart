@@ -324,7 +324,7 @@ class Compose extends Command
             } elseif (is_readable($absolutePath)) {
                 $phpFilesRelativePaths[] = $relativePath;
             } else {
-                $this->output->write('Expected file not found from project autoload: ' . $absolutePath);
+                $this->logger->warning('Expected file not found from project autoload: ' . $absolutePath);
             }
         }
 
