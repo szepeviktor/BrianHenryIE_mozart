@@ -149,6 +149,9 @@ class StraussConfig
      * Overwrite it with any Strauss config.
      * Provide sensible defaults.
      *
+     * @param Composer $composer
+     * @param InputInterface $input To access the command line options.
+     *
      * @throws Exception
      */
     public function __construct(Composer $composer, InputInterface $input)

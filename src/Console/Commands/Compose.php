@@ -25,8 +25,6 @@ class Compose extends Command
 {
     use LoggerAwareTrait;
 
-    protected OutputInterface $output;
-
     /** @var string */
     protected string $workingDir;
 
@@ -71,9 +69,12 @@ class Compose extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->output = $output;
-
-        $this->setLogger(new ConsoleLogger($output, [LogLevel::INFO => OutputInterface::VERBOSITY_NORMAL]));
+        $this->setLogger(
+            new ConsoleLogger(
+                $output,
+                [LogLevel::INFO => OutputInterface::VERBOSITY_NORMAL]
+            )
+        );
 
         $workingDir = getcwd() . DIRECTORY_SEPARATOR;
         $this->workingDir = $workingDir;
