@@ -9,6 +9,7 @@ use BrianHenryIE\Strauss\Composer\ComposerPackage;
 use BrianHenryIE\Strauss\Composer\ProjectComposerPackage;
 use BrianHenryIE\Strauss\Copier;
 use BrianHenryIE\Strauss\DependenciesEnumerator;
+use BrianHenryIE\Strauss\File;
 use BrianHenryIE\Strauss\FileEnumerator;
 use BrianHenryIE\Strauss\Licenser;
 use BrianHenryIE\Strauss\Prefixer;
@@ -44,6 +45,16 @@ class Compose extends Command
      */
     protected ChangeEnumerator $changeEnumerator;
     protected DependenciesEnumerator $dependenciesEnumerator;
+
+    /**
+     * Array of \BrianHenryIE\Strauss\File objects indexed by their path relative to the output target directory.
+     *
+     * Each object contains the file's relative and absolute paths, the package and autoloaders it came from,
+     * and flags indicating should it / has it been copied / deleted etc.
+     *
+     * @var array<string, File>
+     */
+    protected array $files;
 
     /**
      * @return void
@@ -166,7 +177,7 @@ class Compose extends Command
             $this->config
         );
 
-        $this->fileEnumerator->compileFileList();
+        $this->files = $this->fileEnumerator->compileFileList();
     }
 
     // 3. Copy autoloaded files for each
@@ -180,14 +191,12 @@ class Compose extends Command
         $this->logger->info('Copying files...');
 
         $this->copier = new Copier(
-            $this->fileEnumerator->getAllFilesAndDependencyList(),
+            $this->files,
             $this->workingDir,
-            $this->config->getTargetDirectory(),
-            $this->config->getVendorDirectory()
+            $this->config
         );
 
         $this->copier->prepareTarget();
-
         $this->copier->copy();
     }
 

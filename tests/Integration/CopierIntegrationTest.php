@@ -56,12 +56,12 @@ EOD;
 
         $config = $this->createStub(StraussConfig::class);
         $config->method('getVendorDirectory')->willReturn($vendorDir);
+        $config->method('getTargetDirectory')->willReturn($relativeTargetDir);
 
         $fileEnumerator = new FileEnumerator($dependencies, $workingDir, $config);
-        $fileEnumerator->compileFileList();
-        $filepaths = $fileEnumerator->getAllFilesAndDependencyList();
+        $files = $fileEnumerator->compileFileList();
 
-        $copier = new Copier($filepaths, $workingDir, $relativeTargetDir, $vendorDir);
+        $copier = new Copier($files, $workingDir, $config);
 
         $file = 'ContainerAwareTrait.php';
         $relativePath = 'league/container/src/';
@@ -117,12 +117,12 @@ EOD;
 
         $config = $this->createStub(StraussConfig::class);
         $config->method('getVendorDirectory')->willReturn($vendorDir);
+        $config->method('getTargetDirectory')->willReturn($relativeTargetDir);
 
         $fileEnumerator = new FileEnumerator($dependencies, $workingDir, $config);
-        $fileEnumerator->compileFileList();
-        $filepaths = $fileEnumerator->getAllFilesAndDependencyList();
+        $files = $fileEnumerator->compileFileList();
 
-        $copier = new Copier($filepaths, $workingDir, $relativeTargetDir, $vendorDir);
+        $copier = new Copier($files, $workingDir, $config);
 
         $file = 'Client.php';
         $relativePath = 'google/apiclient/src/';
