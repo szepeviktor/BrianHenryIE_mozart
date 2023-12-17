@@ -18,7 +18,6 @@ use Symfony\Component\Finder\Finder;
 
 class FileEnumerator
 {
-
     /**
      * The only path variable with a leading slash.
      * All directories in project end with a slash.
@@ -49,13 +48,6 @@ class FileEnumerator
      * @var File[]
      */
     protected array $files = [];
-
-    /**
-     * Complete list of files specified in packages autoloaders.
-     *
-     * @var array<string,array{dependency:ComposerPackage,sourceAbsoluteFilepath:string,targetRelativeFilepath:string}>
-     */
-    protected array $filesWithDependencies = [];
 
     /**
      * Record the files autoloaders for later use in building our own autoloader.
@@ -92,10 +84,11 @@ class FileEnumerator
      * Read the autoload keys of the dependencies and generate a list of the files referenced.
      *
      * Includes all files in the directories and subdirectories mentioned in the autoloaders.
+     *
+     * @return array<string,File>
      */
-    public function compileFileList(): void
+    public function compileFileList(): array
     {
-
         foreach ($this->dependencies as $dependency) {
             if (in_array($dependency->getPackageName(), $this->excludePackageNames)) {
                 continue;
@@ -132,7 +125,7 @@ class FileEnumerator
                         $sourceAbsolutePath = $dependency->getPackageAbsolutePath() . $namespaceRelativePath;
 
                         if (is_file($sourceAbsolutePath)) {
-                            $this->addFile($dependency, $namespaceRelativePath);
+                            $this->addFile($dependency, $namespaceRelativePath, $type);
                         } elseif (is_dir($sourceAbsolutePath)) {
                             // trailingslashit(). (to remove duplicates).
                             $sourcePath = rtrim($sourceAbsolutePath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
@@ -153,7 +146,8 @@ class FileEnumerator
 
                                 $this->addFile(
                                     $dependency,
-                                    $namespaceRelativePath . str_replace($sourcePath, '', $sourceAbsoluteFilepath)
+                                    $namespaceRelativePath . str_replace($sourcePath, '', $sourceAbsoluteFilepath),
+                                    $type
                                 );
                             }
                         }
@@ -161,9 +155,11 @@ class FileEnumerator
                 }
             }
         }
+
+        return $this->files;
     }
 
-    protected function addFile(ComposerPackage $dependency, string $packageRelativePath)
+    protected function addFile(ComposerPackage $dependency, string $packageRelativePath, string $autoloaderType)
     {
 
         $sourceAbsoluteFilepath = $dependency->getPackageAbsolutePath() . $packageRelativePath;
@@ -171,10 +167,15 @@ class FileEnumerator
         $projectRelativePath    = $this->vendorDir . $outputRelativeFilepath;
         $isOutsideProjectDir    = 0 !== strpos($sourceAbsoluteFilepath, $this->workingDir);
 
+        $f = $this->files[$outputRelativeFilepath]
+              ?? new File($dependency, $packageRelativePath, $sourceAbsoluteFilepath);
+
+        $f->addAutoloader($autoloaderType);
+        $f->setDoDelete($isOutsideProjectDir);
 
         foreach ($this->excludeFilePatterns as $excludePattern) {
             if (1 === preg_match($excludePattern, $outputRelativeFilepath)) {
-                return;
+                $f->setDoCopy(false);
             }
         }
 
@@ -182,15 +183,10 @@ class FileEnumerator
             ===
             $this->filesystem->read($projectRelativePath)
         ) {
-            return;
+            $f->setDoCopy(false);
         }
 
-        $file                                                   = array(
-            'dependency'             => $dependency,
-            'sourceAbsoluteFilepath' => $sourceAbsoluteFilepath,
-            'targetRelativeFilepath' => $outputRelativeFilepath,
-        );
-        $this->filesWithDependencies[ $outputRelativeFilepath ] = $file;
+        $this->files[$outputRelativeFilepath] = $f;
     }
 
     /**
@@ -200,7 +196,18 @@ class FileEnumerator
      */
     public function getAllFilesAndDependencyList(): array
     {
-        return $this->filesWithDependencies;
+        $allFiles = [];
+        foreach ($this->files as $file) {
+            if (!$file->isDoCopy()) {
+                continue;
+            }
+            $allFiles[ $file->getTargetRelativePath() ] = [
+              'dependency'             => $file->getDependency(),
+              'sourceAbsoluteFilepath' => $file->getSourcePath(),
+              'targetRelativeFilepath' => $file->getTargetRelativePath(),
+            ];
+        }
+        return $allFiles;
     }
 
     /**
@@ -216,15 +223,6 @@ class FileEnumerator
         }, ARRAY_FILTER_USE_BOTH);
     }
 
-    /**
-     * Get the recorded files autoloaders.
-     *
-     * @return array<string, array<string>>
-     */
-    public function getFilesAutoloaders(): array
-    {
-        return $this->filesAutoloaders;
-    }
 
     /**
      * @param string $workingDir Absolute path to the working directory, results will be relative to this.
