@@ -59,12 +59,13 @@ EOD;
 
         $config = $this->createStub(StraussConfig::class);
         $config->method('getVendorDirectory')->willReturn($vendorDir);
+        $config->method('getTargetDirectory')->willReturn($relativeTargetDir);
 
         $fileEnumerator = new FileEnumerator($dependencies, $workingDir, $config);
 
-        $fileEnumerator->compileFileList();
+        $files = $fileEnumerator->compileFileList();
 
-        $copier = new Copier($fileEnumerator->getAllFilesAndDependencyList(), $workingDir, $relativeTargetDir, $vendorDir);
+        $copier = new Copier($files, $workingDir, $config);
 
         $copier->prepareTarget();
 

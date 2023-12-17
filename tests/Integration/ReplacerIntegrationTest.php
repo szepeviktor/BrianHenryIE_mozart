@@ -59,7 +59,6 @@ EOD;
         $workingDir = $this->testsWorkingDir;
         $relativeTargetDir = 'vendor-prefixed' . DIRECTORY_SEPARATOR;
         $absoluteTargetDir = $workingDir . $relativeTargetDir;
-        $vendorDir = 'vendor' . DIRECTORY_SEPARATOR;
 
 //        $config = $this->createStub(StraussConfig::class);
 //        $config->method('getTargetDirectory')->willReturn('vendor-prefixed' . DIRECTORY_SEPARATOR);
@@ -69,7 +68,10 @@ EOD;
         $fileList = $fileEnumerator->getAllFilesAndDependencyList();
         $phpFileList = $fileEnumerator->getPhpFilesAndDependencyList();
 
-        $copier = new Copier($fileList, $workingDir, $relativeTargetDir, $vendorDir);
+        $fileEnumerator = new FileEnumerator($dependencies, $workingDir, $config);
+        $files = $fileEnumerator->compileFileList();
+
+        $copier = new Copier($files, $workingDir, $config);
         $copier->prepareTarget();
         $copier->copy();
 
