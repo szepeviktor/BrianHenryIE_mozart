@@ -8,6 +8,7 @@ use BrianHenryIE\Strauss\Cleanup;
 use BrianHenryIE\Strauss\Composer\ComposerPackage;
 use BrianHenryIE\Strauss\Composer\ProjectComposerPackage;
 use BrianHenryIE\Strauss\Copier;
+use BrianHenryIE\Strauss\DependenciesEnumerator;
 use BrianHenryIE\Strauss\FileEnumerator;
 use BrianHenryIE\Strauss\Licenser;
 use BrianHenryIE\Strauss\Prefixer;
@@ -42,6 +43,7 @@ class Compose extends Command
      * @var ChangeEnumerator
      */
     protected ChangeEnumerator $changeEnumerator;
+    protected DependenciesEnumerator $dependenciesEnumerator;
 
     /**
      * @return void
@@ -158,74 +160,13 @@ class Compose extends Command
     {
         $this->logger->info('Building dependency list...');
 
-        $requiredPackageNames = $this->config->getPackages();
-
-        $this->recursiveGetAllDependencies($requiredPackageNames);
+        $this->dependenciesEnumerator = new DependenciesEnumerator(
+            $this->workingDir,
+            $this->config
+        );
+        $this->flatDependencyTree = $this->dependenciesEnumerator->getAllDependencies();
 
         // TODO: Print the dependency tree that Strauss has determined.
-    }
-
-    /** @var string[]  */
-    protected $virtualPackages = array(
-        'php-http/client-implementation'
-    );
-
-    /**
-     * @param string[] $requiredPackageNames
-     */
-    protected function recursiveGetAllDependencies(array $requiredPackageNames): void
-    {
-        $virtualPackages = $this->virtualPackages;
-
-        // Unset PHP, ext-*, ...
-        // TODO: I think this code is unnecessary due to how the path to packages is handled (null is fine) later.
-        $removePhpExt = function (string $element) use ($virtualPackages) {
-            return !(
-                0 === strpos($element, 'ext')
-                || 'php' === $element
-                || in_array($element, $virtualPackages)
-            );
-        };
-        $requiredPackageNames = array_filter($requiredPackageNames, $removePhpExt);
-
-        foreach ($requiredPackageNames as $requiredPackageName) {
-            $packageComposerFile = $this->workingDir . $this->config->getVendorDirectory()
-                                   . $requiredPackageName . DIRECTORY_SEPARATOR . 'composer.json';
-
-            $overrideAutoload = $this->config->getOverrideAutoload()[ $requiredPackageName ] ?? null;
-
-            if (file_exists($packageComposerFile)) {
-                $requiredComposerPackage = ComposerPackage::fromFile($packageComposerFile, $overrideAutoload);
-            } else {
-                $fileContents           = file_get_contents($this->workingDir . 'composer.lock');
-                if (false === $fileContents) {
-                    throw new Exception('Failed to read contents of ' . $this->workingDir . 'composer.lock');
-                }
-                $composerLock           = json_decode($fileContents, true);
-                $requiredPackageComposerJson = null;
-                foreach ($composerLock['packages'] as $packageJson) {
-                    if ($requiredPackageName === $packageJson['name']) {
-                        $requiredPackageComposerJson = $packageJson;
-                        break;
-                    }
-                }
-                if (is_null($requiredPackageComposerJson)) {
-                    // e.g. composer-plugin-api.
-                    continue;
-                }
-
-                $requiredComposerPackage = ComposerPackage::fromComposerJsonArray($requiredPackageComposerJson, $overrideAutoload);
-            }
-
-            if (isset($this->flatDependencyTree[$requiredComposerPackage->getPackageName()])) {
-                continue;
-            }
-
-            $this->flatDependencyTree[$requiredComposerPackage->getPackageName()] = $requiredComposerPackage;
-            $nextRequiredPackageNames                                             = $requiredComposerPackage->getRequiresNames();
-
-            $this->recursiveGetAllDependencies($nextRequiredPackageNames);
-        }
     }
 
     protected FileEnumerator $fileEnumerator;
@@ -347,6 +288,10 @@ class Compose extends Command
         $projectReplace->replaceInProjectFiles($namespaces, $classes, $constants, $phpFilesRelativePaths);
     }
 
+    protected function writeClassAliasMap(): void
+    {
+    }
+
     protected function addLicenses(): void
     {
         $this->logger->info('Adding licenses...');
@@ -369,15 +314,32 @@ class Compose extends Command
     protected function generateAutoloader(): void
     {
         if ($this->config->getTargetDirectory() === $this->config->getVendorDirectory()) {
-            // Nothing to do.
+            $this->logger->info('Skipping autoloader generation as target directory is vendor directory.');
+            return;
+        }
+        if (isset($this->projectComposerPackage->getAutoload()['classmap'])
+            && in_array(
+                $this->config->getTargetDirectory(),
+                $this->projectComposerPackage->getAutoload()['classmap'],
+                true
+            )
+        ) {
+            $this->logger->info('Skipping autoloader generation as target directory is in Composer classmap. Run `composer dump-autoload`.');
             return;
         }
 
         $this->logger->info('Generating autoloader...');
 
-        $files = $this->fileEnumerator->getFilesAutoloaders();
+        $allFilesAutoloaders = $this->dependenciesEnumerator->getAllFilesAutoloaders();
+        $filesAutoloaders = array();
+        foreach ($allFilesAutoloaders as $packageName => $packageFilesAutoloader) {
+            if (in_array($packageName, $this->config->getExcludePackagesFromCopy())) {
+                continue;
+            }
+            $filesAutoloaders[$packageName] = $packageFilesAutoloader;
+        }
 
-        $classmap = new Autoload($this->config, $this->workingDir, $files);
+        $classmap = new Autoload($this->config, $this->workingDir, $filesAutoloaders);
 
         $classmap->generate();
     }
