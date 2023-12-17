@@ -61,7 +61,7 @@ class DependenciesEnumerator
     ) {
         $this->workingDir = $workingDir;
         $this->vendorDir = $config->getVendorDirectory();
-		$this->overrideAutoload = $config->getOverrideAutoload();
+        $this->overrideAutoload = $config->getOverrideAutoload();
         $this->requiredPackageNames = $config->getPackages();
 
         $this->filesystem = new Filesystem(new LocalFilesystemAdapter($this->workingDir));
@@ -81,7 +81,7 @@ class DependenciesEnumerator
         $requiredPackageNames = array_filter($requiredPackageNames, array( $this, 'removeVirtualPackagesFilter' ));
 
         foreach ($requiredPackageNames as $requiredPackageName) {
-			// Avoid infinite recursion.
+            // Avoid infinite recursion.
             if (isset($this->flatDependencyTree[$requiredPackageName])) {
                 continue;
             }
