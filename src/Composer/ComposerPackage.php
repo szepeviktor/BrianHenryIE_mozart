@@ -156,7 +156,7 @@ class ComposerPackage
 
     public function getRelativePath(): ?string
     {
-        return $this->relativePath;
+        return $this->relativePath . DIRECTORY_SEPARATOR;
     }
 
     public function getPackageAbsolutePath(): ?string
