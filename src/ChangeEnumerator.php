@@ -67,7 +67,7 @@ class ChangeEnumerator
         // When running subsequent times, try to discover the original namespaces.
         // This is naive: it will not work where namespace replacement patterns have been used.
         foreach ($this->discoveredNamespaces as $key => $value) {
-            $unprefixed = str_starts_with($this->namespacePrefix, $key)
+            $unprefixed = str_starts_with($key, $this->namespacePrefix)
                 ? ltrim(substr($key, strlen($this->namespacePrefix)), '\\')
                 : $key;
             $discoveredNamespaceReplacements[ $unprefixed ] = $value;
