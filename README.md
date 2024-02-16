@@ -1,6 +1,6 @@
 [![PHPUnit ](.github/coverage.svg)](https://brianhenryie.github.io/strauss/) [![PHPStan ](https://img.shields.io/badge/PHPStan-Level%207-2a5ea7.svg)](https://phpstan.org/)
 
-# Strauss
+# Strauss – PHP Namespace Renamer
 
 A tool to prefix namespaces and classnames in PHP files to avoid autoloading collisions.
 
@@ -12,6 +12,7 @@ The primary use case is WordPress plugins, where different plugins active in a s
 
 ## Breaking Changes
 
+* v0.16.0 – will no longer prefix PHP built-in classes seen in polyfill packages
 * v0.14.0 – `psr/*` packages no longer excluded by default
 * v0.12.0 – default output `target_directory` changes from `strauss` to `vendor-prefixed`
 
@@ -35,9 +36,7 @@ Then run it from the root of your project folder using `php strauss.phar`.
 
 To update the files that call the prefixed classes, you can use `--updateCallSites=true` which uses your autoload key, or `--updateCallSites=includes,templates` to explicitly specify the files and directories.
 
-```shell
-
-Its use should be automated in Composer scripts. 
+Its use should be automated in Composer scripts.
 
 ```json
 "scripts": {
@@ -183,6 +182,8 @@ I don't have a strong opinion on these. I began using Mozart because it was easy
 * [TypistTech/imposter-plugin](https://github.com/TypistTech/imposter-plugin)
 * [Automattic/jetpack-autoloader](https://github.com/Automattic/jetpack-autoloader)
 * [tschallacka/wordpress-composer-plugin-builder](https://github.com/tschallacka/wordpress-composer-plugin-builder)
+* [Interfacelab/namespacer](https://github.com/Interfacelab/namespacer)
+* [PHP-Prefixer](https://github.com/PHP-Prefixer) SaaS!
 
 ### Interesting
 
@@ -196,6 +197,7 @@ I don't have a strong opinion on these. I began using Mozart because it was easy
 * More consistent naming. Are we prefixing or are we renaming?
 * Further unit tests, particularly file-system related
 * Regex patterns in config need to be validated
+* Change the name? "Renamespacer"?
 
 ## Changes before v2.0
 
