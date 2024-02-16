@@ -13,7 +13,7 @@ use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use BrianHenryIE\Strauss\Prefixer;
 use Composer\Composer;
 use Composer\Config;
-use PHPUnit\Framework\TestCase;
+use BrianHenryIE\Strauss\TestCase;
 use Symfony\Component\Console\Input\InputInterface;
 
 /**

@@ -29,7 +29,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "BrianHenryIE\\Strauss\\Tests\\": "tests/"
+            "BrianHenryIE\\Strauss\\Tests\\": "tests/",
+            "BrianHenryIE\\Strauss\\": "tests/"
         }
     },
     "require-dev": {

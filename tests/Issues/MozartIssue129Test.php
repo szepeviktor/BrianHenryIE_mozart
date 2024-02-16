@@ -15,7 +15,7 @@ namespace BrianHenryIE\Strauss\Tests\Issues;
 
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use BrianHenryIE\Strauss\Prefixer;
-use PHPUnit\Framework\TestCase;
+use BrianHenryIE\Strauss\TestCase;
 
 /**
  * Class MozartIssue129Test

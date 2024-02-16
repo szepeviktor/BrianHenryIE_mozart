@@ -9,7 +9,7 @@ namespace BrianHenryIE\Strauss\Composer\Extra;
 
 use Composer\Factory;
 use Composer\IO\NullIO;
-use PHPUnit\Framework\TestCase;
+use BrianHenryIE\Strauss\TestCase;
 use Symfony\Component\Console\Input\InputInterface;
 
 /**

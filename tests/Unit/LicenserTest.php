@@ -10,7 +10,7 @@ use BrianHenryIE\Strauss\Composer\ComposerPackage;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use BrianHenryIE\Strauss\Licenser;
 use PHPUnit\Framework\Constraint\Callback;
-use PHPUnit\Framework\TestCase;
+use BrianHenryIE\Strauss\TestCase;
 use Symfony\Component\Finder\Finder;
 
 /**

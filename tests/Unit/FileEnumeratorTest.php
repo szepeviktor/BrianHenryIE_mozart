@@ -10,7 +10,7 @@
 
 namespace BrianHenryIE\Strauss\Tests\Unit;
 
-use PHPUnit\Framework\TestCase;
+use BrianHenryIE\Strauss\TestCase;
 
 /**
  * Class FileEnumeratorTest

@@ -7,7 +7,7 @@ use BrianHenryIE\Strauss\Composer\ComposerPackage;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use BrianHenryIE\Strauss\Prefixer;
 use Composer\Composer;
-use PHPUnit\Framework\TestCase;
+use BrianHenryIE\Strauss\TestCase;
 
 class ChangeEnumeratorTest extends TestCase
 {

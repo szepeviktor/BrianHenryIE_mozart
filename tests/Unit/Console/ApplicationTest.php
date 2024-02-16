@@ -4,7 +4,7 @@ namespace BrianHenryIE\Strauss\Tests\Unit\Console;
 
 use BrianHenryIE\Strauss\Console\Application;
 use BrianHenryIE\Strauss\Console\Commands\Compose;
-use PHPUnit\Framework\TestCase;
+use BrianHenryIE\Strauss\TestCase;
 
 class ApplicationTest extends TestCase
 {
