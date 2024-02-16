@@ -10,9 +10,9 @@ namespace BrianHenryIE\Strauss\Tests\Issues;
 
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use BrianHenryIE\Strauss\Console\Commands\Compose;
+use BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase;
 use Composer\Factory;
 use Composer\IO\NullIO;
-use Exception;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -20,7 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  * @package BrianHenryIE\Strauss\Tests\Issues
  * @coversNothing
  */
-class StraussIssue11Test extends \BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase
+class StraussIssue11Test extends IntegrationTestCase
 {
 
     /**

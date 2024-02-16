@@ -13,7 +13,6 @@
 
 namespace BrianHenryIE\Strauss\Tests\Issues;
 
-use BrianHenryIE\Strauss\ChangeEnumerator;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use BrianHenryIE\Strauss\Prefixer;
 use PHPUnit\Framework\TestCase;
