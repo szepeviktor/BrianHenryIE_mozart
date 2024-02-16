@@ -17,7 +17,10 @@ use PHPUnit\Framework\TestCase;
  * @package BrianHenryIE\Strauss\Tests\Unit
  * @coversDefaultClass \BrianHenryIE\Strauss\FileEnumerator
  */
-class FileEnumeratorTest extends TestCase
-{
+class FileEnumeratorTest extends TestCase {
 
+	public function testNothing() {
+		// this is to silence the "No tests found in class" warning.
+		self::assertTrue( true );
+	}
 }
