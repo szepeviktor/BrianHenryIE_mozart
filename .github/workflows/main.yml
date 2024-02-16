@@ -29,7 +29,7 @@ jobs:
           php -m
           composer --version
       - name: Install dependencies
-        run: composer install --prefer-dist --no-suggest --no-progress
+        run: composer install --prefer-dist --no-progress
       - name: Run tests
         run: vendor/bin/phpunit
         # TODO: get GitHub Actions annotations working again.
@@ -54,7 +54,7 @@ jobs:
           composer --version
 
       - name: Install dependencies
-        run: composer install --prefer-dist --no-suggest --no-progress
+        run: composer install --prefer-dist --no-progress
 
       - name: Run validate
         run: |
