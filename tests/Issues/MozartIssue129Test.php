@@ -46,7 +46,7 @@ class MozartIssue129Test extends TestCase
         $this->assertEquals($expected, $result);
     }
 
-    public function pairTestDataProvider()
+    public static function pairTestDataProvider()
     {
 
         $fromTo = [];
