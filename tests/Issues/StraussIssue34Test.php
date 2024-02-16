@@ -32,7 +32,7 @@ class StraussIssue34Test extends \BrianHenryIE\Strauss\Tests\Integration\Util\In
     ]
   },
   "require": {
-    "psr/log": "*"
+    "psr/log": "1"
   },
   "extra": {
     "strauss": {
@@ -74,7 +74,7 @@ EOD;
         self::assertStringNotContainsString('use Psr\Log\LoggerInterface', $project_file_php_string);
         self::assertStringContainsString('use BrianHenryIE\Strauss\Psr\Log\LoggerInterface', $project_file_php_string);
 
-        $project_file_php_string = file_get_contents($this->testsWorkingDir . 'vendor/psr/log/src/LoggerInterface.php');
+        $project_file_php_string = file_get_contents($this->testsWorkingDir . 'vendor/psr/log/Psr/Log/LoggerInterface.php');
         self::assertStringNotContainsString('namespace Psr\Log;', $project_file_php_string);
         self::assertStringContainsString('namespace BrianHenryIE\Strauss\Psr\Log;', $project_file_php_string);
     }
