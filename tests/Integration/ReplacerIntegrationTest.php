@@ -86,7 +86,7 @@ EOD;
 
         $updatedFile = file_get_contents($absoluteTargetDir . 'google/apiclient/src/Client.php');
 
-        $this->assertStringContainsString('use BrianHenryIE\Strauss\Google\AccessToken\Revoke;', $updatedFile);
+        self::assertStringContainsString('use BrianHenryIE\Strauss\Google\AccessToken\Revoke;', $updatedFile);
     }
 
 
@@ -155,6 +155,6 @@ EOD;
 
         $updatedFile = file_get_contents($this->testsWorkingDir .'vendor-prefixed/' . 'setasign/fpdf/fpdf.php');
 
-        $this->assertStringContainsString('class BrianHenryIE_Strauss_FPDF', $updatedFile);
+        self::assertStringContainsString('class BrianHenryIE_Strauss_FPDF', $updatedFile);
     }
 }

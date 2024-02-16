@@ -70,6 +70,6 @@ EOD;
 
         $result = $strauss->run($inputInterfaceMock, $outputInterfaceMock);
 
-        $this->assertNotEquals(1, $result);
+        self::assertNotEquals(1, $result);
     }
 }

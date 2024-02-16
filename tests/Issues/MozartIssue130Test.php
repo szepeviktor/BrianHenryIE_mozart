@@ -70,6 +70,6 @@ EOD;
 
         $mozartCompose->run($inputInterfaceMock, $outputInterfaceMock);
 
-        $this->assertFileExists($this->testsWorkingDir .'strauss/htmlburger/carbon-fields/config.php');
+        self::assertFileExists($this->testsWorkingDir .'strauss/htmlburger/carbon-fields/config.php');
     }
 }

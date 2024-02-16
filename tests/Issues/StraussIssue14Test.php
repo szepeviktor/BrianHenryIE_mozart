@@ -57,7 +57,7 @@ EOD;
         // was namespace GuzzleHttp\Psr7;
 
         // Confirm solution is correct.
-        $this->assertStringContainsString('namespace BrianHenryIE\Strauss\GuzzleHttp\Psr7;', $php_string);
+        self::assertStringContainsString('namespace BrianHenryIE\Strauss\GuzzleHttp\Psr7;', $php_string);
     }
 
     public function testFilesAutoloaderIsGenerated()
@@ -93,6 +93,6 @@ EOD;
 
         $result = $mozartCompose->run($inputInterfaceMock, $outputInterfaceMock);
 
-        $this->assertFileExists($this->testsWorkingDir .'vendor-prefixed/autoload-files.php');
+        self::assertFileExists($this->testsWorkingDir .'vendor-prefixed/autoload-files.php');
     }
 }

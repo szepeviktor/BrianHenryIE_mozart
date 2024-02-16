@@ -65,6 +65,6 @@ EOD;
         $phpString = file_get_contents($this->testsWorkingDir .'vendor-prefixed/paypal/rest-api-sdk-php/lib/PayPal/Log/PayPalLogger.php');
 
         // Confirm solution is correct.
-        $this->assertStringContainsString('constant("\\\\BrianHenryIE\\\\Strauss\\\\Psr\\\\Log\\\\LogLevel::$loggingLevel")', $phpString);
+        self::assertStringContainsString('constant("\\\\BrianHenryIE\\\\Strauss\\\\Psr\\\\Log\\\\LogLevel::$loggingLevel")', $phpString);
     }
 }

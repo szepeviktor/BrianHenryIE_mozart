@@ -66,10 +66,10 @@ EOD;
         $mpdf_php = file_get_contents($this->testsWorkingDir .'vendor-prefixed/mpdf/mpdf/src/Mpdf.php');
 
         // Confirm problem is gone.
-        $this->assertStringNotContainsString('class BrianHenryIE\Strauss\Mpdf implements', $mpdf_php);
+        self::assertStringNotContainsString('class BrianHenryIE\Strauss\Mpdf implements', $mpdf_php);
 
         // Confirm solution is correct.
-        $this->assertStringContainsString('class Mpdf implements', $mpdf_php);
+        self::assertStringContainsString('class Mpdf implements', $mpdf_php);
     }
 
 
@@ -120,10 +120,10 @@ EOD;
         $mpdf_php = file_get_contents($this->testsWorkingDir .'vendor-prefixed/mpdf/mpdf/src/Conversion/DecToOther.php');
 
         // Confirm problem is gone.
-        $this->assertStringNotContainsString('public function __construct(BrianHenryIE\Strauss\Mpdf $mpdf)', $mpdf_php);
+        self::assertStringNotContainsString('public function __construct(BrianHenryIE\Strauss\Mpdf $mpdf)', $mpdf_php);
 
         // Confirm solution is correct.
-        $this->assertStringContainsString('public function __construct(Mpdf $mpdf)', $mpdf_php);
+        self::assertStringContainsString('public function __construct(Mpdf $mpdf)', $mpdf_php);
     }
     // src/strauss/mpdf/mpdf/src/Barcode/BarcodeException.php
 
@@ -171,9 +171,9 @@ EOD;
         $mpdf_php = file_get_contents($this->testsWorkingDir .'vendor-prefixed/mpdf/mpdf/src/Barcode/BarcodeException.php');
 
         // Confirm problem is gone.
-        $this->assertStringNotContainsString('class BarcodeException extends \Mpdf\MpdfException', $mpdf_php);
+        self::assertStringNotContainsString('class BarcodeException extends \Mpdf\MpdfException', $mpdf_php);
 
         // Confirm solution is correct.
-        $this->assertStringContainsString('class BarcodeException extends \BrianHenryIE\Strauss\Mpdf\MpdfException', $mpdf_php);
+        self::assertStringContainsString('class BarcodeException extends \BrianHenryIE\Strauss\Mpdf\MpdfException', $mpdf_php);
     }
 }

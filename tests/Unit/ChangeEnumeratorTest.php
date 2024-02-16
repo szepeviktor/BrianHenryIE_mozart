@@ -38,10 +38,10 @@ EOD;
 
         $sut->find($validPhp);
 
-        $this->assertArrayHasKey('MyNamespace', $sut->getDiscoveredNamespaces(), 'Found: ' . implode(',', $sut->getDiscoveredNamespaces()));
-        $this->assertContains('Prefix\MyNamespace', $sut->getDiscoveredNamespaces());
+        self::assertArrayHasKey('MyNamespace', $sut->getDiscoveredNamespaces(), 'Found: ' . implode(',', $sut->getDiscoveredNamespaces()));
+        self::assertContains('Prefix\MyNamespace', $sut->getDiscoveredNamespaces());
 
-        $this->assertNotContains('MyClass', $sut->getDiscoveredClasses());
+        self::assertNotContains('MyClass', $sut->getDiscoveredClasses());
     }
 
     public function testGlobalNamespace()
@@ -60,7 +60,7 @@ EOD;
 
         $sut->find($validPhp);
 
-        $this->assertContains('MyClass', $sut->getDiscoveredClasses());
+        self::assertContains('MyClass', $sut->getDiscoveredClasses());
     }
 
     /**
@@ -84,9 +84,9 @@ EOD;
 
         $sut->find($validPhp);
 
-        $this->assertContains('\MyNamespace', $sut->getDiscoveredNamespaces());
+        self::assertContains('\MyNamespace', $sut->getDiscoveredNamespaces());
 
-        $this->assertContains('MyClass', $sut->getDiscoveredClasses());
+        self::assertContains('MyClass', $sut->getDiscoveredClasses());
     }
 
 
@@ -114,10 +114,10 @@ EOD;
 
         $sut->find($validPhp);
 
-        $this->assertContains('\MyNamespace', $sut->getDiscoveredNamespaces());
+        self::assertContains('\MyNamespace', $sut->getDiscoveredNamespaces());
 
-        $this->assertContains('MyClass', $sut->getDiscoveredClasses());
-        $this->assertNotContains('MyOtherClass', $sut->getDiscoveredClasses());
+        self::assertContains('MyClass', $sut->getDiscoveredClasses());
+        self::assertNotContains('MyOtherClass', $sut->getDiscoveredClasses());
     }
 
 
@@ -141,8 +141,8 @@ EOD;
 
         $sut->find($validPhp);
 
-        $this->assertContains('MyClass', $sut->getDiscoveredClasses());
-        $this->assertContains('MyOtherClass', $sut->getDiscoveredClasses());
+        self::assertContains('MyClass', $sut->getDiscoveredClasses());
+        self::assertContains('MyOtherClass', $sut->getDiscoveredClasses());
     }
 
     /**
@@ -162,8 +162,8 @@ EOD;
         $changeEnumerator = new ChangeEnumerator($config);
         $changeEnumerator->find($contents);
 
-        $this->assertNotContains('as', $changeEnumerator->getDiscoveredClasses());
-        $this->assertContains('Whatever', $changeEnumerator->getDiscoveredClasses());
+        self::assertNotContains('as', $changeEnumerator->getDiscoveredClasses());
+        self::assertContains('Whatever', $changeEnumerator->getDiscoveredClasses());
     }
 
     /**
@@ -184,8 +184,8 @@ EOD;
         $changeEnumerator = new ChangeEnumerator($config);
         $changeEnumerator->find($contents);
 
-        $this->assertNotContains('as', $changeEnumerator->getDiscoveredClasses());
-        $this->assertContains('Whatever', $changeEnumerator->getDiscoveredClasses());
+        self::assertNotContains('as', $changeEnumerator->getDiscoveredClasses());
+        self::assertContains('Whatever', $changeEnumerator->getDiscoveredClasses());
     }
 
     /**
@@ -209,8 +209,8 @@ EOD;
         $changeEnumerator = new ChangeEnumerator($config);
         $changeEnumerator->find($contents);
 
-        $this->assertNotContains('as', $changeEnumerator->getDiscoveredClasses());
-        $this->assertContains('Whatever', $changeEnumerator->getDiscoveredClasses());
+        self::assertNotContains('as', $changeEnumerator->getDiscoveredClasses());
+        self::assertContains('Whatever', $changeEnumerator->getDiscoveredClasses());
     }
 
 
@@ -229,8 +229,8 @@ EOD;
         $changeEnumerator = new ChangeEnumerator($config);
         $changeEnumerator->find($contents);
 
-        $this->assertNotContains('as', $changeEnumerator->getDiscoveredClasses());
-        $this->assertContains('Whatever_Trevor', $changeEnumerator->getDiscoveredClasses());
+        self::assertNotContains('as', $changeEnumerator->getDiscoveredClasses());
+        self::assertContains('Whatever_Trevor', $changeEnumerator->getDiscoveredClasses());
     }
 
     /**
@@ -253,8 +253,8 @@ EOD;
         $changeEnumerator = new ChangeEnumerator($config);
         $changeEnumerator->find($contents);
 
-        $this->assertNotContains('as', $changeEnumerator->getDiscoveredClasses());
-        $this->assertContains('Whatever_Ever', $changeEnumerator->getDiscoveredClasses());
+        self::assertNotContains('as', $changeEnumerator->getDiscoveredClasses());
+        self::assertContains('Whatever_Ever', $changeEnumerator->getDiscoveredClasses());
     }
 
     /**
@@ -271,7 +271,7 @@ EOD;
         $changeEnumerator = new ChangeEnumerator($config);
         $changeEnumerator->find($contents);
 
-        $this->assertContains('Pear', $changeEnumerator->getDiscoveredClasses());
+        self::assertContains('Pear', $changeEnumerator->getDiscoveredClasses());
     }
 
 
@@ -292,7 +292,7 @@ EOD;
         $changeEnumerator = new ChangeEnumerator($config);
         $changeEnumerator->find($contents);
 
-        $this->assertContains('WP_Dependency_Installer', $changeEnumerator->getDiscoveredClasses());
+        self::assertContains('WP_Dependency_Installer', $changeEnumerator->getDiscoveredClasses());
     }
 
 
@@ -321,8 +321,8 @@ EOD;
         $changeEnumerator = new ChangeEnumerator($config);
         $changeEnumerator->find($contents);
 
-        $this->assertNotContains('A_Class', $changeEnumerator->getDiscoveredClasses());
-        $this->assertContains('B_Class', $changeEnumerator->getDiscoveredClasses());
+        self::assertNotContains('A_Class', $changeEnumerator->getDiscoveredClasses());
+        self::assertContains('B_Class', $changeEnumerator->getDiscoveredClasses());
     }
 
     public function testExcludePackagesFromPrefix()
@@ -345,7 +345,7 @@ EOD;
         $changeEnumerator = new ChangeEnumerator($config);
         $changeEnumerator->findInFiles($dir, $filesArray);
 
-        $this->assertEmpty($changeEnumerator->getDiscoveredNamespaces());
+        self::assertEmpty($changeEnumerator->getDiscoveredNamespaces());
     }
 
 
@@ -368,7 +368,7 @@ EOD;
         $changeEnumerator = new ChangeEnumerator($config);
         $changeEnumerator->findInFiles($dir, $filesArray);
 
-        $this->assertEmpty($changeEnumerator->getDiscoveredNamespaces());
+        self::assertEmpty($changeEnumerator->getDiscoveredNamespaces());
     }
 
     /**
@@ -392,9 +392,9 @@ EOD;
         $changeEnumerator = new ChangeEnumerator($config);
         $changeEnumerator->find($contents);
 
-        $this->assertArrayHasKey('BrianHenryIE\PdfHelpers', $changeEnumerator->getDiscoveredNamespaces());
-        $this->assertContains('BrianHenryIE\Prefix\PdfHelpers', $changeEnumerator->getDiscoveredNamespaces());
-        $this->assertNotContains('BrianHenryIE\Prefix\BrianHenryIE\PdfHelpers', $changeEnumerator->getDiscoveredNamespaces());
+        self::assertArrayHasKey('BrianHenryIE\PdfHelpers', $changeEnumerator->getDiscoveredNamespaces());
+        self::assertContains('BrianHenryIE\Prefix\PdfHelpers', $changeEnumerator->getDiscoveredNamespaces());
+        self::assertNotContains('BrianHenryIE\Prefix\BrianHenryIE\PdfHelpers', $changeEnumerator->getDiscoveredNamespaces());
     }
 
     /**
@@ -431,7 +431,7 @@ EOD;
         $changeEnumerator = new ChangeEnumerator($config);
         $changeEnumerator->find($contents);
 
-        $this->assertNotContains('object', $changeEnumerator->getDiscoveredClasses());
+        self::assertNotContains('object', $changeEnumerator->getDiscoveredClasses());
     }
 
     public function testDefineConstant()
@@ -461,8 +461,8 @@ EOD;
 
         $constants = $changeEnumerator->getDiscoveredConstants();
 
-        $this->assertContains('FPDF_VERSION', $constants);
-        $this->assertContains('ANOTHER_CONSTANT', $constants);
+        self::assertContains('FPDF_VERSION', $constants);
+        self::assertContains('ANOTHER_CONSTANT', $constants);
     }
 
     public function test_commented_namespace_is_invalid(): void

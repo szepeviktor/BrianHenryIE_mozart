@@ -69,9 +69,9 @@ EOD;
         $input = $this->createMock(InputInterface::class);
         $straussConfig = new StraussConfig($composer, $input);
 
-        $this->assertEquals('src/Mozart/', $straussConfig->getTargetDirectory());
+        self::assertEquals('src/Mozart/', $straussConfig->getTargetDirectory());
 
-        $this->assertEquals("MZoo\\MBO_Sandbox\\Dependencies", $straussConfig->getNamespacePrefix());
+        self::assertEquals("MZoo\\MBO_Sandbox\\Dependencies", $straussConfig->getNamespacePrefix());
     }
 
 
@@ -131,9 +131,9 @@ EOD;
         $phpString = file_get_contents($this->testsWorkingDir .'src/Mozart/htmlburger/carbon-fields/core/Carbon_Fields.php');
 
         // This was not being prefixed.
-        $this->assertStringNotContainsString('$ioc->register( new \Carbon_Fields\Provider\Container_Condition_Provider() );', $phpString);
+        self::assertStringNotContainsString('$ioc->register( new \Carbon_Fields\Provider\Container_Condition_Provider() );', $phpString);
 
-        $this->assertStringContainsString('$ioc->register( new \MZoo\MBO_Sandbox\Dependencies\Carbon_Fields\Provider\Container_Condition_Provider() );', $phpString);
+        self::assertStringContainsString('$ioc->register( new \MZoo\MBO_Sandbox\Dependencies\Carbon_Fields\Provider\Container_Condition_Provider() );', $phpString);
     }
 
 
@@ -192,8 +192,8 @@ EOD;
         $phpString = file_get_contents($this->testsWorkingDir .'src/Mozart/htmlburger/carbon-fields/core/Container.php');
 
         // This was not being prefixed.
-        $this->assertStringNotContainsString('@method static \Carbon_Fields\Container\Comment_Meta_Container', $phpString);
+        self::assertStringNotContainsString('@method static \Carbon_Fields\Container\Comment_Meta_Container', $phpString);
 
-        $this->assertStringContainsString('@method static \MZoo\MBO_Sandbox\Dependencies\Carbon_Fields\Container\Comment_Meta_Container', $phpString);
+        self::assertStringContainsString('@method static \MZoo\MBO_Sandbox\Dependencies\Carbon_Fields\Container\Comment_Meta_Container', $phpString);
     }
 }

@@ -67,7 +67,7 @@ EOD;
         // Run TWICE!
         $strauss->run($inputInterfaceMock, $outputInterfaceMock);
         $result = $strauss->run($inputInterfaceMock, $outputInterfaceMock);
-        $this->assertNotEquals(1, $result);
+        self::assertNotEquals(1, $result);
 
         $project_file_php_string = file_get_contents($this->testsWorkingDir . 'src/library.php');
         self::assertStringNotContainsString('use Psr\Log\LoggerInterface', $project_file_php_string);

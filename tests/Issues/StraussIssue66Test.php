@@ -54,12 +54,12 @@ EOD;
 
         $php_string = file_get_contents($this->testsWorkingDir . 'vendor-prefixed/wp-graphql/wp-graphql/src/WPGraphQL.php');
 
-        $this->assertStringContainsString('final class Prefix_WPGraphQL', $php_string);
+        self::assertStringContainsString('final class Prefix_WPGraphQL', $php_string);
 
         $php_string = file_get_contents($this->testsWorkingDir . 'vendor-prefixed/wp-graphql/wp-graphql/src/Registry/Utils/PostObject.php');
 
-        $this->assertStringNotContainsString('use MyProject\Dependencies\WPGraphQL;', $php_string);
+        self::assertStringNotContainsString('use MyProject\Dependencies\WPGraphQL;', $php_string);
 
-        $this->assertStringContainsString('use Prefix_WPGraphQL as WPGraphQL;', $php_string);
+        self::assertStringContainsString('use Prefix_WPGraphQL as WPGraphQL;', $php_string);
     }
 }

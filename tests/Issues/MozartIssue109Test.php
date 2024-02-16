@@ -72,6 +72,6 @@ EOD;
 
         $phpString = file_get_contents($this->testsWorkingDir .'vendor-prefixed/nesbot/carbon/src/Carbon/Carbon.php');
 
-        $this->assertStringNotContainsString('*Mozart\\ This file is part of the Carbon package.Mozart\\', $phpString);
+        self::assertStringNotContainsString('*Mozart\\ This file is part of the Carbon package.Mozart\\', $phpString);
     }
 }

@@ -42,7 +42,7 @@ class MozartIssue129Test extends TestCase
 
         $result = $replacer->replaceNamespace($phpString, $original, $replacement);
 
-        $this->assertEquals($expected, $result);
+        self::assertEquals($expected, $result);
     }
 
     public static function pairTestDataProvider()

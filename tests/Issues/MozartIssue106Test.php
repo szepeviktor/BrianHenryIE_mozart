@@ -61,9 +61,9 @@ EOD;
         $php_string = file_get_contents($this->testsWorkingDir .'vendor-prefixed/symfony/polyfill-intl-normalizer/Resources/stubs/Normalizer.php');
 
         // Confirm problem is gone.
-        $this->assertStringNotContainsString('class BrianHenryIE_Strauss_BrianHenryIE_Strauss_Normalizer extends', $php_string, 'Double prefixing problem still present.');
+        self::assertStringNotContainsString('class BrianHenryIE_Strauss_BrianHenryIE_Strauss_Normalizer extends', $php_string, 'Double prefixing problem still present.');
 
         // Confirm solution is correct.
-        $this->assertStringContainsString('class BrianHenryIE_Strauss_Normalizer extends', $php_string, 'Class name not properly prefixed.');
+        self::assertStringContainsString('class BrianHenryIE_Strauss_Normalizer extends', $php_string, 'Class name not properly prefixed.');
     }
 }

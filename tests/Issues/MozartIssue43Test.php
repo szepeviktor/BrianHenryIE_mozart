@@ -66,8 +66,8 @@ EOD;
 
         $result = $strauss->run($inputInterfaceMock, $outputInterfaceMock);
 //
-//        $this->assertEquals(0, $result);
+//        self::assertEquals(0, $result);
 
-        $this->assertFileExists($this->testsWorkingDir .'vendor-prefixed/aws/aws-sdk-php/src/AWS/Common/Aws.php');
+        self::assertFileExists($this->testsWorkingDir .'vendor-prefixed/aws/aws-sdk-php/src/AWS/Common/Aws.php');
     }
 }

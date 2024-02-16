@@ -64,9 +64,9 @@ EOD;
         $mpdf_php = file_get_contents($this->testsWorkingDir .'strauss/setasign/fpdi/src/FpdfTpl.php');
 
         // Confirm problem is gone.
-        $this->assertStringNotContainsString('class FpdfTpl extends \FPDF', $mpdf_php);
+        self::assertStringNotContainsString('class FpdfTpl extends \FPDF', $mpdf_php);
 
         // Confirm solution is correct.
-        $this->assertStringContainsString('class FpdfTpl extends \Strauss_FPDF', $mpdf_php);
+        self::assertStringContainsString('class FpdfTpl extends \Strauss_FPDF', $mpdf_php);
     }
 }

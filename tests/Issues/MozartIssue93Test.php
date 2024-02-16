@@ -66,9 +66,9 @@ EOD;
         $php_string = file_get_contents($this->testsWorkingDir .'strauss/brianhenryie/wp-logger/src/class-logger.php');
 
         // Confirm problem is gone.
-        $this->assertStringNotContainsString('class BrianHenryIE_Strauss_Logger extends', $php_string);
+        self::assertStringNotContainsString('class BrianHenryIE_Strauss_Logger extends', $php_string);
 
         // Confirm solution is correct.
-        $this->assertStringContainsString('class Logger extends', $php_string);
+        self::assertStringContainsString('class Logger extends', $php_string);
     }
 }

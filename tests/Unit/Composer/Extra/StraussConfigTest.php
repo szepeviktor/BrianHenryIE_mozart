@@ -61,17 +61,17 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        $this->assertContains('pimple/pimple', $sut->getPackages());
+        self::assertContains('pimple/pimple', $sut->getPackages());
 
-        $this->assertEquals('target_directory' . DIRECTORY_SEPARATOR, $sut->getTargetDirectory());
+        self::assertEquals('target_directory' . DIRECTORY_SEPARATOR, $sut->getTargetDirectory());
 
-        $this->assertEquals("BrianHenryIE\\Strauss", $sut->getNamespacePrefix());
+        self::assertEquals("BrianHenryIE\\Strauss", $sut->getNamespacePrefix());
 
-        $this->assertEquals('BrianHenryIE_Strauss_', $sut->getClassmapPrefix());
+        self::assertEquals('BrianHenryIE_Strauss_', $sut->getClassmapPrefix());
 
-        $this->assertArrayHasKey('clancats/container', $sut->getOverrideAutoload());
+        self::assertArrayHasKey('clancats/container', $sut->getOverrideAutoload());
 
-        $this->assertFalse($sut->isDeleteVendorFiles());
+        self::assertFalse($sut->isDeleteVendorFiles());
     }
 
     /**
@@ -126,7 +126,7 @@ EOD;
             $exception = $e;
         }
 
-        $this->assertNull($exception);
+        self::assertNull($exception);
     }
 
     /**
@@ -171,7 +171,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        $this->assertEquals('vendor-prefixed'. DIRECTORY_SEPARATOR, $sut->getTargetDirectory());
+        self::assertEquals('vendor-prefixed'. DIRECTORY_SEPARATOR, $sut->getTargetDirectory());
     }
 
     /**
@@ -202,7 +202,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        $this->assertEquals("BrianHenryIE\\Strauss", $sut->getNamespacePrefix());
+        self::assertEquals("BrianHenryIE\\Strauss", $sut->getNamespacePrefix());
     }
 
     /**
@@ -232,7 +232,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        $this->assertEquals("BrianHenryIE\\Strauss", $sut->getNamespacePrefix());
+        self::assertEquals("BrianHenryIE\\Strauss", $sut->getNamespacePrefix());
     }
 
     /**
@@ -259,7 +259,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        $this->assertEquals("Brianhenryie\\Strauss_Config_Test", $sut->getNamespacePrefix());
+        self::assertEquals("Brianhenryie\\Strauss_Config_Test", $sut->getNamespacePrefix());
     }
 
     /**
@@ -290,7 +290,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        $this->assertEquals("BrianHenryIE_Strauss_", $sut->getClassmapPrefix());
+        self::assertEquals("BrianHenryIE_Strauss_", $sut->getClassmapPrefix());
     }
 
     /**
@@ -321,7 +321,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        $this->assertEquals("BrianHenryIE_Strauss_", $sut->getClassmapPrefix());
+        self::assertEquals("BrianHenryIE_Strauss_", $sut->getClassmapPrefix());
     }
 
     /**
@@ -348,7 +348,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        $this->assertEquals("Brianhenryie_Strauss_Config_Test", $sut->getClassmapPrefix());
+        self::assertEquals("Brianhenryie_Strauss_Config_Test", $sut->getClassmapPrefix());
     }
 
     /**
@@ -394,7 +394,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        $this->assertContains('pimple/pimple', $sut->getPackages());
+        self::assertContains('pimple/pimple', $sut->getPackages());
     }
 
 
@@ -422,7 +422,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        $this->assertContains('psr/container', $sut->getExcludePackagesFromPrefixing());
+        self::assertContains('psr/container', $sut->getExcludePackagesFromPrefixing());
     }
 
 
@@ -451,7 +451,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        $this->assertContains('psr/container', $sut->getExcludePackagesFromPrefixing());
+        self::assertContains('psr/container', $sut->getExcludePackagesFromPrefixing());
     }
 
 
@@ -472,7 +472,7 @@ EOD;
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
         // Changed in v0.14.0.
-        $this->assertNotContains('/^psr.*$/', $sut->getExcludeFilePatternsFromPrefixing());
+        self::assertNotContains('/^psr.*$/', $sut->getExcludeFilePatternsFromPrefixing());
     }
 
     /**
@@ -546,7 +546,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        $this->assertContains('league/container', $sut->getPackages());
+        self::assertContains('league/container', $sut->getPackages());
     }
 
     /**
@@ -587,20 +587,20 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        $this->assertContains('pimple/pimple', $sut->getPackages());
+        self::assertContains('pimple/pimple', $sut->getPackages());
 
-        $this->assertEquals('dep_directory' . DIRECTORY_SEPARATOR, $sut->getTargetDirectory());
+        self::assertEquals('dep_directory' . DIRECTORY_SEPARATOR, $sut->getTargetDirectory());
 
-        $this->assertEquals("My_Mozart_Config", $sut->getNamespacePrefix());
+        self::assertEquals("My_Mozart_Config", $sut->getNamespacePrefix());
 
-        $this->assertEquals('My_Mozart_Config_', $sut->getClassmapPrefix());
+        self::assertEquals('My_Mozart_Config_', $sut->getClassmapPrefix());
 
-        $this->assertContains('psr/container', $sut->getExcludePackagesFromPrefixing());
+        self::assertContains('psr/container', $sut->getExcludePackagesFromPrefixing());
 
-        $this->assertArrayHasKey('clancats/container', $sut->getOverrideAutoload());
+        self::assertArrayHasKey('clancats/container', $sut->getOverrideAutoload());
 
         // Mozart default was true.
-        $this->assertTrue($sut->isDeleteVendorFiles());
+        self::assertTrue($sut->isDeleteVendorFiles());
     }
 
     /**
@@ -630,7 +630,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        $this->assertEquals("My_Mozart_Config", $sut->getNamespacePrefix());
+        self::assertEquals("My_Mozart_Config", $sut->getNamespacePrefix());
     }
 
     public function testIncludeModifiedDateDefaultTrue()
@@ -652,7 +652,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        $this->assertTrue($sut->isIncludeModifiedDate());
+        self::assertTrue($sut->isIncludeModifiedDate());
     }
 
     /**
@@ -680,7 +680,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        $this->assertFalse($sut->isIncludeModifiedDate());
+        self::assertFalse($sut->isIncludeModifiedDate());
     }
 
 
@@ -703,7 +703,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        $this->assertTrue($sut->isIncludeAuthor());
+        self::assertTrue($sut->isIncludeAuthor());
     }
 
 
@@ -727,7 +727,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        $this->assertFalse($sut->isIncludeAuthor());
+        self::assertFalse($sut->isIncludeAuthor());
     }
 
     public function testDeleteVendorPackages()
@@ -750,7 +750,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        $this->assertTrue($sut->isDeleteVendorPackages());
+        self::assertTrue($sut->isDeleteVendorPackages());
     }
 
 
@@ -775,7 +775,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        $this->assertNull($sut->getUpdateCallSites());
+        self::assertNull($sut->getUpdateCallSites());
     }
 
     public function testUpdateCallSitesConfigFalse()
@@ -799,8 +799,8 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        $this->assertIsArray($sut->getUpdateCallSites());
-        $this->assertEmpty($sut->getUpdateCallSites());
+        self::assertIsArray($sut->getUpdateCallSites());
+        self::assertEmpty($sut->getUpdateCallSites());
     }
 
 
@@ -825,8 +825,8 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        $this->assertIsArray($sut->getUpdateCallSites());
-        $this->assertCount(2, $sut->getUpdateCallSites());
+        self::assertIsArray($sut->getUpdateCallSites());
+        self::assertCount(2, $sut->getUpdateCallSites());
     }
 
 
@@ -855,7 +855,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $input);
 
-        $this->assertNull($sut->getUpdateCallSites());
+        self::assertNull($sut->getUpdateCallSites());
     }
 
     public function testUpdateCallSitesCliFalse()
@@ -883,8 +883,8 @@ EOD;
 
         $sut = new StraussConfig($composer, $input);
 
-        $this->assertIsArray($sut->getUpdateCallSites());
-        $this->assertEmpty($sut->getUpdateCallSites());
+        self::assertIsArray($sut->getUpdateCallSites());
+        self::assertEmpty($sut->getUpdateCallSites());
     }
 
 
@@ -913,7 +913,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $input);
 
-        $this->assertIsArray($sut->getUpdateCallSites());
-        $this->assertCount(2, $sut->getUpdateCallSites());
+        self::assertIsArray($sut->getUpdateCallSites());
+        self::assertCount(2, $sut->getUpdateCallSites());
     }
 }

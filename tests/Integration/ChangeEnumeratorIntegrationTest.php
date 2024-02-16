@@ -86,9 +86,9 @@ EOD;
 
         $namespaces = $changeEnumerator->getDiscoveredNamespaces();
 
-        $this->assertNotEmpty($classes);
-        $this->assertNotEmpty($namespaces);
+        self::assertNotEmpty($classes);
+        self::assertNotEmpty($namespaces);
 
-        $this->assertContains('Google_Task_Composer', $classes);
+        self::assertContains('Google_Task_Composer', $classes);
     }
 }

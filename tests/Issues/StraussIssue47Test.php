@@ -67,12 +67,12 @@ EOD;
         $result = $strauss->run($inputInterfaceMock, $outputInterfaceMock);
 
         // 0 for no errors.
-        $this->assertNotEquals(1, $result);
+        self::assertNotEquals(1, $result);
 
         $php_string = file_get_contents($this->testsWorkingDir . 'strauss/dragon-public/framework/src/Form/TextArea.php');
 
-        $this->assertStringNotContainsString('namespace Dragon\Dependencies\Dragon\Dependencies\Dragon\Form;', $php_string);
-        $this->assertStringContainsString('namespace Dragon\Dependencies\Dragon\Form;', $php_string);
+        self::assertStringNotContainsString('namespace Dragon\Dependencies\Dragon\Dependencies\Dragon\Form;', $php_string);
+        self::assertStringContainsString('namespace Dragon\Dependencies\Dragon\Form;', $php_string);
     }
 
     /*
@@ -144,12 +144,12 @@ EOD;
         $result = $strauss->run($inputInterfaceMock, $outputInterfaceMock);
 
         // 0 for no errors.
-        $this->assertNotEquals(1, $result);
+        self::assertNotEquals(1, $result);
 
         $php_string = file_get_contents($this->testsWorkingDir . 'strauss/dragon-public/framework/src/Form/TextArea.php');
 
-        $this->assertStringNotContainsString('namespace Dragon\Dependencies\Dragon\Dependencies\Dragon\Form;', $php_string);
-        $this->assertStringContainsString('namespace Dragon\Dependencies\Dragon\Form;', $php_string);
+        self::assertStringNotContainsString('namespace Dragon\Dependencies\Dragon\Dependencies\Dragon\Form;', $php_string);
+        self::assertStringContainsString('namespace Dragon\Dependencies\Dragon\Form;', $php_string);
     }
 
     /**
@@ -201,11 +201,11 @@ EOD;
         $result = $strauss->run($inputInterfaceMock, $outputInterfaceMock);
 
         // 0 for no errors.
-        $this->assertNotEquals(1, $result);
+        self::assertNotEquals(1, $result);
 
         $php_string = file_get_contents($this->testsWorkingDir . 'strauss/dragon-public/framework/src/Form/TextArea.php');
 
-        $this->assertStringNotContainsString('namespace Dragon\Dependencies\Dragon\Dependencies\Dragon\Form;', $php_string);
-        $this->assertStringContainsString('namespace Dragon\Dependencies\Dragon\Form;', $php_string);
+        self::assertStringNotContainsString('namespace Dragon\Dependencies\Dragon\Dependencies\Dragon\Form;', $php_string);
+        self::assertStringContainsString('namespace Dragon\Dependencies\Dragon\Form;', $php_string);
     }
 }

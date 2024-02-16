@@ -55,8 +55,8 @@ EOD;
 
         $php_string = file_get_contents($this->testsWorkingDir . 'vendor-prefixed/guzzlehttp/guzzle/src/BodySummarizer.php');
 
-        $this->assertStringNotContainsString('? \GuzzleHttp\Psr7\Message::bodySummary($message)', $php_string);
+        self::assertStringNotContainsString('? \GuzzleHttp\Psr7\Message::bodySummary($message)', $php_string);
         
-        $this->assertStringContainsString('? \Strauss\Issue44\GuzzleHttp\Psr7\Message::bodySummary($message)', $php_string);
+        self::assertStringContainsString('? \Strauss\Issue44\GuzzleHttp\Psr7\Message::bodySummary($message)', $php_string);
     }
 }

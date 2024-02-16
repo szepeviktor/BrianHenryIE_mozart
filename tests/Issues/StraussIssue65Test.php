@@ -53,6 +53,6 @@ EOD;
 
         // vendor/aws/aws-sdk-php/src/Endpoint/UseDualstackEndpoint/Configuration.php
 
-        $this->assertNotEquals(1, $result);
+        self::assertNotEquals(1, $result);
     }
 }

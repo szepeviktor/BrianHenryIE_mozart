@@ -76,6 +76,6 @@ EOD;
 
         $mozartCompose->run($inputInterfaceMock, $outputInterfaceMock);
 
-        $this->assertFileExists($this->testsWorkingDir . 'strauss/php-di/php-di/src/functions.php');
+        self::assertFileExists($this->testsWorkingDir . 'strauss/php-di/php-di/src/functions.php');
     }
 }

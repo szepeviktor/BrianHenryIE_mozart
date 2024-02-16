@@ -25,6 +25,6 @@ class ApplicationTest extends TestCase
             return $carry || $item instanceof Compose;
         }, false);
 
-        $this->assertTrue($containsComposeCommand);
+        self::assertTrue($containsComposeCommand);
     }
 }

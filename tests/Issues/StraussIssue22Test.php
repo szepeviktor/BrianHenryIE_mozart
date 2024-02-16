@@ -68,7 +68,7 @@ EOD;
 
         $result = $mozartCompose->run($inputInterfaceMock, $outputInterfaceMock);
 
-        $this->assertEquals(0, $result);
+        self::assertEquals(0, $result);
     }
 
     /**
@@ -122,6 +122,6 @@ EOD;
 
         $result = $mozartCompose->run($inputInterfaceMock, $outputInterfaceMock);
 
-        $this->assertFileExists($this->testsWorkingDir . 'vendor-prefixed/omnipay/common/src/Omnipay.php');
+        self::assertFileExists($this->testsWorkingDir . 'vendor-prefixed/omnipay/common/src/Omnipay.php');
     }
 }
