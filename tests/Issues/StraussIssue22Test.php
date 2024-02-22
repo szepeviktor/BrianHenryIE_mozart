@@ -68,7 +68,7 @@ EOD;
 
         $result = $mozartCompose->run($inputInterfaceMock, $outputInterfaceMock);
 
-        self::assertEquals(0, $result);
+        self::assertEqualsRN(0, $result);
     }
 
     /**

@@ -98,7 +98,7 @@ EOD;
         }
 
         // On the failing test, an exception was thrown and this line was not reached.
-        self::assertEquals(0, $result, 'Failed running under PHP ' . phpversion());
+        self::assertEqualsRN(0, $result, 'Failed running under PHP ' . phpversion());
 
         self::assertNull($exception);
     }

@@ -54,7 +54,7 @@ EOD;
 
         $result = $strauss->run($inputInterfaceMock, $outputInterfaceMock);
 
-        self::assertEquals(0, $result);
+        self::assertEqualsRN(0, $result);
 
         $php_string = file_get_contents($this->testsWorkingDir . '/vendor-prefixed/json-mapper/json-mapper/src/JsonMapper.php');
         self::assertStringNotContainsString('throw new \BH_Strauss_Issue79_JsonException(json_last_error_msg()', $php_string);

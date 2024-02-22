@@ -43,6 +43,6 @@ class ProjectComposerPackageTest extends TestCase
 
         $expected = ["src","includes","classes","functions.php"];
 
-        self::assertEquals($expected, $phpFiles);
+        self::assertEqualsRN($expected, $phpFiles);
     }
 }

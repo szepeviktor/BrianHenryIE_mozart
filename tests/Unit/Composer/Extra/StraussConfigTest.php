@@ -63,11 +63,11 @@ EOD;
 
         self::assertContains('pimple/pimple', $sut->getPackages());
 
-        self::assertEquals('target_directory' . DIRECTORY_SEPARATOR, $sut->getTargetDirectory());
+        self::assertEqualsRN( 'target_directory' . DIRECTORY_SEPARATOR, $sut->getTargetDirectory());
 
-        self::assertEquals("BrianHenryIE\\Strauss", $sut->getNamespacePrefix());
+        self::assertEqualsRN("BrianHenryIE\\Strauss", $sut->getNamespacePrefix());
 
-        self::assertEquals('BrianHenryIE_Strauss_', $sut->getClassmapPrefix());
+        self::assertEqualsRN('BrianHenryIE_Strauss_', $sut->getClassmapPrefix());
 
         self::assertArrayHasKey('clancats/container', $sut->getOverrideAutoload());
 
@@ -171,7 +171,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        self::assertEquals('vendor-prefixed'. DIRECTORY_SEPARATOR, $sut->getTargetDirectory());
+        self::assertEqualsRN( 'vendor-prefixed' . DIRECTORY_SEPARATOR, $sut->getTargetDirectory());
     }
 
     /**
@@ -202,7 +202,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        self::assertEquals("BrianHenryIE\\Strauss", $sut->getNamespacePrefix());
+        self::assertEqualsRN("BrianHenryIE\\Strauss", $sut->getNamespacePrefix());
     }
 
     /**
@@ -232,7 +232,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        self::assertEquals("BrianHenryIE\\Strauss", $sut->getNamespacePrefix());
+        self::assertEqualsRN("BrianHenryIE\\Strauss", $sut->getNamespacePrefix());
     }
 
     /**
@@ -259,7 +259,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        self::assertEquals("Brianhenryie\\Strauss_Config_Test", $sut->getNamespacePrefix());
+        self::assertEqualsRN("Brianhenryie\\Strauss_Config_Test", $sut->getNamespacePrefix());
     }
 
     /**
@@ -290,7 +290,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        self::assertEquals("BrianHenryIE_Strauss_", $sut->getClassmapPrefix());
+        self::assertEqualsRN("BrianHenryIE_Strauss_", $sut->getClassmapPrefix());
     }
 
     /**
@@ -321,7 +321,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        self::assertEquals("BrianHenryIE_Strauss_", $sut->getClassmapPrefix());
+        self::assertEqualsRN("BrianHenryIE_Strauss_", $sut->getClassmapPrefix());
     }
 
     /**
@@ -348,7 +348,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        self::assertEquals("Brianhenryie_Strauss_Config_Test", $sut->getClassmapPrefix());
+        self::assertEqualsRN("Brianhenryie_Strauss_Config_Test", $sut->getClassmapPrefix());
     }
 
     /**
@@ -589,11 +589,11 @@ EOD;
 
         self::assertContains('pimple/pimple', $sut->getPackages());
 
-        self::assertEquals('dep_directory' . DIRECTORY_SEPARATOR, $sut->getTargetDirectory());
+        self::assertEqualsRN( 'dep_directory' . DIRECTORY_SEPARATOR, $sut->getTargetDirectory());
 
-        self::assertEquals("My_Mozart_Config", $sut->getNamespacePrefix());
+        self::assertEqualsRN("My_Mozart_Config", $sut->getNamespacePrefix());
 
-        self::assertEquals('My_Mozart_Config_', $sut->getClassmapPrefix());
+        self::assertEqualsRN('My_Mozart_Config_', $sut->getClassmapPrefix());
 
         self::assertContains('psr/container', $sut->getExcludePackagesFromPrefixing());
 
@@ -630,7 +630,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        self::assertEquals("My_Mozart_Config", $sut->getNamespacePrefix());
+        self::assertEqualsRN("My_Mozart_Config", $sut->getNamespacePrefix());
     }
 
     public function testIncludeModifiedDateDefaultTrue()

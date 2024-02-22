@@ -52,7 +52,7 @@ EOD;
 
         $result = $strauss->run($inputInterfaceMock, $outputInterfaceMock);
 
-        self::assertEquals(0, $result);
+        self::assertEqualsRN(0, $result);
 
         $php_string = file_get_contents($this->testsWorkingDir . 'vendor-prefixed/league/oauth2-linkedin/src/Provider/LinkedInResourceOwner.php');
         self::assertStringNotContainsString('class Issue_80_LinkedInResourceOwner extends GenericResourceOwner', $php_string);
@@ -122,7 +122,7 @@ EOD;
 
         $result = $strauss->run($inputInterfaceMock, $outputInterfaceMock);
 
-        self::assertEquals(0, $result);
+        self::assertEqualsRN(0, $result);
 
         $php_string = file_get_contents($this->testsWorkingDir . 'vendor-prefixed/google/apiclient/src/aliases.php');
         self::assertStringNotContainsString("'Company\\Project\\\Google\\\\Client' => 'Prefix_Google_Client',", $php_string);

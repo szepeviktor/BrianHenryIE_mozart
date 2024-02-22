@@ -21,7 +21,7 @@ class ComposerPackageTest extends TestCase
 
         $composer = ComposerPackage::fromFile($testFile);
 
-        self::assertEquals('iio/libmergepdf', $composer->getPackageName());
+        self::assertEqualsRN('iio/libmergepdf', $composer->getPackageName());
 
         self::assertIsArray($composer->getAutoload());
 

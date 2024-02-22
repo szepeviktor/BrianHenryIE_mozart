@@ -4,13 +4,13 @@ namespace BrianHenryIE\Strauss;
 
 class TestCase extends \PHPUnit\Framework\TestCase
 {
-    public static function assertEquals($expected, $actual, string $message = ''): void
+    public static function assertEqualsRN($expected, $actual, string $message = ''): void
     {
         if (is_string($expected) && is_string($actual)) {
             $expected = str_replace("\r\n", "\n", $expected);
             $actual = str_replace("\r\n", "\n", $actual);
         }
 
-        parent::assertEquals($expected, $actual, $message);
+        self::assertEquals($expected, $actual, $message);
     }
 }

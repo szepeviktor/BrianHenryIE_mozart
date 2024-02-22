@@ -110,7 +110,7 @@ EOD;
             'proprietary'
         );
 
-        self::assertEquals($expected, $actual);
+        self::assertEqualsRN($expected, $actual);
     }
 
 
@@ -159,7 +159,7 @@ EOD;
             'proprietary'
         );
 
-        self::assertEquals($expected, $actual);
+        self::assertEqualsRN($expected, $actual);
     }
 
     /**
@@ -199,7 +199,7 @@ EOD;
             'proprietary'
         );
 
-        self::assertEquals($expected, $actual);
+        self::assertEqualsRN($expected, $actual);
     }
 
     /**
@@ -254,7 +254,7 @@ EOD;
             'GPL-2.0-or-later'
         );
 
-        self::assertEquals($expected, $actual);
+        self::assertEqualsRN($expected, $actual);
     }
 
 
@@ -326,7 +326,7 @@ EOD;
             );
         }
 
-        self::assertEquals($expected, $contents);
+        self::assertEqualsRN($expected, $contents);
     }
 
     /**
@@ -380,7 +380,7 @@ EOD;
             );
         }
 
-        self::assertEquals($expected, $contents);
+        self::assertEqualsRN($expected, $contents);
     }
 
     /**
@@ -443,7 +443,7 @@ EOD;
             );
         }
 
-        self::assertEquals($expected, $contents);
+        self::assertEqualsRN($expected, $contents);
     }
 
     /**
@@ -524,7 +524,7 @@ EOD;
             'MIT'
         );
 
-        self::assertEquals($expected, $actual);
+        self::assertEqualsRN($expected, $actual);
     }
 
     /**
@@ -573,6 +573,6 @@ EOD;
             );
         }
 
-        self::assertEquals($expected, $contents);
+        self::assertEqualsRN($expected, $contents);
     }
 }
