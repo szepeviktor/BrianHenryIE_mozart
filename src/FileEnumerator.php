@@ -165,7 +165,7 @@ class FileEnumerator
 
                             foreach ($finder as $foundFile) {
                                 $sourceAbsoluteFilepath = $foundFile->getPathname();
-                                $sourceRelativeFilePath = str_replace($sourcePath, $sourceRelativePath, $sourceAbsoluteFilepath);
+                                $sourceRelativeFilePath = str_replace(rtrim($sourcePath, DIRECTORY_SEPARATOR), rtrim($sourceRelativePath, DIRECTORY_SEPARATOR), $sourceAbsoluteFilepath);
                                 $outputRelativeFilepath = str_replace($prefixToRemove, '', $sourceAbsoluteFilepath);
 
                                 // For symlinked packages.
