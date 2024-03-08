@@ -202,6 +202,7 @@ class Prefixer
             |\[\s*                         # In a square array 
             |\?\s*                         # In a ternary operator
             |:\s*                          # In a ternary operator
+            |\(string\)\s*                 # casting a namespaced class to a string
             )
             (?<searchNamespace>
             {$searchNamespace}             # followed by the namespace to replace
