@@ -20,8 +20,6 @@ class StraussIssue83Test extends IntegrationTestCase
 {
     public function test_namespace_keyword_on_opening_line()
     {
-        self::markTestSkipped('Slow test.');
-
         $composerJsonString = <<<'EOD'
 {
   "name": "issue/83",
@@ -36,7 +34,13 @@ class StraussIssue83Test extends IntegrationTestCase
 		    "/^((?!aws\\/aws-sdk-php).)*$/"
 		  ]
       }
-    }
+    },
+    "aws/aws-sdk-php": [
+        "S3"
+    ]
+  },
+  "scripts": {
+    "pre-autoload-dump": "Aws\\Script\\Composer\\Composer::removeUnusedServices"
   }
 }
 EOD;
