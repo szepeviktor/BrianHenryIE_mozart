@@ -208,7 +208,11 @@ class ChangeEnumerator
 
                 // If we're inside a namespace other than the global namespace:
                 if (1 === preg_match('/\s*namespace\s+[a-zA-Z0-9_\x7f-\xff\\\\]+[;{\s\n]{1}.*/', $matches[0])) {
-                    $this->addDiscoveredNamespaceChange($matches[1]);
+
+                    if(isset($matches[1])) {
+                        $this->addDiscoveredNamespaceChange($matches[1]);
+                    }
+
                     return $matches[0];
                 }
 
