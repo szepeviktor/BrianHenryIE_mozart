@@ -130,13 +130,13 @@ class Compose extends Command
 
         $config = $this->projectComposerPackage->getStraussConfig($input);
 
-        $isDeleteVendorPackagesCommandLine =
-            ($input->hasOption('deleteVendorPackages')
-            && $input->getOption('deleteVendorPackages') === 'true')
-            || ($input->hasOption('delete_vendor_packages')
-            && $input->getOption('delete_vendor_packages') === 'true');
-
-        $config->setDeleteVendorPackages($isDeleteVendorPackagesCommandLine);
+        if ($input->hasOption('deleteVendorPackages')) {
+            $isDeleteVendorPackagesCommandLine = $input->getOption('deleteVendorPackages') === 'true';
+            $config->setDeleteVendorPackages($isDeleteVendorPackagesCommandLine);
+        } elseif ($input->hasOption('delete_vendor_packages')) {
+            $isDeleteVendorPackagesCommandLine = $input->getOption('delete_vendor_packages') === 'true';
+            $config->setDeleteVendorPackages($isDeleteVendorPackagesCommandLine);
+        }
 
         $this->config = $config;
 
