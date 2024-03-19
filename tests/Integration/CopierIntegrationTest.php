@@ -76,7 +76,7 @@ EOD;
 
         $copier->prepareTarget();
 
-        $this->assertFileDoesNotExist($targetFile);
+        self::assertFileDoesNotExist($targetFile);
     }
 
     public function testsCopy()
@@ -133,7 +133,7 @@ EOD;
 
         $copier->copy();
 
-        $this->assertFileExists($targetFile);
+        self::assertFileExists($targetFile);
     }
 
 
@@ -202,9 +202,9 @@ EOD;
 
         $mover->deleteTargetDirs($packages);
 
-        $this->assertTrue(file_exists($this->testsWorkingDir
+        self::assertTrue(file_exists($this->testsWorkingDir
             . $this->config->getDepDirectory()));
-        $this->assertTrue(file_exists($this->testsWorkingDir
+        self::assertTrue(file_exists($this->testsWorkingDir
             . $this->config->getClassmapDirectory()));
     }
 
@@ -228,8 +228,8 @@ EOD;
             mkdir($this->testsWorkingDir . $this->config->getClassmapDirectory());
         }
 
-        $this->assertDirectoryExists($this->testsWorkingDir . $this->config->getDepDirectory());
-        $this->assertDirectoryExists($this->testsWorkingDir . $this->config->getClassmapDirectory());
+        self::assertDirectoryExists($this->testsWorkingDir . $this->config->getDepDirectory());
+        self::assertDirectoryExists($this->testsWorkingDir . $this->config->getClassmapDirectory());
 
         $packages = array();
 
@@ -239,7 +239,7 @@ EOD;
 
         $output = ob_get_clean();
 
-        $this->assertEmpty($output);
+        self::assertEmpty($output);
     }
 
     /**
@@ -278,7 +278,7 @@ EOD;
 
         $mover->deleteTargetDirs($packages);
 
-        $this->assertDirectoryDoesNotExist($this->testsWorkingDir . $this->config->getDepDirectory() . 'Pimple');
-        $this->assertDirectoryDoesNotExist($this->testsWorkingDir . $this->config->getDepDirectory() . 'ezyang');
+        self::assertDirectoryDoesNotExist($this->testsWorkingDir . $this->config->getDepDirectory() . 'Pimple');
+        self::assertDirectoryDoesNotExist($this->testsWorkingDir . $this->config->getDepDirectory() . 'ezyang');
     }
 }

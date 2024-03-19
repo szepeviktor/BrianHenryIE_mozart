@@ -10,26 +10,31 @@ on:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
     strategy:
       matrix:
-        php: ['7.4', '8.0']
-    name: PHP ${{ matrix.php }} tests
+        php: ['7.4', '8.0', '8.1', '8.2', '8.3']
+        os: [ubuntu-latest, windows-latest]
+      fail-fast: false
+    name: PHP tests ${{ matrix.php }} ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
       - name: Install PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
+          extensions: fileinfo
       - name: Debugging
         run: |
           php --version
           php -m
           composer --version
       - name: Install dependencies
-        run: composer install --prefer-dist --no-suggest --no-progress
+        run: composer install --prefer-dist --no-progress
       - name: Run tests
-        run: vendor/bin/phpunit --printer mheap\\GithubActionsReporter\\Printer
+        run: vendor/bin/phpunit
+        # TODO: get GitHub Actions annotations working again.
+#        run: vendor/bin/phpunit --printer mheap\\GithubActionsReporter\\Printer
   lint:
     runs-on: ubuntu-latest
     name: Lint project files
@@ -50,7 +55,7 @@ jobs:
           composer --version
 
       - name: Install dependencies
-        run: composer install --prefer-dist --no-suggest --no-progress
+        run: composer install --prefer-dist --no-progress
 
       - name: Run validate
         run: |

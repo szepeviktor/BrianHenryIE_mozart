@@ -9,8 +9,8 @@ namespace BrianHenryIE\Strauss;
 
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use Composer\Autoload\ClassMapGenerator;
-use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 
 class Autoload
 {
@@ -26,7 +26,7 @@ class Autoload
      * The files autolaoders of packages that have been copied by Strauss.
      * Keyed by package path.
      *
-     * @var array
+     * @var array<string, array<string>> $discoveredFilesAutoloaders Array of packagePath => array of relativeFilePaths.
      */
     protected array $discoveredFilesAutoloaders;
 
@@ -34,17 +34,18 @@ class Autoload
      * Autoload constructor.
      * @param StraussConfig $config
      * @param string $workingDir
-     * @param array<string, array<string>> $files
+     * @param array<string, array<string>> $discoveredFilesAutoloaders
      */
     public function __construct(StraussConfig $config, string $workingDir, array $discoveredFilesAutoloaders)
     {
         $this->config = $config;
         $this->workingDir = $workingDir;
         $this->discoveredFilesAutoloaders = $discoveredFilesAutoloaders;
-        $this->filesystem = new Filesystem(new Local($workingDir));
+
+        $this->filesystem = new Filesystem(new LocalFilesystemAdapter($workingDir));
     }
 
-    public function generate()
+    public function generate(): void
     {
         // Do not overwrite Composer's autoload.php.
         // The correct solution is to add "classmap": ["vendor"] to composer.json, then run composer dump-autoload.
@@ -73,7 +74,7 @@ class Autoload
      * @see ClassMapGenerator::dump()
      *
      */
-    protected function generateClassmap(): string
+    protected function generateClassmap(): void
     {
 
         // Hyphen used to match WordPress Coding Standards.
@@ -87,8 +88,6 @@ class Autoload
             $targetDirectory
         );
 
-        $dirname = '';
-
         foreach ($dirs as $dir) {
             if (!is_dir($dir)) {
                 continue;
@@ -96,11 +95,9 @@ class Autoload
 
             $dirMap = ClassMapGenerator::createMap($dir);
 
-            $dirname = preg_replace('/[^a-z]/i', '', str_replace(getcwd(), '', $dir));
-
             array_walk(
                 $dirMap,
-                function (&$filepath, $_class) use ($dir, $dirname) {
+                function (&$filepath, $_class) use ($dir) {
                     $filepath = "\$strauss_src . '"
                         . DIRECTORY_SEPARATOR
                         . ltrim(str_replace($dir, '', $filepath), DIRECTORY_SEPARATOR) . "'";
@@ -122,11 +119,9 @@ class Autoload
 
             file_put_contents($dir . $output_filename, ob_get_clean());
         }
-
-        return $dirname;
     }
 
-    protected function generateFilesAutoloader()
+    protected function generateFilesAutoloader(): void
     {
 
         // Hyphen used to match WordPress Coding Standards.
@@ -142,7 +137,7 @@ class Autoload
             . DIRECTORY_SEPARATOR
             . ltrim($this->config->getTargetDirectory(), DIRECTORY_SEPARATOR);
 
-        $dirname = preg_replace('/[^a-z]/i', '', str_replace(getcwd(), '', $targetDirectory));
+//        $dirname = preg_replace('/[^a-z]/i', '', str_replace(getcwd(), '', $targetDirectory));
 
         ob_start();
 
@@ -166,7 +161,7 @@ class Autoload
         file_put_contents($targetDirectory . $outputFilename, ob_get_clean());
     }
 
-    protected function generateAutoloadPhp()
+    protected function generateAutoloadPhp(): void
     {
 
         $autoloadPhp = <<<'EOD'

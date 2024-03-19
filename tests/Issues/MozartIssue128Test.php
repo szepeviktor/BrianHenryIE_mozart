@@ -6,10 +6,9 @@
 namespace BrianHenryIE\Strauss\Tests\Issues;
 
 use BrianHenryIE\Strauss\Console\Commands\Compose;
-
+use BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase;
 
 /**
  * Class MozartIssue128Test
@@ -25,7 +24,9 @@ class MozartIssue128Test extends IntegrationTestCase
     public function test_it_does_not_make_classname_replacement_inside_namespaced_file()
     {
 
-        $this->markTestSkipped("Failing on PHP 8");
+        if (version_compare(phpversion(), '7.0', '>')) {
+            $this->markTestSkipped("Package specified for test is not PHP 8.0 compatible. Running tests under PHP " . phpversion());
+        }
 
         $composerJsonString = <<<'EOD'
 {
@@ -63,9 +64,9 @@ EOD;
         $mpdf_php = file_get_contents($this->testsWorkingDir .'strauss/setasign/fpdi/src/FpdfTpl.php');
 
         // Confirm problem is gone.
-        $this->assertStringNotContainsString('class FpdfTpl extends \FPDF', $mpdf_php);
+        self::assertStringNotContainsString('class FpdfTpl extends \FPDF', $mpdf_php);
 
         // Confirm solution is correct.
-        $this->assertStringContainsString('class FpdfTpl extends \Strauss_FPDF', $mpdf_php);
+        self::assertStringContainsString('class FpdfTpl extends \Strauss_FPDF', $mpdf_php);
     }
 }

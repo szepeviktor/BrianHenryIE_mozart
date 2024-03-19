@@ -14,8 +14,8 @@
 namespace BrianHenryIE\Strauss;
 
 use BrianHenryIE\Strauss\Composer\ComposerPackage;
-use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 
 class Copier
 {
@@ -56,7 +56,7 @@ class Copier
 
         $this->vendorDir = $vendorDir;
 
-        $this->filesystem = new Filesystem(new Local('/'));
+        $this->filesystem = new Filesystem(new LocalFilesystemAdapter('/'));
     }
 
     /**
@@ -67,13 +67,13 @@ class Copier
      */
     public function prepareTarget(): void
     {
-        if (! $this->filesystem->has($this->absoluteTargetDir)) {
-            $this->filesystem->createDir($this->absoluteTargetDir);
+        if (! is_dir($this->absoluteTargetDir)) {
+            $this->filesystem->createDirectory($this->absoluteTargetDir);
         } else {
             foreach (array_keys($this->files) as $targetRelativeFilepath) {
                 $targetAbsoluteFilepath = $this->absoluteTargetDir . $targetRelativeFilepath;
 
-                if ($this->filesystem->has($targetAbsoluteFilepath)) {
+                if ($this->filesystem->fileExists($targetAbsoluteFilepath)) {
                     $this->filesystem->delete($targetAbsoluteFilepath);
                 }
             }

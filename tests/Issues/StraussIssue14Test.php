@@ -6,7 +6,7 @@
 namespace BrianHenryIE\Strauss\Tests\Issues;
 
 use BrianHenryIE\Strauss\Console\Commands\Compose;
-use Exception;
+use BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -14,7 +14,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  * @package BrianHenryIE\Strauss\Tests\Issues
  * @coversNothing
  */
-class StraussIssue14Test extends \BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase
+class StraussIssue14Test extends IntegrationTestCase
 {
 
     /**
@@ -57,7 +57,7 @@ EOD;
         // was namespace GuzzleHttp\Psr7;
 
         // Confirm solution is correct.
-        $this->assertStringContainsString('namespace BrianHenryIE\Strauss\GuzzleHttp\Psr7;', $php_string);
+        self::assertStringContainsString('namespace BrianHenryIE\Strauss\GuzzleHttp\Psr7;', $php_string);
     }
 
     public function testFilesAutoloaderIsGenerated()
@@ -93,6 +93,6 @@ EOD;
 
         $result = $mozartCompose->run($inputInterfaceMock, $outputInterfaceMock);
 
-        $this->assertFileExists($this->testsWorkingDir .'vendor-prefixed/autoload-files.php');
+        self::assertFileExists($this->testsWorkingDir .'vendor-prefixed/autoload-files.php');
     }
 }

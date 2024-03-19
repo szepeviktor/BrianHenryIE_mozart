@@ -10,7 +10,7 @@ use BrianHenryIE\Strauss\Composer\ComposerPackage;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use BrianHenryIE\Strauss\Licenser;
 use PHPUnit\Framework\Constraint\Callback;
-use PHPUnit\Framework\TestCase;
+use BrianHenryIE\Strauss\TestCase;
 use Symfony\Component\Finder\Finder;
 
 /**
@@ -20,11 +20,8 @@ use Symfony\Component\Finder\Finder;
  */
 class LicenserTest extends TestCase
 {
-
-
     /**
      * @covers ::findLicenseFiles
-     *
      */
     public function testFindLicenceFilesPathsAreRelative()
     {
@@ -35,6 +32,7 @@ class LicenserTest extends TestCase
 
         $dependency = $this->createStub(ComposerPackage::class);
         $dependency->method('getRelativePath')->willReturn('developer-name/project-name/');
+        $dependency->method('getPackageAbsolutePath')->willReturn(__DIR__.'/vendor/developer-name/project-name/');
         $dependencies[] = $dependency;
 
         $sut = new Licenser($config, $workingDir, $dependencies, 'BrianHenryIE');
@@ -62,7 +60,7 @@ class LicenserTest extends TestCase
         $result = $sut->getDiscoveredLicenseFiles();
 
         // Currently contains an array entry: /Users/brianhenry/Sites/mozart/mozart/tests/Unit/developer-name/project-name/license.md
-        $this->assertStringContainsString('developer-name/project-name/license.md', $result[0]);
+        self::assertStringContainsString('developer-name/project-name/license.md', $result[0]);
     }
 
     /**
@@ -78,7 +76,6 @@ class LicenserTest extends TestCase
      */
     public function testAppendHeaderCommentInformationNoHeader()
     {
-
         $author = 'BrianHenryIE';
 
         $config = $this->createMock(StraussConfig::class);
@@ -87,7 +84,7 @@ class LicenserTest extends TestCase
 
         $sut = new Licenser($config, __DIR__, array(), $author);
 
-        $given = <<<'EOD'
+        $contents = <<<'EOD'
 <?php
 
 namespace net\authorize\api\contract\v1;
@@ -100,16 +97,20 @@ EOD;
 /**
  * @license proprietary
  *
- * Modified by BrianHenryIE on 25-April-2021 using Strauss.
- * @see https://github.com/BrianHenryIE/strauss
+ * Modified by BrianHenryIE on 25-April-2021 using {@see https://github.com/BrianHenryIE/strauss}.
  */
 
 namespace net\authorize\api\contract\v1;
 EOD;
 
-        $actual = $sut->addChangeDeclarationToPhpString($given, '25-April-2021', 'proprietary');
+        $actual = $sut->addChangeDeclarationToPhpString(
+            $contents,
+            '25-April-2021',
+            'authorizenet/authorizenet',
+            'proprietary'
+        );
 
-        $this->assertEquals($expected, $actual);
+        self::assertEqualsRN($expected, $actual);
     }
 
 
@@ -134,7 +135,7 @@ EOD;
 
         $sut = new Licenser($config, __DIR__, array(), $author);
 
-        $given = <<<'EOD'
+        $contents = <<<'EOD'
 <?php
 
 namespace net\authorize\api\contract\v1;
@@ -145,16 +146,20 @@ EOD;
 /**
  * @license proprietary
  *
- * Modified by BrianHenryIE using Strauss.
- * @see https://github.com/BrianHenryIE/strauss
+ * Modified by BrianHenryIE using {@see https://github.com/BrianHenryIE/strauss}.
  */
 
 namespace net\authorize\api\contract\v1;
 EOD;
 
-        $actual = $sut->addChangeDeclarationToPhpString($given, '25-April-2021', 'proprietary');
+        $actual = $sut->addChangeDeclarationToPhpString(
+            $contents,
+            '25-April-2021',
+            'authorizenet/authorizenet',
+            'proprietary'
+        );
 
-        $this->assertEquals($expected, $actual);
+        self::assertEqualsRN($expected, $actual);
     }
 
     /**
@@ -170,7 +175,7 @@ EOD;
 
         $sut = new Licenser($config, __DIR__, array(), $author);
 
-        $given = <<<'EOD'
+        $contents = <<<'EOD'
 <?php
 
 namespace net\authorize\api\contract\v1;
@@ -181,16 +186,20 @@ EOD;
 /**
  * @license proprietary
  *
- * Modified using Strauss.
- * @see https://github.com/BrianHenryIE/strauss
+ * Modified using {@see https://github.com/BrianHenryIE/strauss}.
  */
 
 namespace net\authorize\api\contract\v1;
 EOD;
 
-        $actual = $sut->addChangeDeclarationToPhpString($given, '25-April-2021', 'proprietary');
+        $actual = $sut->addChangeDeclarationToPhpString(
+            $contents,
+            '25-April-2021',
+            'authorizenet/authorizenet',
+            'proprietary'
+        );
 
-        $this->assertEquals($expected, $actual);
+        self::assertEqualsRN($expected, $actual);
     }
 
     /**
@@ -206,7 +215,7 @@ EOD;
         $author = 'BrianHenryIE';
         $sut = new Licenser($config, __DIR__, array(), $author);
 
-        $given = <<<'EOD'
+        $contents = <<<'EOD'
 <?php // phpcs:ignore WordPress.Files.FileName
 /**
  * Handles dismissing admin notices.
@@ -232,16 +241,20 @@ EOD;
  * @license   https://www.gnu.org/licenses/gpl-2.0.html GPL-2.0-or-later
  * @link      https://github.com/WPTRT/admin-notices
  *
- * Modified by BrianHenryIE on 25-April-2021 using Strauss.
- * @see https://github.com/BrianHenryIE/strauss
+ * Modified by BrianHenryIE on 25-April-2021 using {@see https://github.com/BrianHenryIE/strauss}.
  */
 
 namespace Yeah;
 EOD;
 
-        $actual = $sut->addChangeDeclarationToPhpString($given, '25-April-2021', 'GPL-2.0-or-later');
+        $actual = $sut->addChangeDeclarationToPhpString(
+            $contents,
+            '25-April-2021',
+            'wptrt/admin-notices',
+            'GPL-2.0-or-later'
+        );
 
-        $this->assertEquals($expected, $actual);
+        self::assertEqualsRN($expected, $actual);
     }
 
 
@@ -260,7 +273,7 @@ EOD;
         $author = 'BrianHenryIE';
         $sut = new Licenser($config, __DIR__, array(), $author);
 
-        $given = <<<'EOD'
+        $contents = <<<'EOD'
 <?php
 /**
  * WP Dependency Installer
@@ -295,8 +308,7 @@ EOD;
  * @license   MIT
  * @link      https://github.com/afragen/wp-dependency-installer
  *
- * Modified by BrianHenryIE on 25-April-2021 using Strauss.
- * @see https://github.com/BrianHenryIE/strauss
+ * Modified by BrianHenryIE on 25-April-2021 using {@see https://github.com/BrianHenryIE/strauss}.
  */
 
 /**
@@ -305,10 +317,16 @@ EOD;
 if ( ! defined( 'WPINC' ) ) {
 EOD;
 
+        foreach (range(0, 3) as $_) {
+            $contents = $sut->addChangeDeclarationToPhpString(
+                $contents,
+                '25-April-2021',
+                'afragen/wp-dependency-installer',
+                'MIT'
+            );
+        }
 
-        $actual = $sut->addChangeDeclarationToPhpString($given, '25-April-2021', 'MIT');
-
-        $this->assertEquals($expected, $actual);
+        self::assertEqualsRN($expected, $contents);
     }
 
     /**
@@ -324,7 +342,7 @@ EOD;
         $author = 'BrianHenryIE';
         $sut = new Licenser($config, __DIR__, array(), $author);
 
-        $given = <<<'EOD'
+        $contents = <<<'EOD'
 <?php
 /*******************************************************************************
 * FPDF                                                                         *
@@ -347,16 +365,22 @@ EOD;
 * Author:  Olivier PLATHEY                                                     *
 *******************************************************************************
 * @license proprietary
-* Modified by BrianHenryIE on 25-April-2021 using Strauss.
-* @see https://github.com/BrianHenryIE/strauss
+* Modified by BrianHenryIE on 25-April-2021 using {@see https://github.com/BrianHenryIE/strauss}.
 */
 
 define('FPDF_VERSION','1.82');
 EOD;
 
-        $actual = $sut->addChangeDeclarationToPhpString($given, '25-April-2021', 'proprietary');
+        foreach (range(0, 3) as $_) {
+            $contents = $sut->addChangeDeclarationToPhpString(
+                $contents,
+                '25-April-2021',
+                'setasign/fpdf',
+                'proprietary'
+            );
+        }
 
-        $this->assertEquals($expected, $actual);
+        self::assertEqualsRN($expected, $contents);
     }
 
     /**
@@ -372,7 +396,7 @@ EOD;
         $author = 'BrianHenryIE';
         $sut = new Licenser($config, __DIR__, array(), $author);
 
-        $given = <<<'EOD'
+        $contents = <<<'EOD'
 <?php
 
 /**
@@ -404,16 +428,22 @@ EOD;
  * obtain it through the world-wide-web, please send an email
  * to kontakt@beberlei.de so I can send you a copy immediately.
  *
- * Modified by BrianHenryIE on 25-April-2021 using Strauss.
- * @see https://github.com/BrianHenryIE/strauss
+ * Modified by BrianHenryIE on 25-April-2021 using {@see https://github.com/BrianHenryIE/strauss}.
  */
 
 namespace Your_Domain\Assert;
 EOD;
 
-        $actual = $sut->addChangeDeclarationToPhpString($given, '25-April-2021', 'MIT');
+        foreach (range(0, 3) as $_) {
+            $contents = $sut->addChangeDeclarationToPhpString(
+                $contents,
+                '25-April-2021',
+                '',
+                'MIT'
+            );
+        }
 
-        $this->assertEquals($expected, $actual);
+        self::assertEqualsRN($expected, $contents);
     }
 
     /**
@@ -434,7 +464,7 @@ EOD;
         $author = 'BrianHenryIE';
         $sut = new Licenser($config, __DIR__, array(), $author);
 
-        $fileContents = <<<'EOD'
+        $contents = <<<'EOD'
 <?php
 /**
  * WP Dependency Installer
@@ -459,8 +489,8 @@ EOD;
 
         // Attempt to replicate the failing test, since the contents seem the same but the input manner is different.
         $tmpfname = tempnam(sys_get_temp_dir(), 'Strauss-' . __CLASS__ . '-' . __FUNCTION__);
-        file_put_contents($tmpfname, $fileContents);
-        $given = file_get_contents($tmpfname);
+        file_put_contents($tmpfname, $contents);
+        $contents = file_get_contents($tmpfname);
 
         $expected = <<<'EOD'
 <?php
@@ -476,8 +506,7 @@ EOD;
  * @license   MIT
  * @link      https://github.com/afragen/wp-dependency-installer
  *
- * Modified by BrianHenryIE on 25-April-2021 using Strauss.
- * @see https://github.com/BrianHenryIE/strauss
+ * Modified by BrianHenryIE on 25-April-2021 using {@see https://github.com/BrianHenryIE/strauss}.
  */
 
 /**
@@ -488,10 +517,14 @@ if ( ! defined( 'WPINC' ) ) {
 }
 EOD;
 
+        $actual = $sut->addChangeDeclarationToPhpString(
+            $contents,
+            '25-April-2021',
+            'afragen/wp-dependency-installer',
+            'MIT'
+        );
 
-        $actual = $sut->addChangeDeclarationToPhpString($given, '25-April-2021', 'MIT');
-
-        $this->assertEquals($expected, $actual);
+        self::assertEqualsRN($expected, $actual);
     }
 
     /**
@@ -499,7 +532,6 @@ EOD;
      */
     public function testLicenseDetailsOnlyInsertedOncePerFile()
     {
-
         $config = $this->createMock(StraussConfig::class);
         $config->expects($this->once())->method('isIncludeModifiedDate')->willReturn(true);
         $config->expects($this->once())->method('isIncludeAuthor')->willReturn(true);
@@ -507,7 +539,7 @@ EOD;
         $author = 'BrianHenryIE';
         $sut = new Licenser($config, __DIR__, array(), $author);
 
-        $fileContents = <<<'EOD'
+        $contents = <<<'EOD'
 <?php
 
 ?>
@@ -522,8 +554,7 @@ EOD;
 /**
  * @license MIT
  *
- * Modified by BrianHenryIE on 25-April-2021 using Strauss.
- * @see https://github.com/BrianHenryIE/strauss
+ * Modified by BrianHenryIE on 25-April-2021 using {@see https://github.com/BrianHenryIE/strauss}.
  */
 
 ?>
@@ -533,9 +564,15 @@ EOD;
 ?>
 EOD;
 
+        foreach (range(0, 3) as $_) {
+            $contents = $sut->addChangeDeclarationToPhpString(
+                $contents,
+                '25-April-2021',
+                '',
+                'MIT'
+            );
+        }
 
-        $actual = $sut->addChangeDeclarationToPhpString($fileContents, '25-April-2021', 'MIT');
-
-        $this->assertEquals($expected, $actual);
+        self::assertEqualsRN($expected, $contents);
     }
 }

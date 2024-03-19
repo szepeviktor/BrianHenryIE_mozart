@@ -6,10 +6,9 @@
 namespace BrianHenryIE\Strauss\Tests\Issues;
 
 use BrianHenryIE\Strauss\Console\Commands\Compose;
-
+use BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase;
 
 /**
  * Class MozartIssue106Test
@@ -25,6 +24,10 @@ class MozartIssue106Test extends IntegrationTestCase
      */
     public function test_only_prefix_classmap_classes_once()
     {
+        /**
+         * @see https://github.com/BrianHenryIE/strauss/commit/1bd20b75a4e6b5c07a428c04e8b9e514034b6b5c
+         */
+        self::markTestSkipped('Polyfills are no longer prefixed.');
 
         $composerJsonString = <<<'EOD'
 {
@@ -58,9 +61,9 @@ EOD;
         $php_string = file_get_contents($this->testsWorkingDir .'vendor-prefixed/symfony/polyfill-intl-normalizer/Resources/stubs/Normalizer.php');
 
         // Confirm problem is gone.
-        $this->assertStringNotContainsString('class BrianHenryIE_Strauss_BrianHenryIE_Strauss_Normalizer extends', $php_string, 'Double prefixing problem still present.');
+        self::assertStringNotContainsString('class BrianHenryIE_Strauss_BrianHenryIE_Strauss_Normalizer extends', $php_string, 'Double prefixing problem still present.');
 
         // Confirm solution is correct.
-        $this->assertStringContainsString('class BrianHenryIE_Strauss_Normalizer extends', $php_string, 'Class name not properly prefixed.');
+        self::assertStringContainsString('class BrianHenryIE_Strauss_Normalizer extends', $php_string, 'Class name not properly prefixed.');
     }
 }

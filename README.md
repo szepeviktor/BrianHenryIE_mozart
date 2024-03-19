@@ -1,6 +1,6 @@
-[![PHPUnit ](.github/coverage.svg)](https://brianhenryie.github.io/strauss/)
+[![PHPUnit ](.github/coverage.svg)](https://brianhenryie.github.io/strauss/) [![PHPStan ](https://img.shields.io/badge/PHPStan-Level%207-2a5ea7.svg)](https://phpstan.org/)
 
-# Strauss
+# Strauss – PHP Namespace Renamer
 
 A tool to prefix namespaces and classnames in PHP files to avoid autoloading collisions.
 
@@ -12,6 +12,7 @@ The primary use case is WordPress plugins, where different plugins active in a s
 
 ## Breaking Changes
 
+* v0.16.0 – will no longer prefix PHP built-in classes seen in polyfill packages
 * v0.14.0 – `psr/*` packages no longer excluded by default
 * v0.12.0 – default output `target_directory` changes from `strauss` to `vendor-prefixed`
 
@@ -25,26 +26,28 @@ Require as normal with Composer:
 
 and use `vendor/bin/strauss` to execute.
 
-Or, download `strauss.phar` from [releases](https://github.com/BrianHenryIE/strauss/releases/), 
+Or, download `strauss.phar` from [releases](https://github.com/BrianHenryIE/strauss/releases), 
 
 ```shell
-curl -o strauss.phar -L -C - https://github.com/BrianHenryIE/strauss/releases/download/0.14.0/strauss.phar
+curl -o strauss.phar -L -C - https://github.com/BrianHenryIE/strauss/releases/latest/download/strauss.phar
 ```
 
 Then run it from the root of your project folder using `php strauss.phar`. 
 
-Its use should be automated in Composer scripts. 
+To update the files that call the prefixed classes, you can use `--updateCallSites=true` which uses your autoload key, or `--updateCallSites=includes,templates` to explicitly specify the files and directories.
+
+Its use should be automated in Composer scripts.
 
 ```json
 "scripts": {
-    "strauss": [
-        "vendor/bin/strauss"
+    "prefix-namespaces": [
+        "strauss"
     ],
     "post-install-cmd": [
-        "@strauss"
+        "@prefix-namespaces"
     ],
     "post-update-cmd": [
-        "@strauss"
+        "@prefix-namespaces"
     ]
 }
 ```
@@ -53,11 +56,13 @@ or
 
 ```json
 "scripts": {
-    "strauss": [
+    "prefix-namespaces": [
         "@php strauss.phar"
     ]
 }
 ```
+
+‼️ Add `composer dump-autoload` to your `scripts`/`strauss` if you set `target_directory` to `vendor` or `delete_vendor_packages`/`delete_vendor_files` to `true`, i.e. if you are using `require __DIR__ . '/vendor/autoload.php'` and Strauss modifies the files inside `vendor`, you must tell Composer to rebuild its autoload index.
 
 ## Configuration
 
@@ -72,6 +77,7 @@ Strauss potentially requires zero configuration, but likely you'll want to custo
         "constant_prefix": "BHMP_",
         "packages": [
         ],
+        "update_call_sites": false,
         "override_autoload": {
         },
         "exclude_from_copy": {
@@ -88,7 +94,6 @@ Strauss potentially requires zero configuration, but likely you'll want to custo
             "namespaces": [
             ],
             "file_patterns": [
-                "/^psr.*$/"
             ]
         },
         "namespace_replacement_patterns" : {
@@ -111,14 +116,17 @@ The following configuration is default:
 
 - `delete_vendor_packages`: `false` a boolean flag to indicate if the packages' vendor directories should be deleted after being processed. It defaults to false, so any destructive change is opt-in.
 - `delete_vendor_files`: `false` a boolean flag to indicate if files copied from the packages' vendor directories should be deleted after being processed. It defaults to false, so any destructive change is opt-in. This is maybe deprecated! Is there any use to this that is more appropriate than `delete_vendor_packages`? 
-- `exclude_from_prefix` / [`file_patterns`](https://github.com/BrianHenryIE/strauss/blob/83484b79cfaa399bba55af0bf4569c24d6eb169d/src/ChangeEnumerator.php#L92-L96)
 - `include_modified_date` is a `bool` to decide if Strauss should include a date in the (phpdoc) header written to modified files. Defaults to `true`.
 - `include_author` is a `bool` to decide if Strauss should include the author name in the (phpdoc) header written to modified files. Defaults to `true`.
+
+
+- `update_call_sites`: `false`. This can be `true`, `false` or an `array` of directories/filepaths. When set to `true` it defaults to the directories and files in the project's `autoload` key. The PHP files and directories' PHP files will be updated where they call the prefixed classes.
 
 The remainder is empty:
 
 - `constant_prefix` is for `define( "A_CONSTANT", value );` -> `define( "MY_PREFIX_A_CONSTANT", value );`. If it is empty, constants are not prefixed (this may change to an inferred value).
 - `override_autoload` a dictionary, keyed with the package names, of autoload settings to replace those in the original packages' `composer.json` `autoload` property.
+- `exclude_from_prefix` / [`file_patterns`](https://github.com/BrianHenryIE/strauss/blob/83484b79cfaa399bba55af0bf4569c24d6eb169d/src/ChangeEnumerator.php#L92-L96)
 - `exclude_from_copy` 
   - [`packages`](https://github.com/BrianHenryIE/strauss/blob/83484b79cfaa399bba55af0bf4569c24d6eb169d/src/FileEnumerator.php#L77-L79) array of package names to be skipped
   - [`namespaces`](https://github.com/BrianHenryIE/strauss/blob/83484b79cfaa399bba55af0bf4569c24d6eb169d/src/FileEnumerator.php#L95-L97) array of namespaces to skip (exact match from the package autoload keys)
@@ -166,12 +174,30 @@ Benefits over Mozart:
 
 Strauss will read the Mozart configuration from your `composer.json` to enable a seamless migration.
 
+## Alternatives
+
+I don't have a strong opinion on these. I began using Mozart because it was easy, then I adapted it to what I felt was most natural. I've never used these.
+
+* [humbug/php-scoper](https://github.com/humbug/php-scoper)
+* [TypistTech/imposter-plugin](https://github.com/TypistTech/imposter-plugin)
+* [Automattic/jetpack-autoloader](https://github.com/Automattic/jetpack-autoloader)
+* [tschallacka/wordpress-composer-plugin-builder](https://github.com/tschallacka/wordpress-composer-plugin-builder)
+* [Interfacelab/namespacer](https://github.com/Interfacelab/namespacer)
+* [PHP-Prefixer](https://github.com/PHP-Prefixer) SaaS!
+
+### Interesting
+
+* [composer-unused/composer-unused](https://github.com/composer-unused/composer-unused)
+* [sdrobov/autopsr4](https://github.com/sdrobov/autopsr4)
+* [jaem3l/unfuck](https://github.com/jaem3l/unfuck)
+
 ## Changes before v1.0
 
 * Comprehensive attribution of code forked from Mozart – changes have been drastic and `git blame` is now useless, so I intend to add more attributions
 * More consistent naming. Are we prefixing or are we renaming?
 * Further unit tests, particularly file-system related
 * Regex patterns in config need to be validated
+* Change the name? "Renamespacer"?
 
 ## Changes before v2.0
 

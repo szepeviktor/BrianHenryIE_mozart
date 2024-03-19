@@ -5,9 +5,9 @@ namespace BrianHenryIE\Strauss;
 use BrianHenryIE\Strauss\Composer\ComposerPackage;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use Exception;
-use League\Flysystem\Adapter\Local;
-use League\Flysystem\FileNotFoundException;
 use League\Flysystem\Filesystem;
+use League\Flysystem\Local\LocalFilesystemAdapter;
+use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 
 class Prefixer
 {
@@ -22,16 +22,23 @@ class Prefixer
     protected string $classmapPrefix;
     protected ?string $constantsPrefix;
 
+    /** @var string[]  */
     protected array $excludePackageNamesFromPrefixing;
+
+    /** @var string[]  */
     protected array $excludeNamespacesFromPrefixing;
+
+    /** @var string[]  */
     protected array $excludeFilePatternsFromPrefixing;
 
-    /** @var array<string, ComposerPackage> */
+    /**
+     * @var array<string, ComposerPackage>
+     */
     protected array $changedFiles = array();
 
     public function __construct(StraussConfig $config, string $workingDir)
     {
-        $this->filesystem = new Filesystem(new Local($workingDir));
+        $this->filesystem = new Filesystem(new LocalFilesystemAdapter($workingDir));
 
         $this->targetDirectory = $config->getTargetDirectory();
         $this->namespacePrefix = $config->getNamespacePrefix();
@@ -49,11 +56,11 @@ class Prefixer
 
     /**
      * @param array<string, string> $namespaceChanges
-     * @param array<string, string> $classChanges
+     * @param string[] $classChanges
+     * @param string[] $constants
      * @param array<string,array{dependency:ComposerPackage,sourceAbsoluteFilepath:string,targetRelativeFilepath:string}> $phpFileArrays
-     * @throws FileNotFoundException
      */
-    public function replaceInFiles(array $namespaceChanges, array $classChanges, array $constants, array $phpFileArrays)
+    public function replaceInFiles(array $namespaceChanges, array $classChanges, array $constants, array $phpFileArrays): void
     {
 
         foreach ($phpFileArrays as $targetRelativeFilepath => $fileArray) {
@@ -73,6 +80,10 @@ class Prefixer
 
             $targetRelativeFilepathFromProject = $this->targetDirectory. $targetRelativeFilepath;
 
+            if (! $this->filesystem->fileExists($targetRelativeFilepathFromProject)) {
+                continue;
+            }
+
             // Throws an exception, but unlikely to happen.
             $contents = $this->filesystem->read($targetRelativeFilepathFromProject);
 
@@ -80,23 +91,47 @@ class Prefixer
 
             if ($updatedContents !== $contents) {
                 $this->changedFiles[$targetRelativeFilepath] = $package;
-                $this->filesystem->put($targetRelativeFilepathFromProject, $updatedContents);
+                $this->filesystem->write($targetRelativeFilepathFromProject, $updatedContents);
             }
         }
     }
 
-    public function replaceInString(array $namespacesChanges, array $classes, array $originalConstants, string $contents): string
+    /**
+     * @param array<string, string> $namespaceChanges
+     * @param string[] $classChanges
+     * @param string[] $constants
+     * @param string[] $relativeFilePaths
+     *
+     * @throws FileNotFoundException
+     * @throws Exception
+     */
+    public function replaceInProjectFiles(array $namespaceChanges, array $classChanges, array $constants, array $relativeFilePaths): void
     {
-
-        // Reorder this so substrings are always ahead of what they might be substrings of.
-        asort($namespacesChanges);
-        foreach ($namespacesChanges as $originalNamespace => $replacement) {
-            if (in_array($originalNamespace, $this->excludeNamespacesFromPrefixing)) {
+        foreach ($relativeFilePaths as $workingDirRelativeFilepath) {
+            if (! $this->filesystem->fileExists($workingDirRelativeFilepath)) {
                 continue;
             }
+            
+            // Throws an exception, but unlikely to happen.
+            $contents = $this->filesystem->read($workingDirRelativeFilepath);
 
-            $contents = $this->replaceNamespace($contents, $originalNamespace, $replacement);
+            $updatedContents = $this->replaceInString($namespaceChanges, $classChanges, $constants, $contents);
+
+            if ($updatedContents !== $contents) {
+                $this->changedFiles[ $workingDirRelativeFilepath ] = '';
+                $this->filesystem->write($workingDirRelativeFilepath, $updatedContents);
+            }
         }
+    }
+
+    /**
+     * @param array<string, string> $namespacesChanges
+     * @param string[] $classes
+     * @param string[] $originalConstants
+     * @param string $contents
+     */
+    public function replaceInString(array $namespacesChanges, array $classes, array $originalConstants, string $contents): string
+    {
 
         foreach ($classes as $originalClassname) {
             if ('ReturnTypeWillChange' === $originalClassname) {
@@ -106,6 +141,14 @@ class Prefixer
             $classmapPrefix = $this->classmapPrefix;
 
             $contents = $this->replaceClassname($contents, $originalClassname, $classmapPrefix);
+        }
+
+        foreach ($namespacesChanges as $originalNamespace => $replacement) {
+            if (in_array($originalNamespace, $this->excludeNamespacesFromPrefixing)) {
+                continue;
+            }
+
+            $contents = $this->replaceNamespace($contents, $originalNamespace, $replacement);
         }
 
         if (!is_null($this->constantsPrefix)) {
@@ -119,10 +162,12 @@ class Prefixer
      * TODO: Test against traits.
      *
      * @param string $contents The text to make replacements in.
+     * @param string $originalNamespace
+     * @param string $replacement
      *
      * @return string The updated text.
      */
-    public function replaceNamespace($contents, $originalNamespace, $replacement)
+    public function replaceNamespace(string $contents, string $originalNamespace, string $replacement): string
     {
 
         $searchNamespace = '\\'.rtrim($originalNamespace, '\\') . '\\';
@@ -132,10 +177,11 @@ class Prefixer
         $pattern = "
             /                              # Start the pattern
             (
-            ^\s*                           # start of the string
+            ^\s*                          # start of the string
             |\\n\s*                        # start of the line
-            |namespace\s+                  # the namespace keyword
+            |(<?php\s+namespace|^\s*namespace|[\r\n]+\s*namespace)\s+                  # the namespace keyword
             |use\s+                        # the use keyword
+            |use\s+function\s+			   # the use function syntax
             |new\s+
             |static\s+
             |\"                            # inside a string that does not contain spaces - needs work
@@ -143,6 +189,7 @@ class Prefixer
             |implements\s+
             |extends\s+                    # when the class being extended is namespaced inline
             |return\s+
+            |instanceof\s+                 # when checking the class type of an object in a conditional
             |\(\s*                         # inside a function declaration as the first parameters type
             |,\s*                          # inside a function declaration as a subsequent parameter type
             |\.\s*                         # as part of a concatenated string
@@ -155,14 +202,15 @@ class Prefixer
             |\[\s*                         # In a square array 
             |\?\s*                         # In a ternary operator
             |:\s*                          # In a ternary operator
+            |\(string\)\s*                 # casting a namespaced class to a string
             )
-            (
+            (?<searchNamespace>
             {$searchNamespace}             # followed by the namespace to replace
             )
             (?!:)                          # Not followed by : which would only be valid after a classname
             (
             \s*;                           # followed by a semicolon 
-            |\\\\{1,2}[a-zA-Z0-9_\x7f-\xff]+         # or a classname no slashes 
+            |\\\\{1,2}[a-zA-Z0-9_\x7f-\xff]{1,}         # or a classname no slashes 
             |\s+as                         # or the keyword as 
             |\"                            # or quotes
             |'                             # or single quote         
@@ -175,7 +223,7 @@ class Prefixer
             $singleBackslash = '\\';
             $doubleBackslash = '\\\\';
 
-            if (false !== strpos($matches[2], $doubleBackslash)) {
+            if (false !== strpos($matches['0'], $doubleBackslash)) {
                 $originalNamespace = str_replace($singleBackslash, $doubleBackslash, $originalNamespace);
                 $replacement = str_replace($singleBackslash, $doubleBackslash, $replacement);
             }
@@ -196,6 +244,16 @@ class Prefixer
             throw new Exception($message);
         }
 
+        // For prefixed functions which do not begin with a backslash, add one.
+        // I'm not certain this is a good idea.
+        // @see https://github.com/BrianHenryIE/strauss/issues/65
+        $functionReplacingPatten = '/\\\\?('.preg_quote(ltrim($replacement, '\\'), '/').'\\\\(?:[a-zA-Z0-9_\x7f-\xff]+\\\\)*[a-zA-Z0-9_\x7f-\xff]+\\()/';
+        $result = preg_replace(
+            $functionReplacingPatten,
+            "\\\\$1",
+            $result
+        );
+
         return $result;
     }
 
@@ -210,31 +268,30 @@ class Prefixer
      * @param string $contents
      * @param string $originalClassname
      * @param string $classnamePrefix
-     * @return array|string|string[]|null
      * @throws \Exception
      */
-    public function replaceClassname($contents, $originalClassname, $classnamePrefix)
+    public function replaceClassname(string $contents, string $originalClassname, string $classnamePrefix): string
     {
         $searchClassname = preg_quote($originalClassname, '/');
 
         // This could be more specific if we could enumerate all preceding and proceeding words ("new", "("...).
         $pattern = '
 			/											# Start the pattern
-				namespace\s+[a-zA-Z0-9_\x7f-\xff\\\\]+\s*{(.*?)(namespace|\z) 
-														# Look for a preceeding namespace declaration, up until a 
+				(^\s*namespace|\r\n\s*namespace)\s+[a-zA-Z0-9_\x7f-\xff\\\\]+\s*{(.*?)(namespace|\z) 
+														# Look for a preceding namespace declaration, up until a 
 														# potential second namespace declaration.
 				|										# if found, match that much before continuing the search on
 								    		        	# the remainder of the string.
-                namespace\s+[a-zA-Z0-9_\x7f-\xff\\\\]+\s*;(.*) # Skip lines just declaring the namespace.
+                (^\s*namespace|\r\n\s*namespace)\s+[a-zA-Z0-9_\x7f-\xff\\\\]+\s*;(.*) # Skip lines just declaring the namespace.
                 |		        	
 				([^a-zA-Z0-9_\x7f-\xff\$\\\])('. $searchClassname . ')([^a-zA-Z0-9_\x7f-\xff\\\]) # outside a namespace the class will not be prefixed with a slash
 				
-			/xs'; //                                    # x: ignore whitespace in regex.  s dot matches newline
+			/xsm'; //                                    # x: ignore whitespace in regex.  s dot matches newline, m: ^ and $ match start and end of line
 
         $replacingFunction = function ($matches) use ($originalClassname, $classnamePrefix) {
 
             // If we're inside a namespace other than the global namespace:
-            if (1 === preg_match('/^namespace\s+[a-zA-Z0-9_\x7f-\xff\\\\]+[;{\s\n]{1}.*/', $matches[0])) {
+            if (1 === preg_match('/\s*namespace\s+[a-zA-Z0-9_\x7f-\xff\\\\]+[;{\s\n]{1}.*/', $matches[0])) {
                 $updated = $this->replaceGlobalClassInsideNamedNamespace(
                     $matches[0],
                     $originalClassname,
@@ -262,6 +319,10 @@ class Prefixer
 
         $result = preg_replace_callback($pattern, $replacingFunction, $contents);
 
+        if (is_null($result)) {
+            throw new Exception('preg_replace_callback returned null');
+        }
+
         $matchingError = preg_last_error();
         if (0 !== $matchingError) {
             $message = "Matching error {$matchingError}";
@@ -284,21 +345,49 @@ class Prefixer
      */
     protected function replaceGlobalClassInsideNamedNamespace($contents, $originalClassname, $classnamePrefix): string
     {
+        $replacement = $classnamePrefix . $originalClassname;
 
-        return preg_replace_callback(
-            '/([^a-zA-Z0-9_\x7f-\xff]  # Not a class character
-			\\\)                       # Followed by a backslash to indicate global namespace
+        // use Prefixed_Class as Class;
+        $usePattern = '/
+			(\s*use\s+)
 			('.$originalClassname.')   # Followed by the classname
-			([^\\\;]+)                 # Not a backslash or semicolon which might indicate a namespace
-			/x', //                    # x: ignore whitespace in regex.
-            function ($matches) use ($originalClassname, $classnamePrefix) {
-                return $matches[1] . $classnamePrefix . $originalClassname . $matches[3];
+			\s*;
+			/x'; //                    # x: ignore whitespace in regex.
+
+        $contents = preg_replace_callback(
+            $usePattern,
+            function ($matches) use ($replacement) {
+                return $matches[1] . $replacement . ' as '. $matches[2] . ';';
             },
             $contents
         );
+
+        $bodyPattern =
+            '/([^a-zA-Z0-9_\x7f-\xff]  # Not a class character
+			\\\)                       # Followed by a backslash to indicate global namespace
+			('.$originalClassname.')   # Followed by the classname
+			([^\\\;]{1})               # Not a backslash or semicolon which might indicate a namespace
+			/x'; //                    # x: ignore whitespace in regex.
+
+        $contents = preg_replace_callback(
+            $bodyPattern,
+            function ($matches) use ($replacement) {
+                return $matches[1] . $replacement . $matches[3];
+            },
+            $contents
+        );
+
+        return $contents;
     }
 
-    protected function replaceConstants($contents, $originalConstants, $prefix): string
+    /**
+     * TODO: This should be split and brought to ChangeEnumerator.
+     *
+     * @param string $contents
+     * @param string[] $originalConstants
+     * @param string $prefix
+     */
+    protected function replaceConstants(string $contents, array $originalConstants, string $prefix): string
     {
 
         foreach ($originalConstants as $constant) {
@@ -308,7 +397,7 @@ class Prefixer
         return $contents;
     }
 
-    protected function replaceConstant($contents, $originalConstant, $replacementConstant): string
+    protected function replaceConstant(string $contents, string $originalConstant, string $replacementConstant): string
     {
         return str_replace($originalConstant, $replacementConstant, $contents);
     }

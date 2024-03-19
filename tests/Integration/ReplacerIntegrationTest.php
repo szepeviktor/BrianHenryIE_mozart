@@ -48,7 +48,8 @@ EOD;
         exec('composer install');
 
         $projectComposerPackage = new ProjectComposerPackage($this->testsWorkingDir);
-        $config = $projectComposerPackage->getStraussConfig();
+        $input = $this->createMock(InputInterface::class);
+        $config = $projectComposerPackage->getStraussConfig($input);
 
         $dependencies = array_map(function ($element) {
             $dir = $this->testsWorkingDir . 'vendor'. DIRECTORY_SEPARATOR . $element;
@@ -75,7 +76,7 @@ EOD;
         $changeEnumerator = new ChangeEnumerator($config);
         $changeEnumerator->findInFiles($absoluteTargetDir, $phpFileList);
 
-        $namespaces = $changeEnumerator->getDiscoveredNamespaceReplacements();
+        $namespaces = $changeEnumerator->getDiscoveredNamespaces();
         $classes = $changeEnumerator->getDiscoveredClasses();
         $constants = array();
 
@@ -85,7 +86,7 @@ EOD;
 
         $updatedFile = file_get_contents($absoluteTargetDir . 'google/apiclient/src/Client.php');
 
-        $this->assertStringContainsString('use BrianHenryIE\Strauss\Google\AccessToken\Revoke;', $updatedFile);
+        self::assertStringContainsString('use BrianHenryIE\Strauss\Google\AccessToken\Revoke;', $updatedFile);
     }
 
 
@@ -154,6 +155,6 @@ EOD;
 
         $updatedFile = file_get_contents($this->testsWorkingDir .'vendor-prefixed/' . 'setasign/fpdf/fpdf.php');
 
-        $this->assertStringContainsString('class BrianHenryIE_Strauss_FPDF', $updatedFile);
+        self::assertStringContainsString('class BrianHenryIE_Strauss_FPDF', $updatedFile);
     }
 }

@@ -4,7 +4,7 @@ namespace BrianHenryIE\Strauss\Tests\Unit\Console;
 
 use BrianHenryIE\Strauss\Console\Application;
 use BrianHenryIE\Strauss\Console\Commands\Compose;
-use PHPUnit\Framework\TestCase;
+use BrianHenryIE\Strauss\TestCase;
 
 class ApplicationTest extends TestCase
 {
@@ -25,6 +25,6 @@ class ApplicationTest extends TestCase
             return $carry || $item instanceof Compose;
         }, false);
 
-        $this->assertTrue($containsComposeCommand);
+        self::assertTrue($containsComposeCommand);
     }
 }

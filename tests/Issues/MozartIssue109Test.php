@@ -10,7 +10,6 @@ namespace BrianHenryIE\Strauss\Tests\Issues;
 
 use BrianHenryIE\Strauss\Console\Commands\Compose;
 use BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -73,6 +72,6 @@ EOD;
 
         $phpString = file_get_contents($this->testsWorkingDir .'vendor-prefixed/nesbot/carbon/src/Carbon/Carbon.php');
 
-        $this->assertStringNotContainsString('*Mozart\\ This file is part of the Carbon package.Mozart\\', $phpString);
+        self::assertStringNotContainsString('*Mozart\\ This file is part of the Carbon package.Mozart\\', $phpString);
     }
 }

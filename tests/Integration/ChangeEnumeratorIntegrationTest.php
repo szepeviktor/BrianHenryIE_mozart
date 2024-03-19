@@ -72,8 +72,9 @@ EOD;
 
         $config = $this->createStub(StraussConfig::class);
 
-        $config->method('getExcludePackagesFromPrefixing')->willReturn(array());
+        $config->method('getNamespacePrefix')->willReturn("Prefix");
         $config->method('getExcludeNamespacesFromPrefixing')->willReturn(array());
+        $config->method('getExcludePackagesFromPrefixing')->willReturn(array());
 
         $changeEnumerator = new ChangeEnumerator($config);
 
@@ -81,14 +82,13 @@ EOD;
 
         $changeEnumerator->findInFiles($workingDir . $relativeTargetDir, $phpFileList);
 
-
         $classes = $changeEnumerator->getDiscoveredClasses();
 
-        $namespaces = $changeEnumerator->getDiscoveredNamespaceReplacements();
+        $namespaces = $changeEnumerator->getDiscoveredNamespaces();
 
-        $this->assertNotEmpty($classes);
-        $this->assertNotEmpty($namespaces);
+        self::assertNotEmpty($classes);
+        self::assertNotEmpty($namespaces);
 
-        $this->assertContains('Google_Task_Composer', $classes);
+        self::assertContains('Google_Task_Composer', $classes);
     }
 }

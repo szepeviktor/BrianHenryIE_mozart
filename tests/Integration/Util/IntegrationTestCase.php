@@ -7,7 +7,7 @@
 
 namespace BrianHenryIE\Strauss\Tests\Integration\Util;
 
-use PHPUnit\Framework\TestCase;
+use BrianHenryIE\Strauss\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 

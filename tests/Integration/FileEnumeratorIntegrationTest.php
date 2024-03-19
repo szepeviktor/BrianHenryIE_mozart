@@ -7,7 +7,7 @@ use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use BrianHenryIE\Strauss\Composer\ProjectComposerPackage;
 use BrianHenryIE\Strauss\FileEnumerator;
 use BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase;
-use PHPUnit\Framework\TestCase;
+use BrianHenryIE\Strauss\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
@@ -64,7 +64,7 @@ EOD;
 
         $list = array_keys($fileEnumerator->getAllFilesAndDependencyList());
 
-        $this->assertContains('google/apiclient/src/aliases.php', $list);
+        self::assertContains('google/apiclient/src/aliases.php', $list);
     }
 
 

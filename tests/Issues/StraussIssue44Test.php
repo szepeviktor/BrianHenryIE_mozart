@@ -6,7 +6,7 @@
 namespace BrianHenryIE\Strauss\Tests\Issues;
 
 use BrianHenryIE\Strauss\Console\Commands\Compose;
-use Exception;
+use BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -14,7 +14,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  * @package BrianHenryIE\Strauss\Tests\Issues
  * @coversNothing
  */
-class StraussIssue44Test extends \BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase
+class StraussIssue44Test extends IntegrationTestCase
 {
 
     /**
@@ -55,8 +55,8 @@ EOD;
 
         $php_string = file_get_contents($this->testsWorkingDir . 'vendor-prefixed/guzzlehttp/guzzle/src/BodySummarizer.php');
 
-        $this->assertStringNotContainsString('? \GuzzleHttp\Psr7\Message::bodySummary($message)', $php_string);
+        self::assertStringNotContainsString('? \GuzzleHttp\Psr7\Message::bodySummary($message)', $php_string);
         
-        $this->assertStringContainsString('? \Strauss\Issue44\GuzzleHttp\Psr7\Message::bodySummary($message)', $php_string);
+        self::assertStringContainsString('? \Strauss\Issue44\GuzzleHttp\Psr7\Message::bodySummary($message)', $php_string);
     }
 }
