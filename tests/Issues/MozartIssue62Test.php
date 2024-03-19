@@ -36,19 +36,24 @@ class MozartIssue62Test extends IntegrationTestCase
      */
     public function testGuzzleNamespaceIsPrefixedInS3Client()
     {
-        $this->markTestSkipped('Very slow to run');
+        self::markTestSkipped('Very slow to run.');
 
         $composerJsonString = <<<'EOD'
 {
   "name": "brianhenryie/mozart-issue-62",
   "require": {
-    "aws/aws-sdk-php": "2.8.*"
+    "aws/aws-sdk-php": "2.8.31"
   },
   "extra": {
     "strauss": {
-      "namespace_prefix": "Strauss\\",
-      "target_directory": "/strauss/"
-    }
+      "namespace_prefix": "Strauss\\"
+    },
+    "aws/aws-sdk-php": [
+        "S3"
+    ]
+  },
+  "scripts": {
+    "pre-autoload-dump": "Aws\\Script\\Composer\\Composer::removeUnusedServices"
   }
 }
 EOD;

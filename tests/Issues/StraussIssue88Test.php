@@ -1,8 +1,8 @@
 <?php
 /**
- * instanceof not prefixed properly.
+ * `return (string) \Aws\serialize($command)->getUri();` not prefixed properly.
  *
- * @see https://github.com/BrianHenryIE/strauss/issues/83
+ * @see https://github.com/BrianHenryIE/strauss/issues/88
  */
 
 namespace BrianHenryIE\Strauss\Tests\Issues;
@@ -16,10 +16,11 @@ use Symfony\Component\Console\Output\OutputInterface;
  * @package BrianHenryIE\Strauss\Tests\Issues
  * @coversNothing
  */
-class StraussIssue83Test extends IntegrationTestCase
+class StraussIssue88Test extends IntegrationTestCase
 {
-    public function test_namespace_keyword_on_opening_line()
+    public function test_returned_casted_function_call()
     {
+
         $composerJsonString = <<<'EOD'
 {
   "name": "issue/83",
@@ -58,11 +59,9 @@ EOD;
 
         $result = $strauss->run($inputInterfaceMock, $outputInterfaceMock);
 
-        self::assertEqualsRN(0, $result);
+        $php_string = file_get_contents($this->testsWorkingDir . '/vendor-prefixed/aws/aws-sdk-php/src/S3/S3Client.php');
 
-        $php_string = file_get_contents($this->testsWorkingDir . '/vendor-prefixed/aws/aws-sdk-php/src/ClientResolver.php');
-
-        self::assertStringNotContainsString('$value instanceof \Aws\EndpointV2\EndpointProviderV2', $php_string);
-        self::assertStringContainsString('$value instanceof \Company\Project\Aws\EndpointV2\EndpointProviderV2', $php_string);
+        self::assertStringNotContainsString('return (string) \Aws\serialize($command)->getUri();', $php_string);
+        self::assertStringContainsString('return (string) \Company\Project\Aws\serialize($command)->getUri();', $php_string);
     }
 }

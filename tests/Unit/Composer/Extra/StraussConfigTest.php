@@ -63,7 +63,7 @@ EOD;
 
         self::assertContains('pimple/pimple', $sut->getPackages());
 
-        self::assertEqualsRN( 'target_directory' . DIRECTORY_SEPARATOR, $sut->getTargetDirectory());
+        self::assertEqualsRN('target_directory' . DIRECTORY_SEPARATOR, $sut->getTargetDirectory());
 
         self::assertEqualsRN("BrianHenryIE\\Strauss", $sut->getNamespacePrefix());
 
@@ -171,7 +171,7 @@ EOD;
 
         $sut = new StraussConfig($composer, $this->createMock(InputInterface::class));
 
-        self::assertEqualsRN( 'vendor-prefixed' . DIRECTORY_SEPARATOR, $sut->getTargetDirectory());
+        self::assertEqualsRN('vendor-prefixed' . DIRECTORY_SEPARATOR, $sut->getTargetDirectory());
     }
 
     /**
@@ -589,7 +589,7 @@ EOD;
 
         self::assertContains('pimple/pimple', $sut->getPackages());
 
-        self::assertEqualsRN( 'dep_directory' . DIRECTORY_SEPARATOR, $sut->getTargetDirectory());
+        self::assertEqualsRN('dep_directory' . DIRECTORY_SEPARATOR, $sut->getTargetDirectory());
 
         self::assertEqualsRN("My_Mozart_Config", $sut->getNamespacePrefix());
 

@@ -29,7 +29,7 @@ class MozartIssue43Test extends IntegrationTestCase
      */
     public function testAwsSdkSucceeds()
     {
-        $this->markTestSkipped('Very slow to run');
+        self::markTestSkipped('Very slow to run');
 
         $composerJsonString = <<<'EOD'
 {
@@ -48,8 +48,14 @@ class MozartIssue43Test extends IntegrationTestCase
 					}
 				}
 			}
-		}
-	}
+    },
+    "aws/aws-sdk-php": [
+        "S3"
+    ]
+  },
+  "scripts": {
+    "pre-autoload-dump": "Aws\\Script\\Composer\\Composer::removeUnusedServices"
+  }
 }
 EOD;
 
