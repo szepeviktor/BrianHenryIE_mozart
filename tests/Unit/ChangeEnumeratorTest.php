@@ -120,6 +120,50 @@ EOD;
         self::assertNotContains('MyOtherClass', $sut->getDiscoveredClasses());
     }
 
+    public function testItDoesNotFindNamespaceInComment(): void
+    {
+
+        $validPhp = <<<'EOD'
+<?php
+
+/**
+ * @todo Rewrite to use Interchange objects
+ */
+class HTMLPurifier_Printer_ConfigForm extends HTMLPurifier_Printer
+{
+
+    /**
+     * Returns HTML output for a configuration form
+     * @param HTMLPurifier_Config|array $config Configuration object of current form state, or an array
+     *        where [0] has an HTML namespace and [1] is being rendered.
+     * @param array|bool $allowed Optional namespace(s) and directives to restrict form to.
+     * @param bool $render_controls
+     * @return string
+     */
+    public function render($config, $allowed = true, $render_controls = true)
+    {
+
+        // blah
+
+        return $ret;
+    }
+
+}
+
+// vim: et sw=4 sts=4
+EOD;
+
+        $config = $this->createMock(StraussConfig::class);
+        $sut = new ChangeEnumerator($config);
+
+        try {
+            $sut->find($validPhp);
+        } catch (\PHPUnit\Framework\Error\Warning $e) {
+            self::fail('Should not throw an exception');
+        }
+
+        self::assertEmpty($sut->getDiscoveredNamespaces());
+    }
 
     /**
      *
