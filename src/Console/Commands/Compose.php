@@ -58,6 +58,13 @@ class Compose extends Command
             InputArgument::OPTIONAL,
             'Should replacements also be performed in project files? true|list,of,paths|false'
         );
+
+        $this->addOption(
+            'deleteVendorPackages',
+            null,
+            InputArgument::OPTIONAL,
+            'Should original packages be deleted after copying? true|false'
+        );
     }
 
     /**
@@ -122,6 +129,14 @@ class Compose extends Command
         $this->projectComposerPackage = new ProjectComposerPackage($this->workingDir);
 
         $config = $this->projectComposerPackage->getStraussConfig($input);
+
+        $isDeleteVendorPackagesCommandLine =
+            ($input->hasOption('deleteVendorPackages')
+            && $input->getOption('deleteVendorPackages') === 'true')
+            || ($input->hasOption('delete_vendor_packages')
+            && $input->getOption('delete_vendor_packages') === 'true');
+
+        $config->setDeleteVendorPackages($isDeleteVendorPackagesCommandLine);
 
         $this->config = $config;
 
