@@ -150,7 +150,6 @@ class FileEnumerator
                                 'targetRelativeFilepath' => $outputRelativeFilepath,
                             );
                             $this->filesWithDependencies[ $outputRelativeFilepath ] = $file;
-                            continue;
                         } elseif (is_dir($sourceAbsolutePath)) {
                             // trailingslashit().
                             $namespace_relative_path = rtrim($namespace_relative_path, DIRECTORY_SEPARATOR)
@@ -166,7 +165,7 @@ class FileEnumerator
 
                             foreach ($finder as $foundFile) {
                                 $sourceAbsoluteFilepath = $foundFile->getPathname();
-                                $sourceRelativePath = str_replace($this->workingDir, '', $sourceAbsoluteFilepath);
+                                $sourceRelativeFilePath = str_replace(rtrim($sourcePath, DIRECTORY_SEPARATOR), rtrim($sourceRelativePath, DIRECTORY_SEPARATOR), $sourceAbsoluteFilepath);
                                 $outputRelativeFilepath = str_replace($prefixToRemove, '', $sourceAbsoluteFilepath);
 
                                 // For symlinked packages.
@@ -192,13 +191,13 @@ class FileEnumerator
                                     continue;
                                 }
 
-                                if (!$this->filesystem->fileExists($sourceRelativePath)) {
+                                if (!$this->filesystem->fileExists($sourceRelativeFilePath)) {
                                     continue;
                                 }
 
                                 if ('<?php // This file was deleted by {@see https://github.com/BrianHenryIE/strauss}.'
                                     ===
-                                    $this->filesystem->read($sourceRelativePath)
+                                    $this->filesystem->read($sourceRelativeFilePath)
                                 ) {
                                     continue;
                                 }

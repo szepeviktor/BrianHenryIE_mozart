@@ -115,18 +115,17 @@ class Cleanup
             );
 
             foreach ($it as $file) {
-                if ($file->isDir() && $this->dirIsEmpty($file)) {
+                if ($file->isDir() && $this->dirIsEmpty((string) $file)) {
                     rmdir((string)$file);
                 }
             }
         }
     }
 
-    // TODO: Use Symphony or Flysystem functions.
-    protected function dirIsEmpty($dir): bool
+    // TODO: Use Symfony or Flysystem functions.
+    protected function dirIsEmpty(string $dir): bool
     {
-        $absolutePath = $dir;
-        $di = new RecursiveDirectoryIterator($absolutePath, \FilesystemIterator::SKIP_DOTS);
+        $di = new RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS);
         return iterator_count($di) === 0;
     }
 
