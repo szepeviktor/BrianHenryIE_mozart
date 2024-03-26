@@ -706,6 +706,41 @@ class ChangeEnumerator
                             [
                             ],
                     ],
+                '8.4' =>
+                    [
+                        'classes' =>
+                            [
+                                'DOM\\Document',
+                                'DOM\\HTMLDocument',
+                                'DOM\\XMLDocument',
+                                'dom\\attr',
+                                'dom\\cdatasection',
+                                'dom\\characterdata',
+                                'dom\\comment',
+                                'dom\\documentfragment',
+                                'dom\\documenttype',
+                                'dom\\domexception',
+                                'dom\\element',
+                                'dom\\entity',
+                                'dom\\entityreference',
+                                'dom\\namednodemap',
+                                'dom\\namespacenode',
+                                'dom\\node',
+                                'dom\\nodelist',
+                                'dom\\notation',
+                                'dom\\processinginstruction',
+                                'dom\\text',
+                                'dom\\xpath',
+                            ],
+                        'interfaces' =>
+                            [
+                                'dom\\childnode',
+                                'dom\\parentnode',
+                            ],
+                        'traits' =>
+                            [
+                            ],
+                    ],
                 ];
 
         $flatArray = array();
