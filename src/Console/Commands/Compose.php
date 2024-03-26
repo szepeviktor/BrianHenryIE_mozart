@@ -54,7 +54,7 @@ class Compose extends Command
      * and flags indicating should it / has it been copied / deleted etc.
      *
      */
-    protected DiscoveredFiles $disccoveredFiles;
+    protected DiscoveredFiles $discoveredFiles;
 
     /**
      * @return void
@@ -192,7 +192,7 @@ class Compose extends Command
             $this->config
         );
 
-        $this->disccoveredFiles = $this->fileEnumerator->compileFileList();
+        $this->discoveredFiles = $this->fileEnumerator->compileFileList();
     }
 
     // 3. Copy autoloaded files for each
@@ -206,7 +206,7 @@ class Compose extends Command
         $this->logger->info('Copying files...');
 
         $this->copier = new Copier(
-            $this->disccoveredFiles,
+            $this->discoveredFiles,
             $this->workingDir,
             $this->config
         );
@@ -223,8 +223,7 @@ class Compose extends Command
         $this->changeEnumerator = new ChangeEnumerator($this->config);
 
         $absoluteTargetDir = $this->workingDir . $this->config->getTargetDirectory();
-        $phpFiles = $this->disccoveredFiles->getPhpFilesAndDependencyList();
-        $this->changeEnumerator->findInFiles($absoluteTargetDir, $phpFiles);
+        $this->changeEnumerator->findInFiles($absoluteTargetDir, $this->discoveredFiles);
     }
 
     // 5. Update namespaces and class names.
@@ -239,7 +238,7 @@ class Compose extends Command
         $classes = $this->changeEnumerator->getDiscoveredClasses($this->config->getClassmapPrefix());
         $constants = $this->changeEnumerator->getDiscoveredConstants($this->config->getConstantsPrefix());
         
-        $phpFiles = $this->disccoveredFiles->getPhpFilesAndDependencyList();
+        $phpFiles = $this->discoveredFiles->getPhpFilesAndDependencyList();
 
         $this->replacer->replaceInFiles($namespaces, $classes, $constants, $phpFiles);
     }
@@ -377,7 +376,7 @@ class Compose extends Command
 
         $cleanup = new Cleanup($this->config, $this->workingDir);
 
-        $sourceFiles = array_keys($this->disccoveredFiles->getAllFilesAndDependencyList());
+        $sourceFiles = array_keys($this->discoveredFiles->getAllFilesAndDependencyList());
 
         // TODO: For files autoloaders, delete the contents of the file, not the file itself.
 

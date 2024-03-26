@@ -65,7 +65,6 @@ EOD;
 
         $fileEnumerator = new FileEnumerator($dependencies, $workingDir, $config);
         $files = $fileEnumerator->compileFileList();
-        $fileList = $files->getAllFilesAndDependencyList();
         $phpFileList = $files->getPhpFilesAndDependencyList();
 
         $fileEnumerator = new FileEnumerator($dependencies, $workingDir, $config);
@@ -76,7 +75,7 @@ EOD;
         $copier->copy();
 
         $changeEnumerator = new ChangeEnumerator($config);
-        $changeEnumerator->findInFiles($absoluteTargetDir, $phpFileList);
+        $changeEnumerator->findInFiles($absoluteTargetDir, $files);
 
         $namespaces = $changeEnumerator->getDiscoveredNamespaces();
         $classes = $changeEnumerator->getDiscoveredClasses();

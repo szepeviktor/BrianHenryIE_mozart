@@ -5,9 +5,12 @@ namespace BrianHenryIE\Strauss\Tests\Unit;
 use BrianHenryIE\Strauss\ChangeEnumerator;
 use BrianHenryIE\Strauss\Composer\ComposerPackage;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
+use BrianHenryIE\Strauss\DiscoveredFiles;
+use BrianHenryIE\Strauss\File;
 use BrianHenryIE\Strauss\Prefixer;
 use Composer\Composer;
 use BrianHenryIE\Strauss\TestCase;
+use Mockery\Mock;
 
 class ChangeEnumeratorTest extends TestCase
 {
@@ -380,14 +383,14 @@ EOD;
         $dir = '';
         $composerPackage = $this->createMock(ComposerPackage::class);
         $composerPackage->method('getPackageName')->willReturn('brianhenryie/pdfhelpers');
-        $filesArray = array(
-            'irrelevantPath' => array(
-                'dependency' => $composerPackage
-            ),
-        );
+
+        $file = new File($composerPackage, 'irrelevantPath', 'irrelevantPath');
+
+        $files = \Mockery::mock(DiscoveredFiles::class)->makePartial();
+        $files->shouldReceive('getFiles')->andReturn([$file]);
 
         $changeEnumerator = new ChangeEnumerator($config);
-        $changeEnumerator->findInFiles($dir, $filesArray);
+        $changeEnumerator->findInFiles($dir, $files);
 
         self::assertEmpty($changeEnumerator->getDiscoveredNamespaces());
     }
@@ -403,14 +406,14 @@ EOD;
         $dir = '';
         $composerPackage = $this->createMock(ComposerPackage::class);
         $composerPackage->method('getPackageName')->willReturn('brianhenryie/pdfhelpers');
-        $filesArray = array(
-            'path/to/file' => array(
-                'dependency' => $composerPackage
-            ),
-        );
+
+        $file = new File($composerPackage, 'path/to/file', 'irrelevantPath');
+
+        $files = \Mockery::mock(DiscoveredFiles::class)->makePartial();
+        $files->shouldReceive('getFiles')->andReturn([$file]);
 
         $changeEnumerator = new ChangeEnumerator($config);
-        $changeEnumerator->findInFiles($dir, $filesArray);
+        $changeEnumerator->findInFiles($dir, $files);
 
         self::assertEmpty($changeEnumerator->getDiscoveredNamespaces());
     }

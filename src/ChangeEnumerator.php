@@ -117,12 +117,13 @@ class ChangeEnumerator
 
     /**
      * @param string $absoluteTargetDir
-     * @param array<string,array{dependency:ComposerPackage,sourceAbsoluteFilepath:string,targetRelativeFilepath:string}> $filesArray
+     * @param DiscoveredFiles $files
      */
-    public function findInFiles($absoluteTargetDir, $filesArray): void
+    public function findInFiles(string $absoluteTargetDir, DiscoveredFiles $files): void
     {
-        foreach ($filesArray as $relativeFilepath => $fileArray) {
-            $package = $fileArray['dependency'];
+        foreach ($files->getFiles() as $file) {
+            $relativeFilepath = $file->getTargetRelativePath();
+            $package = $file->getDependency();
             foreach ($this->excludePackagesFromPrefixing as $excludePackagesName) {
                 if ($package->getPackageName() === $excludePackagesName) {
                     continue 2;
