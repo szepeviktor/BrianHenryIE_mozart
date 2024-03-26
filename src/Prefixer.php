@@ -56,7 +56,7 @@ class Prefixer
 
 
     /**
-     * @param array<string, string> $namespaceChanges
+     * @param array<string, NamespaceSymbol> $namespaceChanges
      * @param string[] $classChanges
      * @param string[] $constants
      * @param array<string,array{dependency:ComposerPackage,sourceAbsoluteFilepath:string,targetRelativeFilepath:string}> $phpFileArrays

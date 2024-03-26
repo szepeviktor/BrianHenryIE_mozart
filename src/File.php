@@ -36,7 +36,7 @@ class File
      */
     protected bool $doDelete = false;
 
-    /** @var DiscoveredType[] */
+    /** @var DiscoveredSymbol[] */
     protected array $discoveredTypes = [];
 
     public function __construct(ComposerPackage $dependency, string $packageRelativePath, string $sourceAbsolutePath)
@@ -137,8 +137,22 @@ class File
         return in_array('files', $this->autoloaderTypes, true);
     }
 
-    public function addDiscoveredType(DiscoveredType $param)
+    public function addDiscoveredType(DiscoveredSymbol $param)
     {
         $this->discoveredTypes[$param->getSymbol()] = $param;
+    }
+
+    public function getContents()
+    {
+
+        // TODO: use flysystem
+        // $contents = $this->filesystem->read($targetFile);
+
+        $contents = file_get_contents($this->sourceAbsolutePath);
+        if (false === $contents) {
+            throw new \Exception("Failed to read file at {$this->sourceAbsolutePath}");
+        }
+
+        return $contents;
     }
 }

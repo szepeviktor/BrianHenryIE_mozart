@@ -75,10 +75,10 @@ EOD;
         $copier->copy();
 
         $changeEnumerator = new ChangeEnumerator($config);
-        $changeEnumerator->findInFiles($absoluteTargetDir, $files);
+        $discoveredSymbols = $changeEnumerator->findInFiles($files);
 
-        $namespaces = $changeEnumerator->getDiscoveredNamespaces();
-        $classes = $changeEnumerator->getDiscoveredClasses();
+        $namespaces = $discoveredSymbols->getDiscoveredNamespaces();
+        $classes = $discoveredSymbols->getDiscoveredClasses();
         $constants = array();
 
         $replacer = new Prefixer($config, $workingDir);

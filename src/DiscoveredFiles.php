@@ -30,6 +30,7 @@ class DiscoveredFiles implements ArrayAccess
     /**
      * @return bool
      */
+    #[\ReturnTypeWillChange]
     public function offsetExists($offset)
     {
         return isset($this->files[$offset]);
@@ -38,6 +39,7 @@ class DiscoveredFiles implements ArrayAccess
     /**
      * @return File
      */
+    #[\ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return $this->files[$offset];
@@ -46,6 +48,7 @@ class DiscoveredFiles implements ArrayAccess
     /**
      * @inheritDoc
      */
+    #[\ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
         if (is_null($offset)) {
@@ -58,6 +61,7 @@ class DiscoveredFiles implements ArrayAccess
     /**
      * @inheritDoc
      */
+    #[\ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
         unset($this->files[$offset]);

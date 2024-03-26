@@ -5,7 +5,7 @@
 
 namespace BrianHenryIE\Strauss;
 
-class DiscoveredType
+abstract class DiscoveredSymbol
 {
     protected ?File $file;
 

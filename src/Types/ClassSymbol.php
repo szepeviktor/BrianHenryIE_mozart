@@ -2,9 +2,9 @@
 
 namespace BrianHenryIE\Strauss\Types;
 
-use BrianHenryIE\Strauss\DiscoveredType;
+use BrianHenryIE\Strauss\DiscoveredSymbol;
 
-class ClassSymbol extends DiscoveredType
+class ClassSymbol extends DiscoveredSymbol
 {
 
 }

@@ -79,11 +79,11 @@ EOD;
 
         $changeEnumerator = new ChangeEnumerator($config);
 
-        $changeEnumerator->findInFiles($workingDir . $relativeTargetDir, $files);
+        $discoveredSymbols = $changeEnumerator->findInFiles($files);
 
-        $classes = $changeEnumerator->getDiscoveredClasses();
+        $classes = $discoveredSymbols->getDiscoveredClasses();
 
-        $namespaces = $changeEnumerator->getDiscoveredNamespaces();
+        $namespaces = $discoveredSymbols->getDiscoveredNamespaces();
 
         self::assertNotEmpty($classes);
         self::assertNotEmpty($namespaces);

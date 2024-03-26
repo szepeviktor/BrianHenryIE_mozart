@@ -32,7 +32,7 @@ class ChangeEnumerator
     /** @var string[]  */
     protected array $namespaceReplacementPatterns = array();
 
-    protected DiscoveredTypes $discoveredTypes;
+    protected DiscoveredSymbols $discoveredSymbols;
 
     /**
      * ChangeEnumerator constructor.
@@ -40,7 +40,7 @@ class ChangeEnumerator
      */
     public function __construct(StraussConfig $config)
     {
-        $this->discoveredTypes = new DiscoveredTypes();
+        $this->discoveredSymbols = new DiscoveredSymbols();
 
         $this->namespacePrefix = $config->getNamespacePrefix();
         $this->classmapPrefix = $config->getClassmapPrefix();
@@ -53,73 +53,9 @@ class ChangeEnumerator
     }
 
     /**
-     * TODO: Order by longest string first. (or instead, record classnames with their namespaces)
-     *
-     * @return string[]
-     */
-    public function getDiscoveredNamespaces(?string $namespacePrefix = ''): array
-    {
-        $discoveredNamespaceReplacements = [];
-
-        // When running subsequent times, try to discover the original namespaces.
-        // This is naive: it will not work where namespace replacement patterns have been used.
-        foreach ($this->discoveredTypes->getNamespaces() as $key => $value) {
-            $unprefixed = str_starts_with($key, $this->namespacePrefix)
-                ? ltrim(substr($key, strlen($this->namespacePrefix)), '\\')
-                : $key;
-            $discoveredNamespaceReplacements[ $unprefixed ] = $value;
-        }
-
-        uksort($discoveredNamespaceReplacements, function ($a, $b) {
-            return strlen($a) <=> strlen($b);
-        });
-
-        return $discoveredNamespaceReplacements;
-    }
-
-    /**
-     * @return string[]
-     */
-    public function getDiscoveredClasses(?string $classmapPrefix = ''): array
-    {
-        $discoveredClasses = $this->discoveredTypes->getClasses();
-
-        unset($discoveredClasses['ReturnTypeWillChange']);
-        foreach ($this->getBuiltIns() as $builtIn) {
-            unset($discoveredClasses[$builtIn]);
-        }
-
-        $discoveredClasses = array_filter(
-            array_keys($discoveredClasses),
-            function (string $replacement) use ($classmapPrefix) {
-                return empty($classmapPrefix) || ! str_starts_with($replacement, $classmapPrefix);
-            }
-        );
-
-        return $discoveredClasses;
-    }
-
-    /**
-     * @return string[]
-     */
-    public function getDiscoveredConstants(?string $constantsPrefix = ''): array
-    {
-        $discoveredConstants = $this->discoveredTypes->getConstants();
-        $discoveredConstants = array_filter(
-            array_keys($discoveredConstants),
-            function (string $replacement) use ($constantsPrefix) {
-                return empty($constantsPrefix) || ! str_starts_with($replacement, $constantsPrefix);
-            }
-        );
-
-        return $discoveredConstants;
-    }
-
-    /**
-     * @param string $absoluteTargetDir
      * @param DiscoveredFiles $files
      */
-    public function findInFiles(string $absoluteTargetDir, DiscoveredFiles $files): DiscoveredTypes
+    public function findInFiles(DiscoveredFiles $files): DiscoveredSymbols
     {
         foreach ($files->getFiles() as $file) {
             $relativeFilepath = $file->getTargetRelativePath();
@@ -136,20 +72,10 @@ class ChangeEnumerator
                 }
             }
 
-            $filepath = $absoluteTargetDir . $relativeFilepath;
-
-            // TODO: use flysystem
-            // $contents = $this->filesystem->read($targetFile);
-
-            $contents = file_get_contents($filepath);
-            if (false === $contents) {
-                throw new \Exception("Failed to read file at {$filepath}");
-            }
-
-            $this->find($contents, $file);
+            $this->find($file->getContents(), $file);
         }
 
-        return $this->discoveredTypes;
+        return $this->discoveredSymbols;
     }
 
 
@@ -158,7 +84,7 @@ class ChangeEnumerator
      *
      * @param string $contents
      */
-    public function find(string $contents, File $file)
+    protected function find(string $contents, File $file)
     {
 
         // If the entire file is under one namespace, all we want is the namespace.
@@ -177,7 +103,7 @@ class ChangeEnumerator
         if (0 < preg_match_all('/\s*define\s*\(\s*["\']([^"\']*)["\']\s*,\s*["\'][^"\']*["\']\s*\)\s*;/', $contents, $constants)) {
             foreach ($constants[1] as $constant) {
                 $constantObj = new ConstantSymbol($constant, $file);
-                $this->discoveredTypes->add($constantObj);
+                $this->discoveredSymbols->add($constantObj);
             }
         }
 
@@ -220,14 +146,27 @@ class ChangeEnumerator
                 }
 
                 // TODO: Why is this [2] and not [1] (which seems to be always empty).
-                $classSymbol = new ClassSymbol($matches[2], $file);
-                $classSymbol->setReplacement($this->classmapPrefix . $matches[2]);
-                $this->discoveredTypes->add($classSymbol);
+                $this->addDiscoveredClassChange($matches[2], $file);
 
                 return $matches[0];
             },
             $contents
         );
+    }
+
+    protected function addDiscoveredClassChange(string $classname, File $file): void
+    {
+
+        if ('ReturnTypeWillChange' === $classname) {
+            return;
+        }
+        if (in_array($classname, $this->getBuiltIns())) {
+            return;
+        }
+
+        $classSymbol = new ClassSymbol($classname, $file);
+        $classSymbol->setReplacement($this->classmapPrefix . $classname);
+        $this->discoveredSymbols->add($classSymbol);
     }
 
     protected function addDiscoveredNamespaceChange(string $namespace, File $file): void
@@ -245,7 +184,7 @@ class ChangeEnumerator
             if ($prefixed !== $namespace) {
                 $namespaceObj = new NamespaceSymbol($namespace, $file);
                 $namespaceObj->setReplacement($prefixed);
-                $this->discoveredTypes->add($namespaceObj);
+                $this->discoveredSymbols->add($namespaceObj);
                 return;
             }
         }
@@ -253,7 +192,7 @@ class ChangeEnumerator
         $namespaceObj = new NamespaceSymbol($namespace, $file);
         $prefixed = $this->namespacePrefix . '\\'. $namespace;
         $namespaceObj->setReplacement($prefixed);
-        $this->discoveredTypes->add($namespaceObj);
+        $this->discoveredSymbols->add($namespaceObj);
     }
 
     /**

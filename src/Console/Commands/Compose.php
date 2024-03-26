@@ -10,6 +10,7 @@ use BrianHenryIE\Strauss\Composer\ProjectComposerPackage;
 use BrianHenryIE\Strauss\Copier;
 use BrianHenryIE\Strauss\DependenciesEnumerator;
 use BrianHenryIE\Strauss\DiscoveredFiles;
+use BrianHenryIE\Strauss\DiscoveredSymbols;
 use BrianHenryIE\Strauss\File;
 use BrianHenryIE\Strauss\FileEnumerator;
 use BrianHenryIE\Strauss\Licenser;
@@ -55,6 +56,7 @@ class Compose extends Command
      *
      */
     protected DiscoveredFiles $discoveredFiles;
+    protected DiscoveredSymbols $discoveredSymbols;
 
     /**
      * @return void
@@ -220,10 +222,10 @@ class Compose extends Command
     {
         $this->logger->info('Determining changes...');
 
-        $this->changeEnumerator = new ChangeEnumerator($this->config);
+        $changeEnumerator = new ChangeEnumerator($this->config);
 
         $absoluteTargetDir = $this->workingDir . $this->config->getTargetDirectory();
-        $this->changeEnumerator->findInFiles($absoluteTargetDir, $this->discoveredFiles);
+        $this->discoveredSymbols = $changeEnumerator->findInFiles($this->discoveredFiles);
     }
 
     // 5. Update namespaces and class names.
@@ -234,9 +236,9 @@ class Compose extends Command
 
         $this->replacer = new Prefixer($this->config, $this->workingDir);
 
-        $namespaces = $this->changeEnumerator->getDiscoveredNamespaces($this->config->getNamespacePrefix());
-        $classes = $this->changeEnumerator->getDiscoveredClasses($this->config->getClassmapPrefix());
-        $constants = $this->changeEnumerator->getDiscoveredConstants($this->config->getConstantsPrefix());
+        $namespaces = $this->discoveredSymbols->getDiscoveredNamespaces($this->config->getNamespacePrefix());
+        $classes = $this->discoveredSymbols->getDiscoveredClasses($this->config->getClassmapPrefix());
+        $constants = $this->discoveredSymbols->getDiscoveredConstants($this->config->getConstantsPrefix());
         
         $phpFiles = $this->discoveredFiles->getPhpFilesAndDependencyList();
 
@@ -252,9 +254,9 @@ class Compose extends Command
 
         $projectReplace = new Prefixer($this->config, $this->workingDir);
 
-        $namespaces = $this->changeEnumerator->getDiscoveredNamespaces($this->config->getNamespacePrefix());
-        $classes = $this->changeEnumerator->getDiscoveredClasses($this->config->getClassmapPrefix());
-        $constants = $this->changeEnumerator->getDiscoveredConstants($this->config->getConstantsPrefix());
+        $namespaces = $this->discoveredSymbols->getDiscoveredNamespaces($this->config->getNamespacePrefix());
+        $classes = $this->discoveredSymbols->getDiscoveredClasses($this->config->getClassmapPrefix());
+        $constants = $this->discoveredSymbols->getDiscoveredConstants($this->config->getConstantsPrefix());
 
         $composerPhpFileRelativePaths = $this->fileEnumerator->findFilesInDirectory(
             $this->workingDir,
@@ -277,9 +279,9 @@ class Compose extends Command
 
         $projectReplace = new Prefixer($this->config, $this->workingDir);
 
-        $namespaces = $this->changeEnumerator->getDiscoveredNamespaces($this->config->getNamespacePrefix());
-        $classes = $this->changeEnumerator->getDiscoveredClasses($this->config->getClassmapPrefix());
-        $constants = $this->changeEnumerator->getDiscoveredConstants($this->config->getConstantsPrefix());
+        $namespaces = $this->discoveredSymbols->getDiscoveredNamespaces($this->config->getNamespacePrefix());
+        $classes = $this->discoveredSymbols->getDiscoveredClasses($this->config->getClassmapPrefix());
+        $constants = $this->discoveredSymbols->getDiscoveredConstants($this->config->getConstantsPrefix());
 
         $phpFilesRelativePaths = [];
         foreach ($callSitePaths as $relativePath) {
