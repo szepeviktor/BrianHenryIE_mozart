@@ -7,26 +7,28 @@ namespace BrianHenryIE\Strauss;
 
 class DiscoveredType
 {
-
-    const TYPE_NAMESPACE = 'namespace';
-    const TYPE_CLASS = 'class';
-    const TYPE_INTERFACE = 'interface';
-    const TYPE_TRAIT = 'trait';
-
-    const TYPE_CONSTANT = 'constant';
-
-    protected string $fqdn;
-
     protected ?File $file;
 
-    public function getFqdn(): string
+    protected string $symbol;
+
+    protected string $replacement;
+
+    public function __construct(string $symbol, File $file)
     {
-        return $this->fqdn;
+        $this->symbol = $symbol;
+        $this->file = $file;
+
+        $file->addDiscoveredType($this);
     }
 
-    public function setFqdn(string $fqdn): void
+    public function getSymbol(): string
     {
-        $this->fqdn = $fqdn;
+        return $this->symbol;
+    }
+
+    public function setSymbol(string $symbol): void
+    {
+        $this->symbol = $symbol;
     }
 
     public function getFile(): ?File
@@ -37,5 +39,15 @@ class DiscoveredType
     public function setFile(File $file): void
     {
         $this->file = $file;
+    }
+
+    public function getReplacement(): string
+    {
+        return $this->replacement ?? $this->symbol;
+    }
+
+    public function setReplacement(string $replacement): void
+    {
+        $this->replacement = $replacement;
     }
 }

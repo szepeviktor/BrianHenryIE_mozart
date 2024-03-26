@@ -36,6 +36,9 @@ class File
      */
     protected bool $doDelete = false;
 
+    /** @var DiscoveredType[] */
+    protected array $discoveredTypes = [];
+
     public function __construct(ComposerPackage $dependency, string $packageRelativePath, string $sourceAbsolutePath)
     {
         $this->packageRelativePath = $packageRelativePath;
@@ -132,5 +135,10 @@ class File
     public function isFilesAutoloaderFile(): bool
     {
         return in_array('files', $this->autoloaderTypes, true);
+    }
+
+    public function addDiscoveredType(DiscoveredType $param)
+    {
+        $this->discoveredTypes[$param->getSymbol()] = $param;
     }
 }

@@ -4,6 +4,7 @@ namespace BrianHenryIE\Strauss;
 
 use BrianHenryIE\Strauss\Composer\ComposerPackage;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
+use BrianHenryIE\Strauss\Types\NamespaceSymbol;
 use Exception;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Local\LocalFilesystemAdapter;
@@ -125,7 +126,7 @@ class Prefixer
     }
 
     /**
-     * @param array<string, string> $namespacesChanges
+     * @param array<string, NamespaceSymbol> $namespacesChanges
      * @param string[] $classes
      * @param string[] $originalConstants
      * @param string $contents
@@ -143,12 +144,12 @@ class Prefixer
             $contents = $this->replaceClassname($contents, $originalClassname, $classmapPrefix);
         }
 
-        foreach ($namespacesChanges as $originalNamespace => $replacement) {
+        foreach ($namespacesChanges as $originalNamespace => $namespaceSymbol) {
             if (in_array($originalNamespace, $this->excludeNamespacesFromPrefixing)) {
                 continue;
             }
 
-            $contents = $this->replaceNamespace($contents, $originalNamespace, $replacement);
+            $contents = $this->replaceNamespace($contents, $originalNamespace, $namespaceSymbol->getReplacement());
         }
 
         if (!is_null($this->constantsPrefix)) {

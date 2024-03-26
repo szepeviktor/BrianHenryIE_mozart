@@ -7,8 +7,10 @@
 
 namespace BrianHenryIE\Strauss;
 
-use BrianHenryIE\Strauss\Composer\ComposerPackage;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
+use BrianHenryIE\Strauss\Types\ClassSymbol;
+use BrianHenryIE\Strauss\Types\ConstantSymbol;
+use BrianHenryIE\Strauss\Types\NamespaceSymbol;
 
 class ChangeEnumerator
 {
@@ -30,14 +32,7 @@ class ChangeEnumerator
     /** @var string[]  */
     protected array $namespaceReplacementPatterns = array();
 
-    /** @var string[] */
-    protected array $discoveredNamespaces = [];
-
-    /** @var string[] */
-    protected array $discoveredClasses = [];
-
-    /** @var string[] */
-    protected array $discoveredConstants = [];
+    protected DiscoveredTypes $discoveredTypes;
 
     /**
      * ChangeEnumerator constructor.
@@ -45,6 +40,8 @@ class ChangeEnumerator
      */
     public function __construct(StraussConfig $config)
     {
+        $this->discoveredTypes = new DiscoveredTypes();
+
         $this->namespacePrefix = $config->getNamespacePrefix();
         $this->classmapPrefix = $config->getClassmapPrefix();
 
@@ -66,7 +63,7 @@ class ChangeEnumerator
 
         // When running subsequent times, try to discover the original namespaces.
         // This is naive: it will not work where namespace replacement patterns have been used.
-        foreach ($this->discoveredNamespaces as $key => $value) {
+        foreach ($this->discoveredTypes->getNamespaces() as $key => $value) {
             $unprefixed = str_starts_with($key, $this->namespacePrefix)
                 ? ltrim(substr($key, strlen($this->namespacePrefix)), '\\')
                 : $key;
@@ -85,13 +82,15 @@ class ChangeEnumerator
      */
     public function getDiscoveredClasses(?string $classmapPrefix = ''): array
     {
-        unset($this->discoveredClasses['ReturnTypeWillChange']);
+        $discoveredClasses = $this->discoveredTypes->getClasses();
+
+        unset($discoveredClasses['ReturnTypeWillChange']);
         foreach ($this->getBuiltIns() as $builtIn) {
-            unset($this->discoveredClasses[$builtIn]);
+            unset($discoveredClasses[$builtIn]);
         }
 
         $discoveredClasses = array_filter(
-            array_keys($this->discoveredClasses),
+            array_keys($discoveredClasses),
             function (string $replacement) use ($classmapPrefix) {
                 return empty($classmapPrefix) || ! str_starts_with($replacement, $classmapPrefix);
             }
@@ -105,8 +104,9 @@ class ChangeEnumerator
      */
     public function getDiscoveredConstants(?string $constantsPrefix = ''): array
     {
+        $discoveredConstants = $this->discoveredTypes->getConstants();
         $discoveredConstants = array_filter(
-            array_keys($this->discoveredConstants),
+            array_keys($discoveredConstants),
             function (string $replacement) use ($constantsPrefix) {
                 return empty($constantsPrefix) || ! str_starts_with($replacement, $constantsPrefix);
             }
@@ -119,7 +119,7 @@ class ChangeEnumerator
      * @param string $absoluteTargetDir
      * @param DiscoveredFiles $files
      */
-    public function findInFiles(string $absoluteTargetDir, DiscoveredFiles $files): void
+    public function findInFiles(string $absoluteTargetDir, DiscoveredFiles $files): DiscoveredTypes
     {
         foreach ($files->getFiles() as $file) {
             $relativeFilepath = $file->getTargetRelativePath();
@@ -146,8 +146,10 @@ class ChangeEnumerator
                 throw new \Exception("Failed to read file at {$filepath}");
             }
 
-            $this->find($contents);
+            $this->find($contents, $file);
         }
+
+        return $this->discoveredTypes;
     }
 
 
@@ -155,10 +157,8 @@ class ChangeEnumerator
      * TODO: Don't use preg_replace_callback!
      *
      * @param string $contents
-     *
-     * @return string $contents
      */
-    public function find(string $contents): string
+    public function find(string $contents, File $file)
     {
 
         // If the entire file is under one namespace, all we want is the namespace.
@@ -170,13 +170,14 @@ class ChangeEnumerator
             namespace\s+(?<namespace>[0-9A-Za-z_\x7f-\xff\\\\]+)[\s\S]*; # Match a single namespace in the file.
         /x'; //  # x: ignore whitespace in regex.
         if (1 === preg_match($singleNamespacePattern, $contents, $matches)) {
-            $this->addDiscoveredNamespaceChange($matches['namespace']);
+            $this->addDiscoveredNamespaceChange($matches['namespace'], $file);
             return $contents;
         }
 
         if (0 < preg_match_all('/\s*define\s*\(\s*["\']([^"\']*)["\']\s*,\s*["\'][^"\']*["\']\s*\)\s*;/', $contents, $constants)) {
             foreach ($constants[1] as $constant) {
-                $this->discoveredConstants[$constant] = $constant;
+                $constantObj = new ConstantSymbol($constant, $file);
+                $this->discoveredTypes->add($constantObj);
             }
         }
 
@@ -186,7 +187,7 @@ class ChangeEnumerator
         // Looks like with the preceding regex, it will never match.
 
 
-        return preg_replace_callback(
+        preg_replace_callback(
             '
 			~											# Start the pattern
 				[\r\n]+\s*namespace\s+([a-zA-Z0-9_\x7f-\xff\\\\]+)[;{\s\n]{1}[\s\S]*?(?=namespace|$) 
@@ -205,11 +206,11 @@ class ChangeEnumerator
 				(?:{|extends|implements|\n|$)			# Class declaration can be followed by {, extends, implements 
 														# or a new line
 			~x', //                                     # x: ignore whitespace in regex.
-            function ($matches) {
+            function ($matches) use ($file) {
 
                 // If we're inside a namespace other than the global namespace:
                 if (1 === preg_match('/^\s*namespace\s+[a-zA-Z0-9_\x7f-\xff\\\\]+[;{\s\n]{1}.*/', $matches[0])) {
-                    $this->addDiscoveredNamespaceChange($matches[1]);
+                    $this->addDiscoveredNamespaceChange($matches[1], $file);
 
                     return $matches[0];
                 }
@@ -219,14 +220,17 @@ class ChangeEnumerator
                 }
 
                 // TODO: Why is this [2] and not [1] (which seems to be always empty).
-                $this->discoveredClasses[$matches[2]] = $matches[2];
+                $classSymbol = new ClassSymbol($matches[2], $file);
+                $classSymbol->setReplacement($this->classmapPrefix . $matches[2]);
+                $this->discoveredTypes->add($classSymbol);
+
                 return $matches[0];
             },
             $contents
         );
     }
 
-    protected function addDiscoveredNamespaceChange(string $namespace): void
+    protected function addDiscoveredNamespaceChange(string $namespace, File $file): void
     {
 
         foreach ($this->excludeNamespacesFromPrefixing as $excludeNamespace) {
@@ -239,12 +243,17 @@ class ChangeEnumerator
             $prefixed = preg_replace($namespaceReplacementPattern, $replacement, $namespace);
 
             if ($prefixed !== $namespace) {
-                $this->discoveredNamespaces[$namespace] = $prefixed;
+                $namespaceObj = new NamespaceSymbol($namespace, $file);
+                $namespaceObj->setReplacement($prefixed);
+                $this->discoveredTypes->add($namespaceObj);
                 return;
             }
         }
 
-        $this->discoveredNamespaces[$namespace] = $this->namespacePrefix . '\\'. $namespace;
+        $namespaceObj = new NamespaceSymbol($namespace, $file);
+        $prefixed = $this->namespacePrefix . '\\'. $namespace;
+        $namespaceObj->setReplacement($prefixed);
+        $this->discoveredTypes->add($namespaceObj);
     }
 
     /**
