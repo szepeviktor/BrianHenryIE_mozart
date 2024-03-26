@@ -60,22 +60,10 @@ EOD;
 
         $fileEnumerator = new FileEnumerator($dependencies, $workingDir, $config);
 
-        $fileEnumerator->compileFileList();
+        $files = $fileEnumerator->compileFileList();
 
-        $list = array_keys($fileEnumerator->getAllFilesAndDependencyList());
+        $list = array_keys($files->getAllFilesAndDependencyList());
 
         self::assertContains('google/apiclient/src/aliases.php', $list);
-    }
-
-
-    public function testClassmapAutoloader()
-    {
-        $this->markTestIncomplete();
-    }
-
-
-    public function testFilesAutoloader()
-    {
-        $this->markTestIncomplete();
     }
 }

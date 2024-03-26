@@ -44,10 +44,7 @@ class FileEnumerator
     /** @var Filesystem */
     protected Filesystem $filesystem;
 
-    /**
-     * @var File[]
-     */
-    protected array $files = [];
+    protected DiscoveredFiles $discoveredFiles;
 
     /**
      * Record the files autoloaders for later use in building our own autoloader.
@@ -68,6 +65,8 @@ class FileEnumerator
         string $workingDir,
         StraussConfig $config
     ) {
+        $this->discoveredFiles = new DiscoveredFiles();
+
         $this->workingDir = $workingDir;
         $this->vendorDir = $config->getVendorDirectory();
 
@@ -84,10 +83,8 @@ class FileEnumerator
      * Read the autoload keys of the dependencies and generate a list of the files referenced.
      *
      * Includes all files in the directories and subdirectories mentioned in the autoloaders.
-     *
-     * @return array<string,File>
      */
-    public function compileFileList(): array
+    public function compileFileList(): DiscoveredFiles
     {
         foreach ($this->dependencies as $dependency) {
             if (in_array($dependency->getPackageName(), $this->excludePackageNames)) {
@@ -156,7 +153,7 @@ class FileEnumerator
             }
         }
 
-        return $this->files;
+        return $this->discoveredFiles;
     }
 
     protected function addFile(ComposerPackage $dependency, string $packageRelativePath, string $autoloaderType)
@@ -167,7 +164,7 @@ class FileEnumerator
         $projectRelativePath    = $this->vendorDir . $outputRelativeFilepath;
         $isOutsideProjectDir    = 0 !== strpos($sourceAbsoluteFilepath, $this->workingDir);
 
-        $f = $this->files[$outputRelativeFilepath]
+        $f = $this->disoveredFiles[$outputRelativeFilepath]
               ?? new File($dependency, $packageRelativePath, $sourceAbsoluteFilepath);
 
         $f->addAutoloader($autoloaderType);
@@ -186,43 +183,8 @@ class FileEnumerator
             $f->setDoCopy(false);
         }
 
-        $this->files[$outputRelativeFilepath] = $f;
+        $this->discoveredFiles->add($f);
     }
-
-    /**
-     * Returns all found files.
-     *
-     * @return array<string,array{dependency:ComposerPackage,sourceAbsoluteFilepath:string,targetRelativeFilepath:string}>
-     */
-    public function getAllFilesAndDependencyList(): array
-    {
-        $allFiles = [];
-        foreach ($this->files as $file) {
-            if (!$file->isDoCopy()) {
-                continue;
-            }
-            $allFiles[ $file->getTargetRelativePath() ] = [
-              'dependency'             => $file->getDependency(),
-              'sourceAbsoluteFilepath' => $file->getSourcePath(),
-              'targetRelativeFilepath' => $file->getTargetRelativePath(),
-            ];
-        }
-        return $allFiles;
-    }
-
-    /**
-     * Returns found PHP files.
-     *
-     * @return array<string,array{dependency:ComposerPackage,sourceAbsoluteFilepath:string,targetRelativeFilepath:string}>
-     */
-    public function getPhpFilesAndDependencyList(): array
-    {
-        // Filter out non .php files by checking the key.
-        return array_filter($this->getAllFilesAndDependencyList(), function ($value, $key) {
-            return false !== strpos($key, '.php');
-        }, ARRAY_FILTER_USE_BOTH);
-    }
-
 
     /**
      * @param string $workingDir Absolute path to the working directory, results will be relative to this.

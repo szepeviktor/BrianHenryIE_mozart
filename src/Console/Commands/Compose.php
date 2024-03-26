@@ -9,6 +9,7 @@ use BrianHenryIE\Strauss\Composer\ComposerPackage;
 use BrianHenryIE\Strauss\Composer\ProjectComposerPackage;
 use BrianHenryIE\Strauss\Copier;
 use BrianHenryIE\Strauss\DependenciesEnumerator;
+use BrianHenryIE\Strauss\DiscoveredFiles;
 use BrianHenryIE\Strauss\File;
 use BrianHenryIE\Strauss\FileEnumerator;
 use BrianHenryIE\Strauss\Licenser;
@@ -47,14 +48,13 @@ class Compose extends Command
     protected DependenciesEnumerator $dependenciesEnumerator;
 
     /**
-     * Array of \BrianHenryIE\Strauss\File objects indexed by their path relative to the output target directory.
+     * ArrayAccess of \BrianHenryIE\Strauss\File objects indexed by their path relative to the output target directory.
      *
      * Each object contains the file's relative and absolute paths, the package and autoloaders it came from,
      * and flags indicating should it / has it been copied / deleted etc.
      *
-     * @var array<string, File>
      */
-    protected array $files;
+    protected DiscoveredFiles $disccoveredFiles;
 
     /**
      * @return void
@@ -192,7 +192,7 @@ class Compose extends Command
             $this->config
         );
 
-        $this->files = $this->fileEnumerator->compileFileList();
+        $this->disccoveredFiles = $this->fileEnumerator->compileFileList();
     }
 
     // 3. Copy autoloaded files for each
@@ -206,7 +206,7 @@ class Compose extends Command
         $this->logger->info('Copying files...');
 
         $this->copier = new Copier(
-            $this->files,
+            $this->disccoveredFiles,
             $this->workingDir,
             $this->config
         );
@@ -223,7 +223,7 @@ class Compose extends Command
         $this->changeEnumerator = new ChangeEnumerator($this->config);
 
         $absoluteTargetDir = $this->workingDir . $this->config->getTargetDirectory();
-        $phpFiles = $this->fileEnumerator->getPhpFilesAndDependencyList();
+        $phpFiles = $this->disccoveredFiles->getPhpFilesAndDependencyList();
         $this->changeEnumerator->findInFiles($absoluteTargetDir, $phpFiles);
     }
 
@@ -239,7 +239,7 @@ class Compose extends Command
         $classes = $this->changeEnumerator->getDiscoveredClasses($this->config->getClassmapPrefix());
         $constants = $this->changeEnumerator->getDiscoveredConstants($this->config->getConstantsPrefix());
         
-        $phpFiles = $this->fileEnumerator->getPhpFilesAndDependencyList();
+        $phpFiles = $this->disccoveredFiles->getPhpFilesAndDependencyList();
 
         $this->replacer->replaceInFiles($namespaces, $classes, $constants, $phpFiles);
     }
@@ -377,7 +377,7 @@ class Compose extends Command
 
         $cleanup = new Cleanup($this->config, $this->workingDir);
 
-        $sourceFiles = array_keys($this->fileEnumerator->getAllFilesAndDependencyList());
+        $sourceFiles = array_keys($this->disccoveredFiles->getAllFilesAndDependencyList());
 
         // TODO: For files autoloaders, delete the contents of the file, not the file itself.
 

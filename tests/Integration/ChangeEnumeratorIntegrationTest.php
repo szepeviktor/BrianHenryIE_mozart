@@ -79,7 +79,7 @@ EOD;
 
         $changeEnumerator = new ChangeEnumerator($config);
 
-        $phpFileList = $fileEnumerator->getPhpFilesAndDependencyList();
+        $phpFileList = $files->getPhpFilesAndDependencyList();
 
         $changeEnumerator->findInFiles($workingDir . $relativeTargetDir, $phpFileList);
 

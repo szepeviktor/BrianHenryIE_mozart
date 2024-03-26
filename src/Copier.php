@@ -30,8 +30,7 @@ class Copier
 
     protected string $absoluteTargetDir;
 
-    /** @var array<string,File> */
-    protected array $files;
+    protected DiscoveredFiles $files;
 
     /** @var Filesystem */
     protected Filesystem $filesystem;
@@ -39,11 +38,11 @@ class Copier
     /**
      * Copier constructor.
      *
-     * @param array<string,File> $files
+     * @param DiscoveredFiles $files
      * @param string $workingDir
      * @param StraussConfig $config
      */
-    public function __construct(array $files, string $workingDir, StraussConfig $config)
+    public function __construct(DiscoveredFiles $files, string $workingDir, StraussConfig $config)
     {
         $this->files = $files;
 
@@ -63,8 +62,8 @@ class Copier
         if (! is_dir($this->absoluteTargetDir)) {
             $this->filesystem->createDirectory($this->absoluteTargetDir);
         } else {
-            foreach (array_keys($this->files) as $targetRelativeFilepath) {
-                $targetAbsoluteFilepath = $this->absoluteTargetDir . $targetRelativeFilepath;
+            foreach ($this->files->getFiles() as $file) {
+                $targetAbsoluteFilepath = $this->absoluteTargetDir . $file->getTargetRelativePath();
 
                 if ($this->filesystem->fileExists($targetAbsoluteFilepath)) {
                     $this->filesystem->delete($targetAbsoluteFilepath);
@@ -84,10 +83,10 @@ class Copier
          * @var string $targetRelativeFilepath
          * @var File $file
          */
-        foreach ($this->files as $targetRelativeFilepath => $file) {
+        foreach ($this->files->getFiles() as $file) {
             $sourceAbsoluteFilepath = $file->getSourcePath();
 
-            $targetAbsolutePath = $this->absoluteTargetDir . $targetRelativeFilepath;
+            $targetAbsolutePath = $this->absoluteTargetDir . $file->getTargetRelativePath();
 
             $this->filesystem->copy($sourceAbsoluteFilepath, $targetAbsolutePath);
         }

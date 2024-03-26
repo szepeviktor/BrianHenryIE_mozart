@@ -64,9 +64,9 @@ EOD;
 //        $config->method('getTargetDirectory')->willReturn('vendor-prefixed' . DIRECTORY_SEPARATOR);
 
         $fileEnumerator = new FileEnumerator($dependencies, $workingDir, $config);
-        $fileEnumerator->compileFileList();
-        $fileList = $fileEnumerator->getAllFilesAndDependencyList();
-        $phpFileList = $fileEnumerator->getPhpFilesAndDependencyList();
+        $files = $fileEnumerator->compileFileList();
+        $fileList = $files->getAllFilesAndDependencyList();
+        $phpFileList = $files->getPhpFilesAndDependencyList();
 
         $fileEnumerator = new FileEnumerator($dependencies, $workingDir, $config);
         $files = $fileEnumerator->compileFileList();
