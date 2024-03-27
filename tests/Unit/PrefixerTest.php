@@ -385,7 +385,7 @@ EOD;
         $replacer = new Prefixer($config, __DIR__);
 
         $file = \Mockery::mock(File::class);
-        $file->shouldReceive('addDiscoveredType');
+        $file->shouldReceive( 'addDiscoveredSymbol' );
         $namespaceSymbol = new NamespaceSymbol($originalClassname, $file);
 
         $result = $replacer->replaceInString([$originalClassname => $namespaceSymbol], [], [], $contents);
@@ -1715,7 +1715,7 @@ EOD;
         $replacer = new Prefixer($config, __DIR__);
 
         $file = \Mockery::mock(File::class);
-        $file->expects('addDiscoveredType')->once();
+        $file->expects( 'addDiscoveredSymbol' )->once();
 
         $namespaceSymbol = new NamespaceSymbol('WPGraphQL\Registry\Utils', $file);
         $namespaceSymbol->setReplacement('StraussTest\WPGraphQL\Registry\Utils');

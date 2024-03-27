@@ -2,7 +2,7 @@
 
 namespace BrianHenryIE\Strauss\Tests\Unit;
 
-use BrianHenryIE\Strauss\ChangeEnumerator;
+use BrianHenryIE\Strauss\FileScanner;
 use BrianHenryIE\Strauss\Composer\ComposerPackage;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use BrianHenryIE\Strauss\DiscoveredFiles;
@@ -12,7 +12,7 @@ use Composer\Composer;
 use BrianHenryIE\Strauss\TestCase;
 use Mockery\Mock;
 
-class ChangeEnumeratorTest extends TestCase
+class FileScannerTest extends TestCase
 {
 
     // PREG_BACKTRACK_LIMIT_ERROR
@@ -36,18 +36,18 @@ class MyClass {
 EOD;
 
         $file = \Mockery::mock(File::class);
-        $file->expects('addDiscoveredType')->once();
+        $file->expects( 'addDiscoveredSymbol' )->once();
 
         $config = $this->createMock(StraussConfig::class);
         $config->method('getNamespacePrefix')->willReturn('Prefix');
-        $sut = new ChangeEnumerator($config);
+        $sut = new FileScanner($config);
 
         $file = \Mockery::mock(File::class);
         $file->shouldReceive('getContents')->andReturn($validPhp);
 
         $file->shouldReceive('getTargetRelativePath');
         $file->shouldReceive('getDependency');
-        $file->shouldReceive('addDiscoveredType');
+        $file->shouldReceive( 'addDiscoveredSymbol' );
 
         $discoveredFiles = \Mockery::mock(DiscoveredFiles::class);
         $discoveredFiles->shouldReceive('getFiles')->andReturn([$file]);
@@ -71,17 +71,17 @@ namespace {
 }
 EOD;
         $file = \Mockery::mock(File::class);
-        $file->expects('addDiscoveredType')->once();
+        $file->expects( 'addDiscoveredSymbol' )->once();
 
         $config = $this->createMock(StraussConfig::class);
-        $sut = new ChangeEnumerator($config);
+        $sut = new FileScanner($config);
 
         $file = \Mockery::mock(File::class);
         $file->shouldReceive('getContents')->andReturn($validPhp);
 
         $file->shouldReceive('getTargetRelativePath');
         $file->shouldReceive('getDependency');
-        $file->shouldReceive('addDiscoveredType');
+        $file->shouldReceive( 'addDiscoveredSymbol' );
 
         $discoveredFiles = \Mockery::mock(DiscoveredFiles::class);
         $discoveredFiles->shouldReceive('getFiles')->andReturn([$file]);
@@ -106,17 +106,17 @@ namespace {
 }
 EOD;
         $file = \Mockery::mock(File::class);
-        $file->expects('addDiscoveredType')->once();
+        $file->expects( 'addDiscoveredSymbol' )->once();
 
         $config = $this->createMock(StraussConfig::class);
-        $sut = new ChangeEnumerator($config);
+        $sut = new FileScanner($config);
 
         $file = \Mockery::mock(File::class);
         $file->shouldReceive('getContents')->andReturn($validPhp);
 
         $file->shouldReceive('getTargetRelativePath');
         $file->shouldReceive('getDependency');
-        $file->shouldReceive('addDiscoveredType');
+        $file->shouldReceive( 'addDiscoveredSymbol' );
 
         $discoveredFiles = \Mockery::mock(DiscoveredFiles::class);
         $discoveredFiles->shouldReceive('getFiles')->andReturn([$file]);
@@ -148,10 +148,10 @@ namespace MyNamespace {
 }
 EOD;
         $file = \Mockery::mock(File::class);
-        $file->expects('addDiscoveredType')->once();
+        $file->expects( 'addDiscoveredSymbol' )->once();
 
         $config = $this->createMock(StraussConfig::class);
-        $sut = new ChangeEnumerator($config);
+        $sut = new FileScanner($config);
 
 
         $file = \Mockery::mock(File::class);
@@ -159,7 +159,7 @@ EOD;
 
         $file->shouldReceive('getTargetRelativePath');
         $file->shouldReceive('getDependency');
-        $file->shouldReceive('addDiscoveredType');
+        $file->shouldReceive( 'addDiscoveredSymbol' );
 
         $discoveredFiles = \Mockery::mock(DiscoveredFiles::class);
         $discoveredFiles->shouldReceive('getFiles')->andReturn([$file]);
@@ -205,10 +205,10 @@ class HTMLPurifier_Printer_ConfigForm extends HTMLPurifier_Printer
 // vim: et sw=4 sts=4
 EOD;
         $file = \Mockery::mock(File::class);
-        $file->expects('addDiscoveredType')->once();
+        $file->expects( 'addDiscoveredSymbol' )->once();
 
         $config = $this->createMock(StraussConfig::class);
-        $sut = new ChangeEnumerator($config);
+        $sut = new FileScanner($config);
 
         try {
             $file = \Mockery::mock(File::class);
@@ -216,7 +216,7 @@ EOD;
 
             $file->shouldReceive('getTargetRelativePath');
             $file->shouldReceive('getDependency');
-            $file->shouldReceive('addDiscoveredType');
+            $file->shouldReceive( 'addDiscoveredSymbol' );
 
             $discoveredFiles = \Mockery::mock(DiscoveredFiles::class);
             $discoveredFiles->shouldReceive('getFiles')->andReturn([$file]);
@@ -244,17 +244,17 @@ class MyOtherClass {
 }
 EOD;
         $file = \Mockery::mock(File::class);
-        $file->expects('addDiscoveredType')->once();
+        $file->expects( 'addDiscoveredSymbol' )->once();
 
         $config = $this->createMock(StraussConfig::class);
-        $sut = new ChangeEnumerator($config);
+        $sut = new FileScanner($config);
 
         $file = \Mockery::mock(File::class);
         $file->shouldReceive('getContents')->andReturn($validPhp);
 
         $file->shouldReceive('getTargetRelativePath');
         $file->shouldReceive('getDependency');
-        $file->shouldReceive('addDiscoveredType');
+        $file->shouldReceive( 'addDiscoveredSymbol' );
 
         $discoveredFiles = \Mockery::mock(DiscoveredFiles::class);
         $discoveredFiles->shouldReceive('getFiles')->andReturn([$file]);
@@ -279,22 +279,22 @@ EOD;
     	";
 
         $file = \Mockery::mock(File::class);
-        $file->expects('addDiscoveredType')->once();
+        $file->expects( 'addDiscoveredSymbol' )->once();
 
         $config = $this->createMock(StraussConfig::class);
-        $changeEnumerator = new ChangeEnumerator($config);
+        $fileScanner = new FileScanner($config);
 
         $file = \Mockery::mock(File::class);
         $file->shouldReceive('getContents')->andReturn($contents);
 
         $file->shouldReceive('getTargetRelativePath');
         $file->shouldReceive('getDependency');
-        $file->shouldReceive('addDiscoveredType');
+        $file->shouldReceive( 'addDiscoveredSymbol' );
 
         $discoveredFiles = \Mockery::mock(DiscoveredFiles::class);
         $discoveredFiles->shouldReceive('getFiles')->andReturn([$file]);
 
-        $discoveredSymbols = $changeEnumerator->findInFiles($discoveredFiles);
+        $discoveredSymbols = $fileScanner->findInFiles($discoveredFiles);
 
         self::assertNotContains('as', $discoveredSymbols->getDiscoveredClasses());
         self::assertContains('Whatever', $discoveredSymbols->getDiscoveredClasses());
@@ -315,22 +315,22 @@ EOD;
     	";
 
         $file = \Mockery::mock(File::class);
-        $file->expects('addDiscoveredType')->once();
+        $file->expects( 'addDiscoveredSymbol' )->once();
 
         $config = $this->createMock(StraussConfig::class);
-        $changeEnumerator = new ChangeEnumerator($config);
+        $fileScanner = new FileScanner($config);
 
         $file = \Mockery::mock(File::class);
         $file->shouldReceive('getContents')->andReturn($contents);
 
         $file->shouldReceive('getTargetRelativePath');
         $file->shouldReceive('getDependency');
-        $file->shouldReceive('addDiscoveredType');
+        $file->shouldReceive( 'addDiscoveredSymbol' );
 
         $discoveredFiles = \Mockery::mock(DiscoveredFiles::class);
         $discoveredFiles->shouldReceive('getFiles')->andReturn([$file]);
 
-        $discoveredSymbols = $changeEnumerator->findInFiles($discoveredFiles);
+        $discoveredSymbols = $fileScanner->findInFiles($discoveredFiles);
 
         self::assertNotContains('as', $discoveredSymbols->getDiscoveredClasses());
         self::assertContains('Whatever', $discoveredSymbols->getDiscoveredClasses());
@@ -354,22 +354,22 @@ EOD;
     	";
 
         $file = \Mockery::mock(File::class);
-        $file->expects('addDiscoveredType')->once();
+        $file->expects( 'addDiscoveredSymbol' )->once();
 
         $config = $this->createMock(StraussConfig::class);
-        $changeEnumerator = new ChangeEnumerator($config);
+        $fileScanner = new FileScanner($config);
 
         $file = \Mockery::mock(File::class);
         $file->shouldReceive('getContents')->andReturn($contents);
 
         $file->shouldReceive('getTargetRelativePath');
         $file->shouldReceive('getDependency');
-        $file->shouldReceive('addDiscoveredType');
+        $file->shouldReceive( 'addDiscoveredSymbol' );
 
         $discoveredFiles = \Mockery::mock(DiscoveredFiles::class);
         $discoveredFiles->shouldReceive('getFiles')->andReturn([$file]);
 
-        $discoveredSymbols = $changeEnumerator->findInFiles($discoveredFiles);
+        $discoveredSymbols = $fileScanner->findInFiles($discoveredFiles);
 
         self::assertNotContains('as', $discoveredSymbols->getDiscoveredClasses());
         self::assertContains('Whatever', $discoveredSymbols->getDiscoveredClasses());
@@ -388,22 +388,22 @@ EOD;
     	";
 
         $file = \Mockery::mock(File::class);
-        $file->expects('addDiscoveredType')->once();
+        $file->expects( 'addDiscoveredSymbol' )->once();
 
         $config = $this->createMock(StraussConfig::class);
-        $changeEnumerator = new ChangeEnumerator($config);
+        $fileScanner = new FileScanner($config);
 
         $file = \Mockery::mock(File::class);
         $file->shouldReceive('getContents')->andReturn($contents);
 
         $file->shouldReceive('getTargetRelativePath');
         $file->shouldReceive('getDependency');
-        $file->shouldReceive('addDiscoveredType');
+        $file->shouldReceive( 'addDiscoveredSymbol' );
 
         $discoveredFiles = \Mockery::mock(DiscoveredFiles::class);
         $discoveredFiles->shouldReceive('getFiles')->andReturn([$file]);
 
-        $discoveredSymbols = $changeEnumerator->findInFiles($discoveredFiles);
+        $discoveredSymbols = $fileScanner->findInFiles($discoveredFiles);
 
         self::assertNotContains('as', $discoveredSymbols->getDiscoveredClasses());
         self::assertContains('Whatever_Trevor', $discoveredSymbols->getDiscoveredClasses());
@@ -425,22 +425,22 @@ EOD;
     	}
     	";
         $file = \Mockery::mock(File::class);
-        $file->expects('addDiscoveredType')->once();
+        $file->expects( 'addDiscoveredSymbol' )->once();
 
         $config = $this->createMock(StraussConfig::class);
-        $changeEnumerator = new ChangeEnumerator($config);
+        $fileScanner = new FileScanner($config);
 
         $file = \Mockery::mock(File::class);
         $file->shouldReceive('getContents')->andReturn($contents);
 
         $file->shouldReceive('getTargetRelativePath');
         $file->shouldReceive('getDependency');
-        $file->shouldReceive('addDiscoveredType');
+        $file->shouldReceive( 'addDiscoveredSymbol' );
 
         $discoveredFiles = \Mockery::mock(DiscoveredFiles::class);
         $discoveredFiles->shouldReceive('getFiles')->andReturn([$file]);
 
-        $discoveredSymbols = $changeEnumerator->findInFiles($discoveredFiles);
+        $discoveredSymbols = $fileScanner->findInFiles($discoveredFiles);
 
         self::assertNotContains('as', $discoveredSymbols->getDiscoveredClasses());
         self::assertContains('Whatever_Ever', $discoveredSymbols->getDiscoveredClasses());
@@ -456,22 +456,22 @@ EOD;
 	    myvar = 123; class Pear { };
 	    ";
         $file = \Mockery::mock(File::class);
-        $file->expects('addDiscoveredType')->once();
+        $file->expects( 'addDiscoveredSymbol' )->once();
 
         $config = $this->createMock(StraussConfig::class);
-        $changeEnumerator = new ChangeEnumerator($config);
+        $fileScanner = new FileScanner($config);
 
         $file = \Mockery::mock(File::class);
         $file->shouldReceive('getContents')->andReturn($contents);
 
         $file->shouldReceive('getTargetRelativePath');
         $file->shouldReceive('getDependency');
-        $file->shouldReceive('addDiscoveredType');
+        $file->shouldReceive( 'addDiscoveredSymbol' );
 
         $discoveredFiles = \Mockery::mock(DiscoveredFiles::class);
         $discoveredFiles->shouldReceive('getFiles')->andReturn([$file]);
 
-        $discoveredSymbols = $changeEnumerator->findInFiles($discoveredFiles);
+        $discoveredSymbols = $fileScanner->findInFiles($discoveredFiles);
 
         self::assertContains('Pear', $discoveredSymbols->getDiscoveredClasses());
     }
@@ -490,22 +490,22 @@ EOD;
 		 */
 EOD;
         $file = \Mockery::mock(File::class);
-        $file->expects('addDiscoveredType')->once();
+        $file->expects( 'addDiscoveredSymbol' )->once();
 
         $config = $this->createMock(StraussConfig::class);
-        $changeEnumerator = new ChangeEnumerator($config);
+        $fileScanner = new FileScanner($config);
 
         $file = \Mockery::mock(File::class);
         $file->shouldReceive('getContents')->andReturn($contents);
 
         $file->shouldReceive('getTargetRelativePath');
         $file->shouldReceive('getDependency');
-        $file->shouldReceive('addDiscoveredType');
+        $file->shouldReceive( 'addDiscoveredSymbol' );
 
         $discoveredFiles = \Mockery::mock(DiscoveredFiles::class);
         $discoveredFiles->shouldReceive('getFiles')->andReturn([$file]);
 
-        $discoveredSymbols = $changeEnumerator->findInFiles($discoveredFiles);
+        $discoveredSymbols = $fileScanner->findInFiles($discoveredFiles);
 
         self::assertContains('WP_Dependency_Installer', $discoveredSymbols->getDiscoveredClasses());
     }
@@ -533,22 +533,22 @@ EOD;
 		";
 
         $file = \Mockery::mock(File::class);
-        $file->expects('addDiscoveredType')->once();
+        $file->expects( 'addDiscoveredSymbol' )->once();
 
         $config = $this->createMock(StraussConfig::class);
-        $changeEnumerator = new ChangeEnumerator($config);
+        $fileScanner = new FileScanner($config);
 
         $file = \Mockery::mock(File::class);
         $file->shouldReceive('getContents')->andReturn($contents);
 
         $file->shouldReceive('getTargetRelativePath');
         $file->shouldReceive('getDependency');
-        $file->shouldReceive('addDiscoveredType');
+        $file->shouldReceive( 'addDiscoveredSymbol' );
 
         $discoveredFiles = \Mockery::mock(DiscoveredFiles::class);
         $discoveredFiles->shouldReceive('getFiles')->andReturn([$file]);
 
-        $discoveredSymbols = $changeEnumerator->findInFiles($discoveredFiles);
+        $discoveredSymbols = $fileScanner->findInFiles($discoveredFiles);
 
         self::assertNotContains('A_Class', $discoveredSymbols->getDiscoveredClasses());
         self::assertContains('B_Class', $discoveredSymbols->getDiscoveredClasses());
@@ -571,8 +571,8 @@ EOD;
         $files = \Mockery::mock(DiscoveredFiles::class)->makePartial();
         $files->shouldReceive('getFiles')->andReturn([$file]);
 
-        $changeEnumerator = new ChangeEnumerator($config);
-        $discoveredSymbols = $changeEnumerator->findInFiles($files);
+        $fileScanner = new FileScanner($config);
+        $discoveredSymbols = $fileScanner->findInFiles($files);
 
         self::assertEmpty($discoveredSymbols->getDiscoveredNamespaces());
     }
@@ -594,8 +594,8 @@ EOD;
         $files = \Mockery::mock(DiscoveredFiles::class)->makePartial();
         $files->shouldReceive('getFiles')->andReturn([$file]);
 
-        $changeEnumerator = new ChangeEnumerator($config);
-        $discoveredSymbols = $changeEnumerator->findInFiles($files);
+        $fileScanner = new FileScanner($config);
+        $discoveredSymbols = $fileScanner->findInFiles($files);
 
         self::assertEmpty($discoveredSymbols->getDiscoveredNamespaces());
     }
@@ -612,7 +612,7 @@ EOD;
 		}
 		";
         $file = \Mockery::mock(File::class);
-        $file->expects('addDiscoveredType')->once();
+        $file->expects( 'addDiscoveredSymbol' )->once();
 
         $config = $this->createMock(StraussConfig::class);
         $config->method('getNamespacePrefix')->willReturn('BrianHenryIE\Prefix');
@@ -620,23 +620,23 @@ EOD;
             array('/BrianHenryIE\\\\(PdfHelpers)/'=>'BrianHenryIE\\Prefix\\\\$1')
         );
 
-        $changeEnumerator = new ChangeEnumerator($config);
+        $fileScanner = new FileScanner($config);
 
         $file = \Mockery::mock(File::class);
         $file->shouldReceive('getContents')->andReturn($contents);
 
         $file->shouldReceive('getTargetRelativePath');
         $file->shouldReceive('getDependency');
-        $file->shouldReceive('addDiscoveredType');
+        $file->shouldReceive( 'addDiscoveredSymbol' );
 
         $discoveredFiles = \Mockery::mock(DiscoveredFiles::class);
         $discoveredFiles->shouldReceive('getFiles')->andReturn([$file]);
 
-        $discoveredSymbols = $changeEnumerator->findInFiles($discoveredFiles);
+        $discoveredSymbols = $fileScanner->findInFiles($discoveredFiles);
 
         self::assertArrayHasKey('BrianHenryIE\PdfHelpers', $discoveredSymbols->getDiscoveredNamespaces());
-//        self::assertContains('BrianHenryIE\Prefix\PdfHelpers', $changeEnumerator->getDiscoveredNamespaces());
-//        self::assertNotContains('BrianHenryIE\Prefix\BrianHenryIE\PdfHelpers', $changeEnumerator->getDiscoveredNamespaces());
+//        self::assertContains('BrianHenryIE\Prefix\PdfHelpers', $fileScanner->getDiscoveredNamespaces());
+//        self::assertNotContains('BrianHenryIE\Prefix\BrianHenryIE\PdfHelpers', $fileScanner->getDiscoveredNamespaces());
     }
 
     /**
@@ -669,22 +669,22 @@ class TCPDF_STATIC
 }
 EOD;
         $file = \Mockery::mock(File::class);
-        $file->expects('addDiscoveredType')->once();
+        $file->expects( 'addDiscoveredSymbol' )->once();
 
         $config = $this->createMock(StraussConfig::class);
-        $changeEnumerator = new ChangeEnumerator($config);
+        $fileScanner = new FileScanner($config);
 
         $file = \Mockery::mock(File::class);
         $file->shouldReceive('getContents')->andReturn($contents);
 
         $file->shouldReceive('getTargetRelativePath');
         $file->shouldReceive('getDependency');
-        $file->shouldReceive('addDiscoveredType');
+        $file->shouldReceive( 'addDiscoveredSymbol' );
 
         $discoveredFiles = \Mockery::mock(DiscoveredFiles::class);
         $discoveredFiles->shouldReceive('getFiles')->andReturn([$file]);
 
-        $discoveredSymbols = $changeEnumerator->findInFiles($discoveredFiles);
+        $discoveredSymbols = $fileScanner->findInFiles($discoveredFiles);
 
         self::assertNotContains('object', $discoveredSymbols->getDiscoveredClasses());
     }
@@ -710,22 +710,22 @@ class FPDF
 {
 EOD;
         $file = \Mockery::mock(File::class);
-        $file->expects('addDiscoveredType')->once();
+        $file->expects( 'addDiscoveredSymbol' )->once();
 
         $config = $this->createMock(StraussConfig::class);
-        $changeEnumerator = new ChangeEnumerator($config);
+        $fileScanner = new FileScanner($config);
 
         $file = \Mockery::mock(File::class);
         $file->shouldReceive('getContents')->andReturn($contents);
 
         $file->shouldReceive('getTargetRelativePath');
         $file->shouldReceive('getDependency');
-        $file->shouldReceive('addDiscoveredType');
+        $file->shouldReceive( 'addDiscoveredSymbol' );
 
         $discoveredFiles = \Mockery::mock(DiscoveredFiles::class);
         $discoveredFiles->shouldReceive('getFiles')->andReturn([$file]);
 
-        $discoveredSymbols = $changeEnumerator->findInFiles($discoveredFiles);
+        $discoveredSymbols = $fileScanner->findInFiles($discoveredFiles);
 
         $constants = $discoveredSymbols->getDiscoveredConstants();
 
@@ -755,22 +755,22 @@ final class WPGraphQL {
 }
 EOD;
         $file = \Mockery::mock(File::class);
-        $file->expects('addDiscoveredType')->once();
+        $file->expects( 'addDiscoveredSymbol' )->once();
 
         $config = $this->createMock(StraussConfig::class);
-        $changeEnumerator = new ChangeEnumerator($config);
+        $fileScanner = new FileScanner($config);
 
         $file = \Mockery::mock(File::class);
         $file->shouldReceive('getContents')->andReturn($contents);
 
         $file->shouldReceive('getTargetRelativePath');
         $file->shouldReceive('getDependency');
-        $file->shouldReceive('addDiscoveredType');
+        $file->shouldReceive( 'addDiscoveredSymbol' );
 
         $discoveredFiles = \Mockery::mock(DiscoveredFiles::class);
         $discoveredFiles->shouldReceive('getFiles')->andReturn([$file]);
 
-        $discoveredSymbols = $changeEnumerator->findInFiles($discoveredFiles);
+        $discoveredSymbols = $fileScanner->findInFiles($discoveredFiles);
 
         self::assertArrayNotHasKey('WPGraphQL', $discoveredSymbols->getDiscoveredNamespaces());
         self::assertContains('WPGraphQL', $discoveredSymbols->getDiscoveredClasses());

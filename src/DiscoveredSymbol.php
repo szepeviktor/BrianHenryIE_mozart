@@ -18,10 +18,10 @@ abstract class DiscoveredSymbol
         $this->symbol = $symbol;
         $this->file = $file;
 
-        $file->addDiscoveredType($this);
+        $file->addDiscoveredSymbol($this);
     }
 
-    public function getSymbol(): string
+    public function getOriginalSymbol(): string
     {
         return $this->symbol;
     }

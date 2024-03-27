@@ -2,7 +2,7 @@
 
 namespace BrianHenryIE\Strauss\Console\Commands;
 
-use BrianHenryIE\Strauss\ChangeEnumerator;
+use BrianHenryIE\Strauss\FileScanner;
 use BrianHenryIE\Strauss\Autoload;
 use BrianHenryIE\Strauss\Cleanup;
 use BrianHenryIE\Strauss\Composer\ComposerPackage;
@@ -43,9 +43,9 @@ class Compose extends Command
     /** @var Prefixer */
     protected Prefixer $replacer;
     /**
-     * @var ChangeEnumerator
+     * @var FileScanner
      */
-    protected ChangeEnumerator $changeEnumerator;
+    protected FileScanner $fileScanner;
     protected DependenciesEnumerator $dependenciesEnumerator;
 
     /**
@@ -222,10 +222,10 @@ class Compose extends Command
     {
         $this->logger->info('Determining changes...');
 
-        $changeEnumerator = new ChangeEnumerator($this->config);
+        $fileScanner = new FileScanner($this->config);
 
         $absoluteTargetDir = $this->workingDir . $this->config->getTargetDirectory();
-        $this->discoveredSymbols = $changeEnumerator->findInFiles($this->discoveredFiles);
+        $this->discoveredSymbols = $fileScanner->findInFiles($this->discoveredFiles);
     }
 
     // 5. Update namespaces and class names.

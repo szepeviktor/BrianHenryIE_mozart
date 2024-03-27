@@ -2,7 +2,7 @@
 
 namespace BrianHenryIE\Strauss\Tests\Integration;
 
-use BrianHenryIE\Strauss\ChangeEnumerator;
+use BrianHenryIE\Strauss\FileScanner;
 use BrianHenryIE\Strauss\Composer\ComposerPackage;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use BrianHenryIE\Strauss\Composer\ProjectComposerPackage;
@@ -74,8 +74,8 @@ EOD;
         $copier->prepareTarget();
         $copier->copy();
 
-        $changeEnumerator = new ChangeEnumerator($config);
-        $discoveredSymbols = $changeEnumerator->findInFiles($files);
+        $fileScanner = new FileScanner($config);
+        $discoveredSymbols = $fileScanner->findInFiles($files);
 
         $namespaces = $discoveredSymbols->getDiscoveredNamespaces();
         $classes = $discoveredSymbols->getDiscoveredClasses();
@@ -145,10 +145,10 @@ EOD;
 //        $copier->prepareTarget();
 //        $copier->copy();
 //
-//        $changeEnumerator = new ChangeEnumerator();
-//        $changeEnumerator->findInFiles($absoluteTargetDir, $phpFileList);
-//        $namespaces = $changeEnumerator->getDiscoveredNamespaces();
-//        $classes = $changeEnumerator->getDiscoveredClasses();
+//        $fileScanner = new FileScanner();
+//        $fileScanner->findInFiles($absoluteTargetDir, $phpFileList);
+//        $namespaces = $fileScanner->getDiscoveredNamespaces();
+//        $classes = $fileScanner->getDiscoveredClasses();
 //
 //        $replacer = new Replacer($config, $workingDir);
 //

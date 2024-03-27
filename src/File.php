@@ -37,7 +37,7 @@ class File
     protected bool $doDelete = false;
 
     /** @var DiscoveredSymbol[] */
-    protected array $discoveredTypes = [];
+    protected array $discoveredSymbols = [];
 
     public function __construct(ComposerPackage $dependency, string $packageRelativePath, string $sourceAbsolutePath)
     {
@@ -137,9 +137,9 @@ class File
         return in_array('files', $this->autoloaderTypes, true);
     }
 
-    public function addDiscoveredType(DiscoveredSymbol $param)
+    public function addDiscoveredSymbol(DiscoveredSymbol $symbol)
     {
-        $this->discoveredTypes[$param->getSymbol()] = $param;
+        $this->discoveredSymbols[$symbol->getOriginalSymbol()] = $symbol;
     }
 
     public function getContents()

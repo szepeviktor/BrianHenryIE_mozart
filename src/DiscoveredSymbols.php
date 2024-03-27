@@ -27,7 +27,7 @@ class DiscoveredSymbols implements ArrayAccess
      */
     public function add(DiscoveredSymbol $symbol)
     {
-        $this->types[ get_class($symbol)][$symbol->getSymbol() ] = $symbol;
+        $this->types[ get_class($symbol)][$symbol->getOriginalSymbol() ] = $symbol;
     }
 
     /**
@@ -112,7 +112,7 @@ class DiscoveredSymbols implements ArrayAccess
         // When running subsequent times, try to discover the original namespaces.
         // This is naive: it will not work where namespace replacement patterns have been used.
         foreach ($this->getNamespaces() as $key => $value) {
-            $discoveredNamespaceReplacements[ $value->getSymbol() ] = $value;
+            $discoveredNamespaceReplacements[ $value->getOriginalSymbol() ] = $value;
         }
 
         uksort($discoveredNamespaceReplacements, function ($a, $b) {

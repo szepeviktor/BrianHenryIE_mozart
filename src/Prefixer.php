@@ -382,7 +382,7 @@ class Prefixer
     }
 
     /**
-     * TODO: This should be split and brought to ChangeEnumerator.
+     * TODO: This should be split and brought to FileScanner.
      *
      * @param string $contents
      * @param string[] $originalConstants

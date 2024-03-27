@@ -12,7 +12,7 @@ use BrianHenryIE\Strauss\Types\ClassSymbol;
 use BrianHenryIE\Strauss\Types\ConstantSymbol;
 use BrianHenryIE\Strauss\Types\NamespaceSymbol;
 
-class ChangeEnumerator
+class FileScanner
 {
 
     protected string $namespacePrefix;
@@ -35,7 +35,7 @@ class ChangeEnumerator
     protected DiscoveredSymbols $discoveredSymbols;
 
     /**
-     * ChangeEnumerator constructor.
+     * FileScanner constructor.
      * @param \BrianHenryIE\Strauss\Composer\Extra\StraussConfig $config
      */
     public function __construct(StraussConfig $config)
