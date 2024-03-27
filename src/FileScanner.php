@@ -17,11 +17,6 @@ class FileScanner
 
     protected string $namespacePrefix;
     protected string $classmapPrefix;
-    /**
-     *
-     * @var string[]
-     */
-    protected array $excludePackagesFromPrefixing = array();
 
     /** @var string[]  */
     protected array $excludeNamespacesFromPrefixing = array();
@@ -58,20 +53,6 @@ class FileScanner
     public function findInFiles(DiscoveredFiles $files): DiscoveredSymbols
     {
         foreach ($files->getFiles() as $file) {
-            $relativeFilepath = $file->getTargetRelativePath();
-            $package = $file->getDependency();
-            foreach ($this->excludePackagesFromPrefixing as $excludePackagesName) {
-                if ($package->getPackageName() === $excludePackagesName) {
-                    continue 2;
-                }
-            }
-
-            foreach ($this->excludeFilePatternsFromPrefixing as $excludeFilePattern) {
-                if (1 === preg_match($excludeFilePattern, $relativeFilepath)) {
-                    continue 2;
-                }
-            }
-
             $this->find($file->getContents(), $file);
         }
 
@@ -165,7 +146,6 @@ class FileScanner
         }
 
         $classSymbol = new ClassSymbol($classname, $file);
-        $classSymbol->setReplacement($this->classmapPrefix . $classname);
         $this->discoveredSymbols->add($classSymbol);
     }
 
@@ -178,20 +158,7 @@ class FileScanner
             }
         }
 
-        foreach ($this->namespaceReplacementPatterns as $namespaceReplacementPattern => $replacement) {
-            $prefixed = preg_replace($namespaceReplacementPattern, $replacement, $namespace);
-
-            if ($prefixed !== $namespace) {
-                $namespaceObj = new NamespaceSymbol($namespace, $file);
-                $namespaceObj->setReplacement($prefixed);
-                $this->discoveredSymbols->add($namespaceObj);
-                return;
-            }
-        }
-
         $namespaceObj = new NamespaceSymbol($namespace, $file);
-        $prefixed = $this->namespacePrefix . '\\'. $namespace;
-        $namespaceObj->setReplacement($prefixed);
         $this->discoveredSymbols->add($namespaceObj);
     }
 

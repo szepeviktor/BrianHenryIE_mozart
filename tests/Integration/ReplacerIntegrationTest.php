@@ -2,6 +2,7 @@
 
 namespace BrianHenryIE\Strauss\Tests\Integration;
 
+use BrianHenryIE\Strauss\ChangeEnumerator;
 use BrianHenryIE\Strauss\FileScanner;
 use BrianHenryIE\Strauss\Composer\ComposerPackage;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
@@ -77,13 +78,12 @@ EOD;
         $fileScanner = new FileScanner($config);
         $discoveredSymbols = $fileScanner->findInFiles($files);
 
-        $namespaces = $discoveredSymbols->getDiscoveredNamespaces();
-        $classes = $discoveredSymbols->getDiscoveredClasses();
-        $constants = array();
+        $changeEnumerator = new ChangeEnumerator($config, $workingDir);
+        $changeEnumerator->determineReplacements($discoveredSymbols);
 
         $replacer = new Prefixer($config, $workingDir);
 
-        $replacer->replaceInFiles($namespaces, $classes, $constants, $phpFileList);
+        $replacer->replaceInFiles($discoveredSymbols, $phpFileList);
 
         $updatedFile = file_get_contents($absoluteTargetDir . 'google/apiclient/src/Client.php');
 

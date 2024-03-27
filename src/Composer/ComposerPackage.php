@@ -147,6 +147,8 @@ class ComposerPackage
     /**
      * Composer package project name.
      *
+     * vendor/project-name
+     *
      * @return string
      */
     public function getPackageName(): string

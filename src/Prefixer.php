@@ -39,6 +39,8 @@ class Prefixer
 
     public function __construct(StraussConfig $config, string $workingDir)
     {
+        $this->config = $config;
+
         $this->filesystem = new Filesystem(new LocalFilesystemAdapter($workingDir));
 
         $this->targetDirectory = $config->getTargetDirectory();
@@ -56,12 +58,10 @@ class Prefixer
 
 
     /**
-     * @param array<string, NamespaceSymbol> $namespaceChanges
-     * @param string[] $classChanges
-     * @param string[] $constants
+     * @param DiscoveredSymbols $discoveredSymbols
      * @param array<string,array{dependency:ComposerPackage,sourceAbsoluteFilepath:string,targetRelativeFilepath:string}> $phpFileArrays
      */
-    public function replaceInFiles(array $namespaceChanges, array $classChanges, array $constants, array $phpFileArrays): void
+    public function replaceInFiles(DiscoveredSymbols $discoveredSymbols, array $phpFileArrays): void
     {
 
         foreach ($phpFileArrays as $targetRelativeFilepath => $fileArray) {
@@ -88,7 +88,7 @@ class Prefixer
             // Throws an exception, but unlikely to happen.
             $contents = $this->filesystem->read($targetRelativeFilepathFromProject);
 
-            $updatedContents = $this->replaceInString($namespaceChanges, $classChanges, $constants, $contents);
+            $updatedContents = $this->replaceInString($discoveredSymbols, $contents);
 
             if ($updatedContents !== $contents) {
                 $this->changedFiles[$targetRelativeFilepath] = $package;
@@ -98,7 +98,7 @@ class Prefixer
     }
 
     /**
-     * @param array<string, string> $namespaceChanges
+     * @param array<string, NamespaceSymbol> $namespaceChanges
      * @param string[] $classChanges
      * @param string[] $constants
      * @param string[] $relativeFilePaths
@@ -106,8 +106,9 @@ class Prefixer
      * @throws FileNotFoundException
      * @throws Exception
      */
-    public function replaceInProjectFiles(array $namespaceChanges, array $classChanges, array $constants, array $relativeFilePaths): void
+    public function replaceInProjectFiles(DiscoveredSymbols $discoveredSymbols, array $relativeFilePaths): void
     {
+
         foreach ($relativeFilePaths as $workingDirRelativeFilepath) {
             if (! $this->filesystem->fileExists($workingDirRelativeFilepath)) {
                 continue;
@@ -116,7 +117,7 @@ class Prefixer
             // Throws an exception, but unlikely to happen.
             $contents = $this->filesystem->read($workingDirRelativeFilepath);
 
-            $updatedContents = $this->replaceInString($namespaceChanges, $classChanges, $constants, $contents);
+            $updatedContents = $this->replaceInString($discoveredSymbols, $contents);
 
             if ($updatedContents !== $contents) {
                 $this->changedFiles[ $workingDirRelativeFilepath ] = '';
@@ -126,13 +127,14 @@ class Prefixer
     }
 
     /**
-     * @param array<string, NamespaceSymbol> $namespacesChanges
-     * @param string[] $classes
-     * @param string[] $originalConstants
+     * @param DiscoveredSymbols $discoveredSymbols
      * @param string $contents
      */
-    public function replaceInString(array $namespacesChanges, array $classes, array $originalConstants, string $contents): string
+    public function replaceInString(DiscoveredSymbols $discoveredSymbols, string $contents): string
     {
+        $namespacesChanges = $discoveredSymbols->getDiscoveredNamespaces($this->config->getNamespacePrefix());
+        $classes = $discoveredSymbols->getDiscoveredClasses($this->config->getClassmapPrefix());
+        $constants = $discoveredSymbols->getDiscoveredConstants($this->config->getConstantsPrefix());
 
         foreach ($classes as $originalClassname) {
             if ('ReturnTypeWillChange' === $originalClassname) {
@@ -153,7 +155,7 @@ class Prefixer
         }
 
         if (!is_null($this->constantsPrefix)) {
-            $contents = $this->replaceConstants($contents, $originalConstants, $this->constantsPrefix);
+            $contents = $this->replaceConstants($contents, $constants, $this->constantsPrefix);
         }
 
         return $contents;

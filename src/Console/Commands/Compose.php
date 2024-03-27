@@ -2,6 +2,7 @@
 
 namespace BrianHenryIE\Strauss\Console\Commands;
 
+use BrianHenryIE\Strauss\ChangeEnumerator;
 use BrianHenryIE\Strauss\FileScanner;
 use BrianHenryIE\Strauss\Autoload;
 use BrianHenryIE\Strauss\Cleanup;
@@ -37,15 +38,9 @@ class Compose extends Command
 
     protected ProjectComposerPackage $projectComposerPackage;
 
-    /** @var Copier */
-    protected Copier $copier;
-
     /** @var Prefixer */
     protected Prefixer $replacer;
-    /**
-     * @var FileScanner
-     */
-    protected FileScanner $fileScanner;
+
     protected DependenciesEnumerator $dependenciesEnumerator;
 
     /**
@@ -207,14 +202,14 @@ class Compose extends Command
 
         $this->logger->info('Copying files...');
 
-        $this->copier = new Copier(
+        $copier = new Copier(
             $this->discoveredFiles,
             $this->workingDir,
             $this->config
         );
 
-        $this->copier->prepareTarget();
-        $this->copier->copy();
+        $copier->prepareTarget();
+        $copier->copy();
     }
 
     // 4. Determine namespace and classname changes
@@ -224,8 +219,13 @@ class Compose extends Command
 
         $fileScanner = new FileScanner($this->config);
 
-        $absoluteTargetDir = $this->workingDir . $this->config->getTargetDirectory();
         $this->discoveredSymbols = $fileScanner->findInFiles($this->discoveredFiles);
+
+        $changeEnumerator = new ChangeEnumerator(
+            $this->config,
+            $this->workingDir
+        );
+        $changeEnumerator->determineReplacements($this->discoveredSymbols);
     }
 
     // 5. Update namespaces and class names.
@@ -236,13 +236,9 @@ class Compose extends Command
 
         $this->replacer = new Prefixer($this->config, $this->workingDir);
 
-        $namespaces = $this->discoveredSymbols->getDiscoveredNamespaces($this->config->getNamespacePrefix());
-        $classes = $this->discoveredSymbols->getDiscoveredClasses($this->config->getClassmapPrefix());
-        $constants = $this->discoveredSymbols->getDiscoveredConstants($this->config->getConstantsPrefix());
-        
         $phpFiles = $this->discoveredFiles->getPhpFilesAndDependencyList();
 
-        $this->replacer->replaceInFiles($namespaces, $classes, $constants, $phpFiles);
+        $this->replacer->replaceInFiles($this->discoveredSymbols, $phpFiles);
     }
 
     protected function performReplacementsInComposerFiles(): void
@@ -254,16 +250,12 @@ class Compose extends Command
 
         $projectReplace = new Prefixer($this->config, $this->workingDir);
 
-        $namespaces = $this->discoveredSymbols->getDiscoveredNamespaces($this->config->getNamespacePrefix());
-        $classes = $this->discoveredSymbols->getDiscoveredClasses($this->config->getClassmapPrefix());
-        $constants = $this->discoveredSymbols->getDiscoveredConstants($this->config->getConstantsPrefix());
-
         $composerPhpFileRelativePaths = $this->fileEnumerator->findFilesInDirectory(
             $this->workingDir,
             $this->config->getVendorDirectory() . 'composer'
         );
 
-        $projectReplace->replaceInProjectFiles($namespaces, $classes, $constants, $composerPhpFileRelativePaths);
+        $projectReplace->replaceInProjectFiles($this->discoveredSymbols, $composerPhpFileRelativePaths);
     }
 
     protected function performReplacementsInProjectFiles(): void
@@ -279,10 +271,6 @@ class Compose extends Command
 
         $projectReplace = new Prefixer($this->config, $this->workingDir);
 
-        $namespaces = $this->discoveredSymbols->getDiscoveredNamespaces($this->config->getNamespacePrefix());
-        $classes = $this->discoveredSymbols->getDiscoveredClasses($this->config->getClassmapPrefix());
-        $constants = $this->discoveredSymbols->getDiscoveredConstants($this->config->getConstantsPrefix());
-
         $phpFilesRelativePaths = [];
         foreach ($callSitePaths as $relativePath) {
             $absolutePath = $this->workingDir . $relativePath;
@@ -295,7 +283,7 @@ class Compose extends Command
             }
         }
 
-        $projectReplace->replaceInProjectFiles($namespaces, $classes, $constants, $phpFilesRelativePaths);
+        $projectReplace->replaceInProjectFiles($this->discoveredSymbols, $phpFilesRelativePaths);
     }
 
     protected function writeClassAliasMap(): void

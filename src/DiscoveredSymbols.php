@@ -33,9 +33,13 @@ class DiscoveredSymbols implements ArrayAccess
     /**
      * @return DiscoveredSymbol[]
      */
-    public function getTypes(): array
+    public function getSymbols(): array
     {
-        return $this->types;
+        return array_merge(
+            array_values($this->getNamespaces()),
+            array_values($this->getClasses()),
+            array_values($this->getConstants())
+        );
     }
 
     /**

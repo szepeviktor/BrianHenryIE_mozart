@@ -10,13 +10,16 @@
 namespace BrianHenryIE\Strauss\Tests\Unit;
 
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
+use BrianHenryIE\Strauss\DiscoveredSymbols;
 use BrianHenryIE\Strauss\File;
 use BrianHenryIE\Strauss\Prefixer;
 use BrianHenryIE\Strauss\Types\ClassSymbol;
+use BrianHenryIE\Strauss\Types\ConstantSymbol;
 use BrianHenryIE\Strauss\Types\NamespaceSymbol;
 use Composer\Composer;
 use Composer\Config;
 use BrianHenryIE\Strauss\TestCase;
+use Mockery\Mock;
 use Symfony\Component\Console\Input\InputInterface;
 
 /**
@@ -385,7 +388,7 @@ EOD;
         $replacer = new Prefixer($config, __DIR__);
 
         $file = \Mockery::mock(File::class);
-        $file->shouldReceive( 'addDiscoveredSymbol' );
+        $file->shouldReceive('addDiscoveredSymbol');
         $namespaceSymbol = new NamespaceSymbol($originalClassname, $file);
 
         $result = $replacer->replaceInString([$originalClassname => $namespaceSymbol], [], [], $contents);
@@ -875,11 +878,16 @@ EOD;
         $config->method('getConstantsPrefix')->willReturn('BHMP_');
         $replacer = new Prefixer($config, __DIR__);
 
-        $namespacesChanges = array();
-        $classes = array();
-        $constants = array('FPDF_VERSION','ANOTHER_CONSTANT');
+        $file = \Mockery::mock(File::class);
+        $file->shouldReceive('addDiscoveredSymbol');
 
-        $result = $replacer->replaceInString($namespacesChanges, $classes, $constants, $contents);
+        $discoveredSymbols = new DiscoveredSymbols();
+        $constants = array('FPDF_VERSION','ANOTHER_CONSTANT');
+        foreach ($constants as $constant) {
+            $discoveredSymbols->add(new ConstantSymbol($constant, $file));
+        }
+
+        $result = $replacer->replaceInString($discoveredSymbols, $contents);
 
         self::assertStringContainsString("define('BHMP_ANOTHER_CONSTANT', '1.83');", $result);
         self::assertStringContainsString("define('BHMP_ANOTHER_CONSTANT', '1.83');", $result);
@@ -1478,15 +1486,22 @@ class NA
 }
 EOD;
 
-        $originalClassname = 'Normalizer';
         $classnamePrefix = 'Normalizer_Test_';
 
         $config = $this->createMock(StraussConfig::class);
         $config->method("getClassmapPrefix")->willReturn($classnamePrefix);
 
+        $file = \Mockery::mock(File::class);
+        $file->shouldReceive('addDiscoveredSymbol');
+
+        $discoveredSymbols = new DiscoveredSymbols();
+        $classSymbol = new ClassSymbol('Normalizer', $file);
+        $classSymbol->setReplacement('Normalizer_Test_Normalizer');
+        $discoveredSymbols->add($classSymbol);
+
         $replacer = new Prefixer($config, __DIR__);
 
-        $result = $replacer->replaceInString([], [$originalClassname,'ReturnTypeWillChange'], [], $contents);
+        $result = $replacer->replaceInString($discoveredSymbols, $contents);
 
         self::assertEqualsRN($contents, $result);
     }
@@ -1715,15 +1730,20 @@ EOD;
         $replacer = new Prefixer($config, __DIR__);
 
         $file = \Mockery::mock(File::class);
-        $file->expects( 'addDiscoveredSymbol' )->once();
+        $file->expects('addDiscoveredSymbol')->once();
+
+        $discoveredSymbols = new DiscoveredSymbols();
 
         $namespaceSymbol = new NamespaceSymbol('WPGraphQL\Registry\Utils', $file);
         $namespaceSymbol->setReplacement('StraussTest\WPGraphQL\Registry\Utils');
+        $discoveredSymbols->add($namespaceSymbol);
+
+        $classSymbol = new ClassSymbol('WPGraphQL', $file);
+        $classSymbol->setReplacement('StraussTest_WPGraphQL');
+        $discoveredSymbols->add($classSymbol);
 
         $result = $replacer->replaceInString(
-            ['WPGraphQL\Registry\Utils'=>$namespaceSymbol],
-            ['WPGraphQL'],
-            [],
+            $discoveredSymbols,
             $contents
         );
 
