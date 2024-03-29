@@ -12,7 +12,6 @@ use BrianHenryIE\Strauss\Copier;
 use BrianHenryIE\Strauss\DependenciesEnumerator;
 use BrianHenryIE\Strauss\DiscoveredFiles;
 use BrianHenryIE\Strauss\DiscoveredSymbols;
-use BrianHenryIE\Strauss\File;
 use BrianHenryIE\Strauss\FileEnumerator;
 use BrianHenryIE\Strauss\Licenser;
 use BrianHenryIE\Strauss\Prefixer;
@@ -42,6 +41,9 @@ class Compose extends Command
     protected Prefixer $replacer;
 
     protected DependenciesEnumerator $dependenciesEnumerator;
+
+    /** @var ComposerPackage[] */
+    protected array $flatDependencyTree = [];
 
     /**
      * ArrayAccess of \BrianHenryIE\Strauss\File objects indexed by their path relative to the output target directory.
@@ -78,26 +80,29 @@ class Compose extends Command
     }
 
     /**
-     * @see Command::execute()
-     *
      * @param InputInterface $input
      * @param OutputInterface $output
+     *
      * @return int
+     * @see Command::execute()
+     *
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->setLogger(
             new ConsoleLogger(
                 $output,
-                [LogLevel::INFO => OutputInterface::VERBOSITY_NORMAL]
+                [ LogLevel::INFO => OutputInterface::VERBOSITY_NORMAL ]
             )
         );
 
-        $workingDir = getcwd() . DIRECTORY_SEPARATOR;
+        $workingDir       = getcwd() . DIRECTORY_SEPARATOR;
         $this->workingDir = $workingDir;
 
         try {
-            $this->loadProjectComposerPackage($input);
+            $this->loadProjectComposerPackage();
+            $this->loadConfigFromComposerJson();
+            $this->updateConfigFromCli($input);
 
             $this->buildDependencyList();
 
@@ -120,6 +125,7 @@ class Compose extends Command
             $this->cleanUp();
         } catch (Exception $e) {
             $this->logger->error($e->getMessage());
+
             return 1;
         }
 
@@ -132,30 +138,29 @@ class Compose extends Command
      *
      * @throws Exception
      */
-    protected function loadProjectComposerPackage(InputInterface $input): void
+    protected function loadProjectComposerPackage(): void
     {
-        $this->logger->info('Loading config...');
+        $this->logger->info('Loading package...');
 
         $this->projectComposerPackage = new ProjectComposerPackage($this->workingDir);
-
-        $config = $this->projectComposerPackage->getStraussConfig($input);
-
-        if ($input->hasOption('deleteVendorPackages')) {
-            $isDeleteVendorPackagesCommandLine = $input->getOption('deleteVendorPackages') === 'true';
-            $config->setDeleteVendorPackages($isDeleteVendorPackagesCommandLine);
-        } elseif ($input->hasOption('delete_vendor_packages')) {
-            $isDeleteVendorPackagesCommandLine = $input->getOption('delete_vendor_packages') === 'true';
-            $config->setDeleteVendorPackages($isDeleteVendorPackagesCommandLine);
-        }
-
-        $this->config = $config;
 
         // TODO: Print the config that Strauss is using.
         // Maybe even highlight what is default config and what is custom config.
     }
 
-    /** @var ComposerPackage[] */
-    protected array $flatDependencyTree = [];
+    protected function loadConfigFromComposerJson(): void
+    {
+        $this->logger->info('Loading composer.json config...');
+
+        $this->config = $this->projectComposerPackage->getStraussConfig();
+    }
+
+    protected function updateConfigFromCli(InputInterface $input): void
+    {
+        $this->logger->info('Loading cli config...');
+
+        $this->config->updateFromCli($input);
+    }
 
     /**
      * 2. Built flat list of packages and dependencies.
@@ -177,19 +182,17 @@ class Compose extends Command
         // TODO: Print the dependency tree that Strauss has determined.
     }
 
-    protected FileEnumerator $fileEnumerator;
-
     protected function enumerateFiles(): void
     {
         $this->logger->info('Enumerating files...');
 
-        $this->fileEnumerator = new FileEnumerator(
+        $fileEnumerator = new FileEnumerator(
             $this->flatDependencyTree,
             $this->workingDir,
             $this->config
         );
 
-        $this->discoveredFiles = $this->fileEnumerator->compileFileList();
+        $this->discoveredFiles = $fileEnumerator->compileFileList();
     }
 
     // 3. Copy autoloaded files for each
@@ -250,7 +253,13 @@ class Compose extends Command
 
         $projectReplace = new Prefixer($this->config, $this->workingDir);
 
-        $composerPhpFileRelativePaths = $this->fileEnumerator->findFilesInDirectory(
+        $fileEnumerator = new FileEnumerator(
+            $this->flatDependencyTree,
+            $this->workingDir,
+            $this->config
+        );
+
+        $composerPhpFileRelativePaths = $fileEnumerator->findFilesInDirectory(
             $this->workingDir,
             $this->config->getVendorDirectory() . 'composer'
         );
@@ -271,11 +280,17 @@ class Compose extends Command
 
         $projectReplace = new Prefixer($this->config, $this->workingDir);
 
+        $fileEnumerator = new FileEnumerator(
+            $this->flatDependencyTree,
+            $this->workingDir,
+            $this->config
+        );
+
         $phpFilesRelativePaths = [];
         foreach ($callSitePaths as $relativePath) {
             $absolutePath = $this->workingDir . $relativePath;
             if (is_dir($absolutePath)) {
-                $phpFilesRelativePaths = array_merge($phpFilesRelativePaths, $this->fileEnumerator->findFilesInDirectory($this->workingDir, $relativePath));
+                $phpFilesRelativePaths = array_merge($phpFilesRelativePaths, $fileEnumerator->findFilesInDirectory($this->workingDir, $relativePath));
             } elseif (is_readable($absolutePath)) {
                 $phpFilesRelativePaths[] = $relativePath;
             } else {

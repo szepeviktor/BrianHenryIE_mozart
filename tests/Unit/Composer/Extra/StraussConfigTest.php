@@ -849,11 +849,15 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $input = $this->createMock(InputInterface::class);
-        $input->method('hasOption')->with('updateCallSites')->willReturn(true);
-        $input->method('getOption')->with('updateCallSites')->willReturn('true');
+        $input = \Mockery::mock(InputInterface::class);
+        $input->expects('hasOption')->with('updateCallSites')->andReturn(true);
+        $input->expects('getOption')->with('updateCallSites')->andReturn('true');
 
-        $sut = new StraussConfig($composer, $input);
+        $input->expects('hasOption')->with('deleteVendorPackages')->andReturn(false);
+        $input->expects('hasOption')->with('delete_vendor_packages')->andReturn(false);
+
+        $sut = new StraussConfig($composer);
+        $sut->updateFromCli($input);
 
         self::assertNull($sut->getUpdateCallSites());
     }
@@ -877,11 +881,15 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $input = $this->createMock(InputInterface::class);
-        $input->method('hasOption')->with('updateCallSites')->willReturn(true);
-        $input->method('getOption')->with('updateCallSites')->willReturn('false');
+        $input = \Mockery::mock(InputInterface::class);
+        $input->expects('hasOption')->with('updateCallSites')->andReturn(true);
+        $input->expects('getOption')->with('updateCallSites')->andReturn('false');
 
-        $sut = new StraussConfig($composer, $input);
+        $input->expects('hasOption')->with('deleteVendorPackages')->andReturn(false);
+        $input->expects('hasOption')->with('delete_vendor_packages')->andReturn(false);
+
+        $sut = new StraussConfig($composer);
+        $sut->updateFromCli($input);
 
         self::assertIsArray($sut->getUpdateCallSites());
         self::assertEmpty($sut->getUpdateCallSites());
@@ -907,11 +915,15 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $input = $this->createMock(InputInterface::class);
-        $input->method('hasOption')->with('updateCallSites')->willReturn(true);
-        $input->method('getOption')->with('updateCallSites')->willReturn('src,templates');
+        $input = \Mockery::mock(InputInterface::class);
+        $input->expects('hasOption')->with('updateCallSites')->andReturn(true);
+        $input->expects('getOption')->with('updateCallSites')->andReturn('src,templates');
 
-        $sut = new StraussConfig($composer, $input);
+        $input->expects('hasOption')->with('deleteVendorPackages')->andReturn(false);
+        $input->expects('hasOption')->with('delete_vendor_packages')->andReturn(false);
+
+        $sut = new StraussConfig($composer);
+        $sut->updateFromCli($input);
 
         self::assertIsArray($sut->getUpdateCallSites());
         self::assertCount(2, $sut->getUpdateCallSites());

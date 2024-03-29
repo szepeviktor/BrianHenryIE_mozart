@@ -150,11 +150,10 @@ class StraussConfig
      * Provide sensible defaults.
      *
      * @param Composer $composer
-     * @param InputInterface $input To access the command line options.
      *
      * @throws Exception
      */
-    public function __construct(Composer $composer, InputInterface $input)
+    public function __construct(Composer $composer)
     {
 
         $configExtraSettings = null;
@@ -284,22 +283,6 @@ class StraussConfig
                 $this->updateCallSites = $configExtraSettings->updateCallSites;
             } else {
                 // uh oh.
-            }
-        }
-
-        // strauss --updateCallSites=false (default)
-        // strauss --updateCallSites=true
-        // strauss --updateCallSites=src,input,extra
-
-        if ($input->hasOption('updateCallSites')) {
-            $updateCallSitesInput = $input->getOption('updateCallSites');
-
-            if ('false' === $updateCallSitesInput) {
-                $this->updateCallSites = array();
-            } elseif ('true' === $updateCallSitesInput) {
-                $this->updateCallSites = null;
-            } elseif (! is_null($updateCallSitesInput)) {
-                $this->updateCallSites = explode(',', $updateCallSitesInput);
             }
         }
     }
@@ -637,5 +620,36 @@ class StraussConfig
     public function setIncludeAuthor(bool $includeAuthor): void
     {
         $this->includeAuthor = $includeAuthor;
+    }
+
+    /**
+     * @param InputInterface $input To access the command line options.
+     */
+    public function updateFromCli(InputInterface $input): void
+    {
+
+        // strauss --updateCallSites=false (default)
+        // strauss --updateCallSites=true
+        // strauss --updateCallSites=src,input,extra
+
+        if ($input->hasOption('updateCallSites')) {
+            $updateCallSitesInput = $input->getOption('updateCallSites');
+
+            if ('false' === $updateCallSitesInput) {
+                $this->updateCallSites = array();
+            } elseif ('true' === $updateCallSitesInput) {
+                $this->updateCallSites = null;
+            } elseif (! is_null($updateCallSitesInput)) {
+                $this->updateCallSites = explode(',', $updateCallSitesInput);
+            }
+        }
+
+        if ($input->hasOption('deleteVendorPackages')) {
+            $isDeleteVendorPackagesCommandLine = $input->getOption('deleteVendorPackages') === 'true';
+            $this->setDeleteVendorPackages($isDeleteVendorPackagesCommandLine);
+        } elseif ($input->hasOption('delete_vendor_packages')) {
+            $isDeleteVendorPackagesCommandLine = $input->getOption('delete_vendor_packages') === 'true';
+            $this->setDeleteVendorPackages($isDeleteVendorPackagesCommandLine);
+        }
     }
 }
