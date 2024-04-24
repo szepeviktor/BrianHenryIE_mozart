@@ -85,7 +85,7 @@ EOD;
      */
     public function test_it_does_not_prefix_function_argument_types_whose_classname_matches_the_namespace()
     {
-        if (version_compare(phpversion(), '8.1', '<=')) {
+        if (version_compare(phpversion(), '8.1', '>=')) {
             $this->markTestSkipped("Package specified for test is not PHP 8.1 compatible. Running tests under PHP " . phpversion());
         }
 
