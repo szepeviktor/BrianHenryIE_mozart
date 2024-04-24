@@ -61,6 +61,9 @@ class Cleanup
 
                 $absolutePath = $this->workingDir . $relativeDirectoryPath;
 
+                // Fix for Windows paths.
+                $absolutePath = str_replace(['\\','/'], DIRECTORY_SEPARATOR, $absolutePath);
+
                 if (is_link($absolutePath)) {
                     unlink($absolutePath);
                 }
