@@ -147,6 +147,8 @@ class ComposerPackage
     /**
      * Composer package project name.
      *
+     * vendor/project-name
+     *
      * @return string
      */
     public function getPackageName(): string
@@ -156,7 +158,7 @@ class ComposerPackage
 
     public function getRelativePath(): ?string
     {
-        return $this->relativePath;
+        return $this->relativePath . DIRECTORY_SEPARATOR;
     }
 
     public function getPackageAbsolutePath(): ?string

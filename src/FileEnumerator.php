@@ -18,7 +18,6 @@ use Symfony\Component\Finder\Finder;
 
 class FileEnumerator
 {
-
     /**
      * The only path variable with a leading slash.
      * All directories in project end with a slash.
@@ -45,12 +44,7 @@ class FileEnumerator
     /** @var Filesystem */
     protected Filesystem $filesystem;
 
-    /**
-     * Complete list of files specified in packages autoloaders.
-     *
-     * @var array<string,array{dependency:ComposerPackage,sourceAbsoluteFilepath:string,targetRelativeFilepath:string}>
-     */
-    protected array $filesWithDependencies = [];
+    protected DiscoveredFiles $discoveredFiles;
 
     /**
      * Record the files autoloaders for later use in building our own autoloader.
@@ -71,6 +65,8 @@ class FileEnumerator
         string $workingDir,
         StraussConfig $config
     ) {
+        $this->discoveredFiles = new DiscoveredFiles();
+
         $this->workingDir = $workingDir;
         $this->vendorDir = $config->getVendorDirectory();
 
@@ -85,18 +81,15 @@ class FileEnumerator
 
     /**
      * Read the autoload keys of the dependencies and generate a list of the files referenced.
+     *
+     * Includes all files in the directories and subdirectories mentioned in the autoloaders.
      */
-    public function compileFileList(): void
+    public function compileFileList(): DiscoveredFiles
     {
-
-        $prefixToRemove = $this->workingDir . $this->vendorDir;
-
         foreach ($this->dependencies as $dependency) {
             if (in_array($dependency->getPackageName(), $this->excludePackageNames)) {
                 continue;
             }
-
-            $packageAbsolutePath = $dependency->getPackageAbsolutePath();
 
             /**
              * Where $dependency->autoload is ~
@@ -125,128 +118,72 @@ class FileEnumerator
                         $namespace_relative_paths = array( $namespace_relative_paths );
                     }
 
-                    foreach ($namespace_relative_paths as $namespace_relative_path) {
-                        $sourceAbsolutePath = $packageAbsolutePath . $namespace_relative_path;
-                        $sourceRelativePath = $this->vendorDir . $dependency->getRelativePath() . DIRECTORY_SEPARATOR . $namespace_relative_path;
+                    foreach ($namespace_relative_paths as $namespaceRelativePath) {
+                        $sourceAbsolutePath = $dependency->getPackageAbsolutePath() . $namespaceRelativePath;
+
                         if (is_file($sourceAbsolutePath)) {
-                            $outputRelativeFilepath = $dependency->getRelativePath() . DIRECTORY_SEPARATOR . $namespace_relative_path;
-
-                            foreach ($this->excludeFilePatterns as $excludePattern) {
-                                if (1 === preg_match($excludePattern, $outputRelativeFilepath)) {
-                                    continue 2;
-                                }
-                            }
-
-                            if ('<?php // This file was deleted by {@see https://github.com/BrianHenryIE/strauss}.'
-                                ===
-                                $this->filesystem->read($sourceRelativePath)
-                            ) {
-                                continue;
-                            }
-
-                            $file = array(
-                                'dependency'             => $dependency,
-                                'sourceAbsoluteFilepath' => $sourceAbsolutePath,
-                                'targetRelativeFilepath' => $outputRelativeFilepath,
-                            );
-                            $this->filesWithDependencies[ $outputRelativeFilepath ] = $file;
+                            $this->addFile($dependency, $namespaceRelativePath, $type);
                         } elseif (is_dir($sourceAbsolutePath)) {
-                            // trailingslashit().
-                            $namespace_relative_path = rtrim($namespace_relative_path, DIRECTORY_SEPARATOR)
-                                                       . DIRECTORY_SEPARATOR;
-
-                            $sourcePath = $packageAbsolutePath . $namespace_relative_path;
-
                             // trailingslashit(). (to remove duplicates).
-                            $sourcePath = rtrim($sourcePath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+                            $sourcePath = rtrim($sourceAbsolutePath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
 
+//                          $this->findFilesInDirectory()
                             $finder = new Finder();
                             $finder->files()->in($sourcePath)->followLinks();
 
                             foreach ($finder as $foundFile) {
                                 $sourceAbsoluteFilepath = $foundFile->getPathname();
-                                $sourceRelativeFilePath = str_replace(rtrim($sourcePath, DIRECTORY_SEPARATOR), rtrim($sourceRelativePath, DIRECTORY_SEPARATOR), $sourceAbsoluteFilepath);
-                                $outputRelativeFilepath = str_replace($prefixToRemove, '', $sourceAbsoluteFilepath);
 
-                                // For symlinked packages.
-                                if ($outputRelativeFilepath == $sourceAbsoluteFilepath) {
-                                    $outputRelativeFilepath = str_replace($packageAbsolutePath, $dependency->getPackageName() . DIRECTORY_SEPARATOR, $sourceAbsoluteFilepath);
-                                }
-
-                                // TODO: Is this needed here?! If anything, it's the prefix that needs to be normalised a few
-                                // lines above before being used.
-                                // Replace multiple \ and/or / with OS native DIRECTORY_SEPARATOR.
-                                $outputRelativeFilepath = preg_replace('#[\\\/]+#', DIRECTORY_SEPARATOR, $outputRelativeFilepath);
-                                if (is_null($outputRelativeFilepath)) {
-                                    throw new \Exception('Error replacing directory separator in outputRelativeFilepath.');
-                                }
-
-                                foreach ($this->excludeFilePatterns as $excludePattern) {
-                                    if (1 === preg_match($excludePattern, $outputRelativeFilepath)) {
-                                        continue 2;
-                                    }
-                                }
-
+                                // No need to record the directory itself.
                                 if (is_dir($sourceAbsoluteFilepath)) {
                                     continue;
                                 }
 
-                                if (!$this->filesystem->fileExists($sourceRelativeFilePath)) {
-                                    continue;
-                                }
+                                $namespaceRelativePath = rtrim($namespaceRelativePath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
 
-                                if ('<?php // This file was deleted by {@see https://github.com/BrianHenryIE/strauss}.'
-                                    ===
-                                    $this->filesystem->read($sourceRelativeFilePath)
-                                ) {
-                                    continue;
-                                }
-
-                                $file                                                   = array(
-                                    'dependency'             => $dependency,
-                                    'sourceAbsoluteFilepath' => $sourceAbsoluteFilepath,
-                                    'targetRelativeFilepath' => $outputRelativeFilepath,
+                                $this->addFile(
+                                    $dependency,
+                                    $namespaceRelativePath . str_replace($sourcePath, '', $sourceAbsoluteFilepath),
+                                    $type
                                 );
-                                $this->filesWithDependencies[ $outputRelativeFilepath ] = $file;
                             }
                         }
                     }
                 }
             }
         }
+
+        return $this->discoveredFiles;
     }
 
-    /**
-     * Returns all found files.
-     *
-     * @return array<string,array{dependency:ComposerPackage,sourceAbsoluteFilepath:string,targetRelativeFilepath:string}>
-     */
-    public function getAllFilesAndDependencyList(): array
+    protected function addFile(ComposerPackage $dependency, string $packageRelativePath, string $autoloaderType)
     {
-        return $this->filesWithDependencies;
-    }
 
-    /**
-     * Returns found PHP files.
-     *
-     * @return array<string,array{dependency:ComposerPackage,sourceAbsoluteFilepath:string,targetRelativeFilepath:string}>
-     */
-    public function getPhpFilesAndDependencyList(): array
-    {
-        // Filter out non .php files by checking the key.
-        return array_filter($this->filesWithDependencies, function ($value, $key) {
-            return false !== strpos($key, '.php');
-        }, ARRAY_FILTER_USE_BOTH);
-    }
+        $sourceAbsoluteFilepath = $dependency->getPackageAbsolutePath() . $packageRelativePath;
+        $outputRelativeFilepath = $dependency->getRelativePath() . $packageRelativePath;
+        $projectRelativePath    = $this->vendorDir . $outputRelativeFilepath;
+        $isOutsideProjectDir    = 0 !== strpos($sourceAbsoluteFilepath, $this->workingDir);
 
-    /**
-     * Get the recorded files autoloaders.
-     *
-     * @return array<string, array<string>>
-     */
-    public function getFilesAutoloaders(): array
-    {
-        return $this->filesAutoloaders;
+        $f = $this->disoveredFiles[$outputRelativeFilepath]
+              ?? new File($dependency, $packageRelativePath, $sourceAbsoluteFilepath);
+
+        $f->addAutoloader($autoloaderType);
+        $f->setDoDelete($isOutsideProjectDir);
+
+        foreach ($this->excludeFilePatterns as $excludePattern) {
+            if (1 === preg_match($excludePattern, $outputRelativeFilepath)) {
+                $f->setDoCopy(false);
+            }
+        }
+
+        if ('<?php // This file was deleted by {@see https://github.com/BrianHenryIE/strauss}.'
+            ===
+            $this->filesystem->read($projectRelativePath)
+        ) {
+            $f->setDoCopy(false);
+        }
+
+        $this->discoveredFiles->add($f);
     }
 
     /**
