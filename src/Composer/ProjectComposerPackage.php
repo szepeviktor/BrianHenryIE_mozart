@@ -24,13 +24,9 @@ class ProjectComposerPackage extends ComposerPackage
      */
     public function __construct(string $absolutePath, ?array $overrideAutoload = null)
     {
-        if (is_dir($absolutePath)) {
-            $absolutePathDir = $absolutePath;
-            $absolutePathFile = rtrim($absolutePath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'composer.json';
-        } else {
-            $absolutePathDir = rtrim($absolutePath, 'composer.json');
-            $absolutePathFile = $absolutePath;
-        }
+        preg_match('/^(?<path>.*?)\/?(?:composer\.json)?$/', $absolutePath, $matches);
+        $absolutePathDir = $matches['path'];
+        $absolutePathFile = $matches['path'] . '/composer.json';
         unset($absolutePath);
 
         $composer = Factory::create(new NullIO(), $absolutePathFile, true);
@@ -44,13 +40,10 @@ class ProjectComposerPackage extends ComposerPackage
             $this->author = $authors[0]['name'];
         }
 
-        $vendorDirectory = $this->composer->getConfig()->get('vendor-dir');
-        if (is_string($vendorDirectory)) {
-            $vendorDirectory = str_replace($absolutePathDir, '', (string) $vendorDirectory);
-            $this->vendorDirectory = $vendorDirectory;
-        } else {
-            $this->vendorDirectory = 'vendor' . DIRECTORY_SEPARATOR;
-        }
+        // In rare cases, the vendor directory will not be a single level of directory. File an issue.
+        $this->vendorDirectory = is_string($this->composer->getConfig()->get('vendor-dir'))
+            ? basename($this->composer->getConfig()->get('vendor-dir'))
+            :  'vendor';
     }
 
     /**
@@ -70,6 +63,9 @@ class ProjectComposerPackage extends ComposerPackage
         return $this->author;
     }
 
+    /**
+     * Relative vendor directory with trailing slash.
+     */
     public function getVendorDirectory(): string
     {
         return rtrim($this->vendorDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
