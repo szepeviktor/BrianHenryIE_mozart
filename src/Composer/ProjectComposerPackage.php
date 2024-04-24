@@ -24,9 +24,9 @@ class ProjectComposerPackage extends ComposerPackage
      */
     public function __construct(string $absolutePath, ?array $overrideAutoload = null)
     {
-        preg_match('/^(?<path>.*?)\/?(?:composer\.json)?$/', $absolutePath, $matches);
-        $absolutePathDir = $matches['path'];
-        $absolutePathFile = $matches['path'] . '/composer.json';
+        $absolutePathFile = is_dir($absolutePath)
+            ? $absolutePath . DIRECTORY_SEPARATOR . 'composer.json'
+            : $absolutePath;
         unset($absolutePath);
 
         $composer = Factory::create(new NullIO(), $absolutePathFile, true);
