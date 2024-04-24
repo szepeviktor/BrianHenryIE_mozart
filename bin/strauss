@@ -26,4 +26,4 @@ call_user_func(function ($version) {
 
     $app = new BrianHenryIE\Strauss\Console\Application($version);
     $app->run();
-}, 'cat CHANGELOG.md | grep --max-count=1 -o '##.*' | awk '{print $2}'');
+}, '0.17.0');

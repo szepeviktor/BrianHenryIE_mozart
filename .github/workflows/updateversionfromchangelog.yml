@@ -21,9 +21,8 @@ jobs:
           ref: master
 
       - name: "Edit `strauss/bin/strauss` to update the version number"
-        env:
-          CURRENT_RELEASE: cat CHANGELOG.md | grep --max-count=1 -o '##.*' | awk '{print $2}'
         run: |
+          CURRENT_RELEASE=$(cat CHANGELOG.md | grep --max-count=1 -o '##.*' | awk '{print $2}')
           find bin -name 'strauss' -exec sed -i "s/}, '[[:digit:]]*\.[[:digit:]]*\.[[:digit:]]*');/}, '$CURRENT_RELEASE');/" {} +
 
       - name: Commit updated README.md
