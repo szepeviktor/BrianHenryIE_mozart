@@ -35,6 +35,8 @@ final class CleanupSymlinkIntegrationTest extends IntegrationTestCase
 
         $relative_symlinked_package_dir = $main_package_dir . 'vendor/strauss-test/symlinked-package';
 
+        $relative_symlinked_package_dir = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $relative_symlinked_package_dir);
+
         assert(is_dir($relative_symlinked_package_dir));
 
         $strauss = new Compose();
