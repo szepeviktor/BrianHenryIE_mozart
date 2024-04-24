@@ -31,7 +31,7 @@ class MozartIssue124Test extends IntegrationTestCase
      */
     public function test_it_does_not_make_classname_replacement_inside_namespaced_file()
     {
-        if (version_compare(phpversion(), '8.1', '<=')) {
+        if (version_compare(phpversion(), '8.1', '>=')) {
             $this->markTestSkipped("Package specified for test is not PHP 8.1 compatible. Running tests under PHP " . phpversion());
         }
 
@@ -136,7 +136,7 @@ EOD;
      */
     public function testItDoesPrefixNamespacedExtends()
     {
-        if (version_compare(phpversion(), '8.1', '<=')) {
+        if (version_compare(phpversion(), '8.1', '>=')) {
             $this->markTestSkipped("Package specified for test is not PHP 8.1 compatible. Running tests under PHP " . phpversion());
         }
 
