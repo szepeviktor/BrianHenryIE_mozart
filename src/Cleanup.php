@@ -6,6 +6,7 @@
 namespace BrianHenryIE\Strauss;
 
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
+use Composer\Json\JsonFile;
 use FilesystemIterator;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Local\LocalFilesystemAdapter;
@@ -123,6 +124,8 @@ class Cleanup
                 }
             }
         }
+
+        $this->cleanupInstalledJson();
     }
 
     // TODO: Use Symfony or Flysystem functions.
@@ -130,6 +133,54 @@ class Cleanup
     {
         $di = new RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS);
         return iterator_count($di) === 0;
+    }
+
+    /**
+     * Composer creates a file `vendor/composer/installed.json` which is uses when running `composer dump-autoload`.
+     * When `delete-vendor-packages` or `delete-vendor-files` is true, files and directories which have been deleted
+     * must also be removed from `installed.json` or Composer will throw an error.
+     *
+     * TODO: {@see self::cleanupFilesAutoloader()} might be redundant if we run this function and then run `composer dump-autoload`.
+     */
+    public function cleanupInstalledJson(): void
+    {
+        $installedJsonFile = new JsonFile($this->workingDir . '/vendor/composer/installed.json');
+        if (!$installedJsonFile->exists()) {
+            return;
+        }
+        $installedJsonArray = $installedJsonFile->read();
+
+        foreach ($installedJsonArray['packages'] as $key => $package) {
+            $packageDir = $this->workingDir . $this->vendorDirectory . ltrim($package['install-path'], '.');
+            $autoload_key = $package['autoload'];
+            foreach ($autoload_key as $type => $autoload) {
+                switch ($type) {
+                    case 'psr-4':
+                        foreach ($autoload_key[$type] as $namespace => $dirs) {
+                            if (is_array($dirs)) {
+                                $autoload_key[$type][$namespace] = array_filter($dirs, function ($dir) use ($packageDir) {
+                                    $dir = $packageDir . $dir;
+                                    return is_readable($dir);
+                                });
+                            } else {
+                                $dir = $packageDir . $dirs;
+                                if (! is_readable($dir)) {
+                                    unset($autoload_key[$type][$namespace]);
+                                }
+                            }
+                        }
+                        break;
+                    default: // files, classmap
+                        $autoload_key[$type] = array_filter($autoload, function ($file) use ($packageDir) {
+                            $filename = $packageDir . $file;
+                            return file_exists($packageDir . $file);
+                        });
+                        break;
+                }
+            }
+            $installedJsonArray['packages'][$key]['autoload'] = array_filter($autoload_key);
+        }
+        $installedJsonFile->write($installedJsonArray);
     }
 
     /**
