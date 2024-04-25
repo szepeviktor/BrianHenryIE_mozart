@@ -85,6 +85,8 @@ class ComposerPackage
     }
 
     /**
+     * This is used for virtual packages, which don't have a composer.json.
+     *
      * @param array{name?:string, license?:string, requires?:array<string,string>, autoload?:AutoloadKey} $jsonArray composer.json decoded to array
      * @param ?AutoloadKey $overrideAutoload New autoload rules to replace the existing ones.
      */
