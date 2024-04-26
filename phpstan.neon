@@ -1,0 +1,10 @@
+parameters:
+    level: 7
+    paths:
+        - src
+    bootstrapFiles:
+        - phpstanbootstrap.php
+    ignoreErrors:
+        -
+            message: '#Property.*excludePackages is unused#'
+            path: src/Composer/Extra/StraussConfig.php

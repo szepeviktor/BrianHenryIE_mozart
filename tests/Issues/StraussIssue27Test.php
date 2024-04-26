@@ -8,6 +8,7 @@
 namespace BrianHenryIE\Strauss\Tests\Issues;
 
 use BrianHenryIE\Strauss\Console\Commands\Compose;
+use BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -15,13 +16,17 @@ use Symfony\Component\Console\Output\OutputInterface;
  * @package BrianHenryIE\Strauss\Tests\Issues
  * @coversNothing
  */
-class StraussIssue27Test extends \BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase
+class StraussIssue27Test extends IntegrationTestCase
 {
 
     /**
      */
     public function test_virtual_package()
     {
+        /**
+         * @see https://github.com/BrianHenryIE/strauss/commit/1bd20b75a4e6b5c07a428c04e8b9e514034b6b5c
+         */
+        self::markTestSkipped('Polyfills are no longer prefixed.');
 
         $composerJsonString = <<<'EOD'
 {
@@ -52,16 +57,16 @@ EOD;
 
         $php_string = file_get_contents($this->testsWorkingDir . 'vendor-prefixed/symfony/polyfill-intl-normalizer/Normalizer.php');
 
-        $this->assertStringNotContainsString('namespace Normalizer_Test\Symfony\Polyfill\Intl\Normalizer_Test_Normalizer;', $php_string);
-        $this->assertStringContainsString('namespace Normalizer_Test\Symfony\Polyfill\Intl\Normalizer;', $php_string);
+        self::assertStringNotContainsString('namespace Normalizer_Test\Symfony\Polyfill\Intl\Normalizer_Test_Normalizer;', $php_string);
+        self::assertStringContainsString('namespace Normalizer_Test\Symfony\Polyfill\Intl\Normalizer;', $php_string);
 
-        $this->assertStringNotContainsString('class Normalizer_Test_Normalizer', $php_string);
-        $this->assertStringContainsString('class Normalizer', $php_string);
+        self::assertStringNotContainsString('class Normalizer_Test_Normalizer', $php_string);
+        self::assertStringContainsString('class Normalizer', $php_string);
 
 
         $php_string = file_get_contents($this->testsWorkingDir . 'vendor-prefixed/symfony/polyfill-intl-normalizer/Resources/stubs/Normalizer.php');
 
-        $this->assertStringNotContainsString('class Normalizer_Test_Normalizer extends Normalizer_Test\Symfony\Polyfill\Intl\Normalizer_Test_Normalizer\Normalizer', $php_string);
-        $this->assertStringContainsString('class Normalizer_Test_Normalizer extends Normalizer_Test\Symfony\Polyfill\Intl\Normalizer\Normalizer', $php_string);
+        self::assertStringNotContainsString('class Normalizer_Test_Normalizer extends Normalizer_Test\Symfony\Polyfill\Intl\Normalizer_Test_Normalizer\Normalizer', $php_string);
+        self::assertStringContainsString('class Normalizer_Test_Normalizer extends Normalizer_Test\Symfony\Polyfill\Intl\Normalizer\Normalizer', $php_string);
     }
 }

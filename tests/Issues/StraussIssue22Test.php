@@ -8,7 +8,7 @@
 namespace BrianHenryIE\Strauss\Tests\Issues;
 
 use BrianHenryIE\Strauss\Console\Commands\Compose;
-use Symfony\Component\Console\Command\Command;
+use BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -16,7 +16,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  * @package BrianHenryIE\Strauss\Tests\Issues
  * @coversNothing
  */
-class StraussIssue22Test extends \BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase
+class StraussIssue22Test extends IntegrationTestCase
 {
 
     /**
@@ -45,6 +45,11 @@ class StraussIssue22Test extends \BrianHenryIE\Strauss\Tests\Integration\Util\In
       "namespace_prefix": "Strauss\\Issue22\\",
       "classmap_prefix": "Strauss_Issue22_"
     }
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": true
+    }
   }
 }
 EOD;
@@ -63,7 +68,7 @@ EOD;
 
         $result = $mozartCompose->run($inputInterfaceMock, $outputInterfaceMock);
 
-        $this->assertEquals(0, $result);
+        self::assertEqualsRN(0, $result);
     }
 
     /**
@@ -95,6 +100,11 @@ EOD;
       "namespace_prefix": "Strauss\\Issue22\\",
       "classmap_prefix": "Strauss_Issue22_"
     }
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": true
+    }
   }
 }
 EOD;
@@ -112,6 +122,6 @@ EOD;
 
         $result = $mozartCompose->run($inputInterfaceMock, $outputInterfaceMock);
 
-        $this->assertFileExists($this->testsWorkingDir . 'vendor-prefixed/omnipay/common/src/Omnipay.php');
+        self::assertFileExists($this->testsWorkingDir . 'vendor-prefixed/omnipay/common/src/Omnipay.php');
     }
 }

@@ -9,7 +9,6 @@ namespace BrianHenryIE\Strauss\Tests\Issues;
 
 use BrianHenryIE\Strauss\Console\Commands\Compose;
 use BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -66,6 +65,6 @@ EOD;
         $phpString = file_get_contents($this->testsWorkingDir .'vendor-prefixed/paypal/rest-api-sdk-php/lib/PayPal/Log/PayPalLogger.php');
 
         // Confirm solution is correct.
-        $this->assertStringContainsString('constant("\\\\BrianHenryIE\\\\Strauss\\\\Psr\\\\Log\\\\LogLevel::$loggingLevel")', $phpString);
+        self::assertStringContainsString('constant("\\\\BrianHenryIE\\\\Strauss\\\\Psr\\\\Log\\\\LogLevel::$loggingLevel")', $phpString);
     }
 }

@@ -18,17 +18,17 @@ namespace BrianHenryIE\Strauss;
 
 use BrianHenryIE\Strauss\Composer\ComposerPackage;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
-use League\Flysystem\Adapter\Local;
 use League\Flysystem\Filesystem;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use Symfony\Component\Finder\Finder;
 
 class Licenser
 {
-
     protected string $workingDir;
 
     protected string $vendorDir;
 
+    /** @var ComposerPackage[]  */
     protected array $dependencies;
 
     // The author of the current project who is running Strauss to make the changes to the required libraries.
@@ -54,11 +54,11 @@ class Licenser
     /** @var Filesystem */
     protected $filesystem;
 
-
     /**
      * Licenser constructor.
+     *
      * @param string $workingDir
-     * @param array $dependencies Whose folders are searched for existing license.txt files.
+     * @param ComposerPackage[] $dependencies Whose folders are searched for existing license.txt files.
      * @param string $author To add to each modified file's header
      */
     public function __construct(StraussConfig $config, string $workingDir, array $dependencies, string $author)
@@ -72,7 +72,7 @@ class Licenser
         $this->includeModifiedDate = $config->isIncludeModifiedDate();
         $this->includeAuthor = $config->isIncludeAuthor();
 
-        $this->filesystem = new Filesystem(new Local('/'));
+        $this->filesystem = new Filesystem(new LocalFilesystemAdapter('/'));
     }
 
     public function copyLicenses(): void
@@ -85,12 +85,12 @@ class Licenser
             $targetLicenseFileDir = dirname($targetLicenseFile);
 
             // Don't try copy it if it's already there.
-            if ($this->filesystem->has($targetLicenseFile)) {
+            if ($this->filesystem->fileExists($targetLicenseFile)) {
                 continue;
             }
 
             // Don't add licenses to non-existent directories – there were no files copied there!
-            if (! $this->filesystem->has($targetLicenseFileDir)) {
+            if (! is_dir($targetLicenseFileDir)) {
                 continue;
             }
 
@@ -101,22 +101,17 @@ class Licenser
         }
     }
 
-
     /**
      * @see https://www.phpliveregex.com/p/A5y
      */
-    public function findLicenseFiles(?Finder $finder = null)
+    public function findLicenseFiles(?Finder $finder = null): void
     {
-
         // Include all license files in the dependency path.
         $finder = $finder ?? new Finder();
-
-        $prefixToRemove = $this->vendorDir;
 
         /** @var ComposerPackage $dependency */
         foreach ($this->dependencies as $dependency) {
             $packagePath = $dependency->getPackageAbsolutePath();
-
 
             // If packages happen to have their vendor dir, i.e. locally required packages, don't included the licenses
             // from their vendor dir (they should be included otherwise anyway).
@@ -127,8 +122,6 @@ class Licenser
             foreach ($finder as $foundFile) {
                 $filePath = $foundFile->getPathname();
 
-//                $relativeFilepath = str_replace($prefixToRemove, '', $filePath);
-
                 // Replace multiple \ and/or / with OS native DIRECTORY_SEPARATOR.
                 $filePath = preg_replace('#[\\\/]+#', DIRECTORY_SEPARATOR, $filePath);
 
@@ -137,6 +130,9 @@ class Licenser
         }
     }
 
+    /**
+     * @return string[]
+     */
     public function getDiscoveredLicenseFiles(): array
     {
         return array_keys($this->discoveredLicenseFiles);
@@ -144,25 +140,32 @@ class Licenser
 
     /**
      * @param array<string, ComposerPackage> $modifiedFiles
+     *
+     * @throws \Exception
      */
-    public function addInformationToUpdatedFiles(array $modifiedFiles)
+    public function addInformationToUpdatedFiles(array $modifiedFiles): void
     {
-
-        // e.g. "25-April-2021".
+        // E.g. "25-April-2021".
         $date = gmdate("d-F-Y", time());
 
         foreach ($modifiedFiles as $relativeFilePath => $package) {
             $filepath = $this->workingDir . $this->targetDirectory . $relativeFilePath;
 
-            $packageLicense = $package->getLicense();
+            if (!$this->filesystem->fileExists($filepath)) {
+                continue;
+            }
 
-            // Throws an exception, but unlikely to happen.
             $contents = $this->filesystem->read($filepath);
 
-            $updatedContents = $this->addChangeDeclarationToPhpString($contents, $date, $packageLicense);
+            $updatedContents = $this->addChangeDeclarationToPhpString(
+                $contents,
+                $date,
+                $package->getPackageName(),
+                $package->getLicense()
+            );
 
             if ($updatedContents !== $contents) {
-                $this->filesystem->put($filepath, $updatedContents);
+                $this->filesystem->write($filepath, $updatedContents);
             }
         }
     }
@@ -189,22 +192,41 @@ class Licenser
     public function addChangeDeclarationToPhpString(
         string $phpString,
         string $modifiedDate,
+        string $packageName,
         string $packageLicense
     ) : string {
 
         $author = $this->author;
 
         $licenseDeclaration = "@license {$packageLicense}";
-        $modifiedDeclaration = 'Modified ';
+        $modifiedDeclaration = 'Modified';
         if ($this->includeAuthor) {
-            $modifiedDeclaration .= "by {$author} ";
+            $modifiedDeclaration .= " by {$author}";
         }
         if ($this->includeModifiedDate) {
-            $modifiedDeclaration .= "on {$modifiedDate} ";
+            $modifiedDeclaration .= " on {$modifiedDate}";
         }
-        $modifiedDeclaration .= 'using Strauss.';
+        $straussLink = 'https://github.com/BrianHenryIE/strauss';
+        $modifiedDeclaration .= " using {@see {$straussLink}}.";
 
-        $straussLink = "@see https://github.com/BrianHenryIE/strauss";
+        $startOfFileArray = [];
+        $tokenizeString =  token_get_all($phpString);
+
+        foreach ($tokenizeString as $token) {
+            if (is_array($token) && !in_array($token[1], ['namespace', '/*', ' /*'])) {
+                $startOfFileArray[] = $token[1];
+                $token = array_shift($tokenizeString);
+
+                if (is_array($token) && stristr($token[1], 'strauss')) {
+                    return $phpString;
+                }
+            } elseif (!is_array($token)) {
+                $startOfFileArray[] = $token;
+            }
+        }
+        // Not in use yet (because all tests are passing) but the idea of capturing the file header and only editing
+        // that seems more reasonable than searching the whole file.
+        $startOfFile = implode('', $startOfFileArray);
 
         // php-open followed by some whitespace and new line until the first ...
         $noCommentBetweenPhpOpenAndFirstCodePattern = '~<\?php[\s\n]*[\w\\\?]+~';
@@ -215,20 +237,18 @@ class Licenser
             <\?php[\S\s]*            #  match the beginning of the files php-open and following whitespace
             )
             (
-            \*[\S\s.]*               # followed by a multline-comment-open
-            )  
+            \*[\S\s.]*               # followed by a multiline-comment-open
+            )
             (
             \*/                      # Capture the multiline-comment-close separately
-            )             
+            )
             ~Ux';                          // U: Non-greedy matching, x: ignore whitespace in pattern.
-
 
         $replaceInMultilineCommentFunction = function ($matches) use (
             $licenseDeclaration,
             $modifiedDeclaration,
             $straussLink
         ) {
-
             // Find the line prefix and use it, i.e. could be none, asterisk or space-asterisk.
             $commentLines = explode("\n", $matches[2]);
 
@@ -246,7 +266,6 @@ class Licenser
             }
 
             $appendString .= "{$lineStart}{$modifiedDeclaration}\n";
-            $appendString .= "{$lineStart}{$straussLink}\n";
 
             $commentEnd =  rtrim(rtrim($lineStart, ' '), '*').'*/';
 
@@ -257,7 +276,7 @@ class Licenser
 
         // If it's a simple case where there is no existing header, add the existing license.
         if (1 === preg_match($noCommentBetweenPhpOpenAndFirstCodePattern, $phpString)) {
-            $modifiedComment = "/**\n * {$licenseDeclaration}\n *\n * {$modifiedDeclaration}\n * {$straussLink}\n */";
+            $modifiedComment = "/**\n * {$licenseDeclaration}\n *\n * {$modifiedDeclaration}\n */";
             $updatedPhpString = preg_replace('~<\?php~', "<?php\n". $modifiedComment, $phpString, 1);
         } else {
             $updatedPhpString = preg_replace_callback(

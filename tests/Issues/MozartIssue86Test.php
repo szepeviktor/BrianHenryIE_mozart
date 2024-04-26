@@ -6,10 +6,9 @@
 namespace BrianHenryIE\Strauss\Tests\Issues;
 
 use BrianHenryIE\Strauss\Console\Commands\Compose;
-
+use BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase;
 
 /**
  *
@@ -66,10 +65,10 @@ EOD;
         $php_string = file_get_contents($this->testsWorkingDir .'vendor-prefixed/pear/pear_exception/PEAR/Exception.php');
 
         // Confirm problem is gone.
-        $this->assertStringNotContainsString('foreach (self::$_observers Mozart_as $func) {', $php_string);
+        self::assertStringNotContainsString('foreach (self::$_observers Mozart_as $func) {', $php_string);
 
         // Confirm solution is correct.
-        $this->assertStringContainsString('foreach (self::$_observers as $func) {', $php_string);
+        self::assertStringContainsString('foreach (self::$_observers as $func) {', $php_string);
     }
 
 
@@ -112,9 +111,9 @@ EOD;
         $php_string = file_get_contents($this->testsWorkingDir .'vendor-prefixed/afragen/wp-dependency-installer/wp-dependency-installer.php');
 
         // Confirm problem is gone.
-        $this->assertStringNotContainsString('Path BrianHenryIE_Strauss_to plugin or theme', $php_string, 'Text in comment still prefixed.');
+        self::assertStringNotContainsString('Path BrianHenryIE_Strauss_to plugin or theme', $php_string, 'Text in comment still prefixed.');
 
         // Confirm solution is correct.
-        $this->assertStringContainsString('BrianHenryIE_Strauss_WP_Dependency_Installer', $php_string, 'Class name not properly prefixed.');
+        self::assertStringContainsString('BrianHenryIE_Strauss_WP_Dependency_Installer', $php_string, 'Class name not properly prefixed.');
     }
 }

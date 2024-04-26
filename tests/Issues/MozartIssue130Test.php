@@ -11,6 +11,7 @@
 namespace BrianHenryIE\Strauss\Tests\Issues;
 
 use BrianHenryIE\Strauss\Console\Commands\Compose;
+use BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -19,7 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  * @package BrianHenryIE\Strauss\Tests\Issues
  * @coversNothing
  */
-class MozartIssue130Test extends \BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase
+class MozartIssue130Test extends IntegrationTestCase
 {
 
     /**
@@ -69,6 +70,6 @@ EOD;
 
         $mozartCompose->run($inputInterfaceMock, $outputInterfaceMock);
 
-        $this->assertFileExists($this->testsWorkingDir .'strauss/htmlburger/carbon-fields/config.php');
+        self::assertFileExists($this->testsWorkingDir .'strauss/htmlburger/carbon-fields/config.php');
     }
 }

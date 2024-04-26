@@ -9,6 +9,7 @@ use Composer\Composer;
 use Exception;
 use JsonMapper\JsonMapperFactory;
 use JsonMapper\Middleware\Rename\Rename;
+use Symfony\Component\Console\Input\InputInterface;
 
 class StraussConfig
 {
@@ -52,26 +53,46 @@ class StraussConfig
     protected ?string $constantsPrefix = null;
 
     /**
+     * Should replacements be performed in project files?
+     *
+     * When null, files in the project's `autoload` key are scanned and changes which have been performed on the
+     * vendor packages are reflected in the project files.
+     *
+     * When an array of relative file paths are provided, the files in those directories are updated.
+     *
+     * An empty array disables updating project files.
+     *
+     * @var ?string[]
+     */
+    protected ?array $updateCallSites = null;
+
+    /**
      * Packages to copy and (maybe) prefix.
      *
      * If this is empty, the "requires" list in the project composer.json is used.
      *
-     * @var array
+     * @var string[]
      */
     protected array $packages = [];
 
-    // Back-compatibility with Mozart.
+    /**
+     * Back-compatibility with Mozart.
+     *
+     * @var string[]
+     */
     private array $excludePackages;
 
     /**
-     * @var array{packages?: string[], namespaces?: string[], filePatterns?: string[]}
+     * 'exclude_from_copy' in composer/extra config.
+     *
+     * @var array{packages: string[], namespaces: string[], file_patterns: string[]}
      */
-    protected array $excludeFromCopy = array();
+    protected array $excludeFromCopy = array('file_patterns'=>array(),'namespaces'=>array(),'packages'=>array());
 
     /**
-     * @var array{packages: string[], namespaces: string[], filePatterns: string[]}
+     * @var array{packages: string[], namespaces: string[], file_patterns: string[]}
      */
-    protected array $excludeFromPrefix = array('file_patterns'=>array('/^psr.*$/'),'namespaces'=>array(),'packages'=>array());
+    protected array $excludeFromPrefix = array('file_patterns'=>array(),'namespaces'=>array(),'packages'=>array());
 
     /**
      * An array of autoload keys to replace packages' existing autoload key.
@@ -81,20 +102,32 @@ class StraussConfig
      * * A package specified both a PSR-4 and a classmap but only needs one
      * ...
      *
-     * @var array
+     * @var array<string, array{files?:array<string>,classmap?:array<string>,"psr-4":array<string|array<string>>}>|array{} $overrideAutoload
      */
-    protected $overrideAutoload = [];
+    protected array $overrideAutoload = [];
 
     /**
-     * After completing `strauss compose` should the source files be deleted?
+     * After completing prefixing should the source files be deleted?
      * This does not affect symlinked directories.
-     *
-     * @var bool
      */
-    protected $deleteVendorFiles = false;
+    protected bool $deleteVendorFiles = false;
+
+    /**
+     * After completing prefixing should the source packages be deleted?
+     * This does not affect symlinked directories.
+     */
+    protected bool $deleteVendorPackages = false;
 
     protected bool $classmapOutput;
 
+    /**
+     * A dictionary of regex captures => regex replacements.
+     *
+     * E.g. used to avoid repetition of the plugin vendor name in namespaces.
+     * `"~BrianHenryIE\\\\(.*)~" : "BrianHenryIE\\WC_Cash_App_Gateway\\\\$1"`.
+     *
+     * @var array<string, string> $namespaceReplacementPatterns
+     */
     protected array $namespaceReplacementPatterns = array();
 
     /**
@@ -115,6 +148,8 @@ class StraussConfig
      * Read any existing Mozart config.
      * Overwrite it with any Strauss config.
      * Provide sensible defaults.
+     *
+     * @param Composer $composer
      *
      * @throws Exception
      */
@@ -143,7 +178,8 @@ class StraussConfig
             $rename->addMapping(StraussConfig::class, 'dep_namespace', 'namespacePrefix');
 
             $rename->addMapping(StraussConfig::class, 'exclude_packages', 'excludePackages');
-            $rename->addMapping(StraussConfig::class, 'delete_vendor_directories', 'deleteVendorFiles');
+            $rename->addMapping(StraussConfig::class, 'delete_vendor_files', 'deleteVendorFiles');
+            $rename->addMapping(StraussConfig::class, 'delete_vendor_packages', 'deleteVendorPackages');
 
             $rename->addMapping(StraussConfig::class, 'exclude_prefix_packages', 'excludePackagesFromPrefixing');
 
@@ -221,11 +257,14 @@ class StraussConfig
             // Check each autoloader.
             foreach ($composer->getPackage()->getAutoload() as $autoload) {
                 // To see if one of its paths.
-                foreach ($autoload as $path) {
-                    // Matches the target directory.
-                    if (trim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR === $this->getTargetDirectory()) {
-                        $this->classmapOutput = false;
-                        break 2;
+                foreach ($autoload as $entry) {
+                    $paths = (array) $entry;
+                    foreach ($paths as $path) {
+                        // Matches the target directory.
+                        if (trim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR === $this->getTargetDirectory()) {
+                            $this->classmapOutput = false;
+                            break 3;
+                        }
                     }
                 }
             }
@@ -234,6 +273,18 @@ class StraussConfig
         // TODO: Throw an exception if any regex patterns in config are invalid.
         // https://stackoverflow.com/questions/4440626/how-can-i-validate-regex
         // preg_match('~Valid(Regular)Expression~', null) === false);
+
+        if (isset($configExtraSettings->updateCallSites)) {
+            if (true === $configExtraSettings->updateCallSites) {
+                $this->updateCallSites = null;
+            } elseif (false === $configExtraSettings->updateCallSites) {
+                $this->updateCallSites = array();
+            } elseif (is_array($configExtraSettings->updateCallSites)) {
+                $this->updateCallSites = $configExtraSettings->updateCallSites;
+            } else {
+                // uh oh.
+            }
+        }
     }
 
     /**
@@ -326,27 +377,63 @@ class StraussConfig
         $this->constantsPrefix = $constantsPrefix;
     }
 
-    public function setExcludeFromCopy(array $excludeFromCopy): void
+    /**
+     * List of files and directories to update call sites in. Empty to disable. Null infers from the project's autoload key.
+     *
+     * @return string[]|null
+     */
+    public function getUpdateCallSites(): ?array
     {
-        $this->excludeFromCopy = $excludeFromCopy;
+        return $this->updateCallSites;
     }
 
+    /**
+     * @param string[]|null $updateCallSites
+     */
+    public function setUpdateCallSites(?array $updateCallSites): void
+    {
+        $this->updateCallSites = $updateCallSites;
+    }
+
+    /**
+     * @param array{packages?:array<string>, namespaces?:array<string>, file_patterns?:array<string>} $excludeFromCopy
+     */
+    public function setExcludeFromCopy(array $excludeFromCopy): void
+    {
+        foreach (array( 'packages', 'namespaces', 'file_patterns' ) as $key) {
+            if (isset($excludeFromCopy[$key])) {
+                $this->excludeFromCopy[$key] = $excludeFromCopy[$key];
+            }
+        }
+    }
+
+    /**
+     * @return string[]
+     */
     public function getExcludePackagesFromCopy(): array
     {
         return $this->excludeFromCopy['packages'] ?? array();
     }
 
+    /**
+     * @return string[]
+     */
     public function getExcludeNamespacesFromCopy(): array
     {
         return $this->excludeFromCopy['namespaces'] ?? array();
     }
 
+    /**
+     * @return string[]
+     */
     public function getExcludeFilePatternsFromCopy(): array
     {
         return $this->excludeFromCopy['file_patterns'] ?? array();
     }
 
-
+    /**
+     * @param array{packages?:array<string>, namespaces?:array<string>, file_patterns?:array<string>} $excludeFromPrefix
+     */
     public function setExcludeFromPrefix(array $excludeFromPrefix): void
     {
         if (isset($excludeFromPrefix['packages'])) {
@@ -363,23 +450,32 @@ class StraussConfig
     /**
      * When prefixing, do not prefix these packages (which have been copied).
      *
-     * @var string[]
+     * @return string[]
      */
     public function getExcludePackagesFromPrefixing(): array
     {
         return $this->excludeFromPrefix['packages'] ?? array();
     }
 
+    /**
+     * @param string[] $excludePackagesFromPrefixing
+     */
     public function setExcludePackagesFromPrefixing(array $excludePackagesFromPrefixing): void
     {
         $this->excludeFromPrefix['packages'] = $excludePackagesFromPrefixing;
     }
 
+    /**
+     * @return string[]
+     */
     public function getExcludeNamespacesFromPrefixing(): array
     {
         return $this->excludeFromPrefix['namespaces'] ?? array();
     }
 
+    /**
+     * @return string[]
+     */
     public function getExcludeFilePatternsFromPrefixing(): array
     {
         return $this->excludeFromPrefix['file_patterns'] ?? array();
@@ -387,7 +483,7 @@ class StraussConfig
 
 
     /**
-     * @return array
+     * @return array{}|array<string, array{files?:array<string>,classmap?:array<string>,"psr-4":array<string|array<string>>}> $overrideAutoload Dictionary of package name: autoload rules.
      */
     public function getOverrideAutoload(): array
     {
@@ -395,7 +491,7 @@ class StraussConfig
     }
 
     /**
-     * @param array $overrideAutoload
+     * @param array<string, array{files?:array<string>,classmap?:array<string>,"psr-4":array<string|array<string>>}> $overrideAutoload Dictionary of package name: autoload rules.
      */
     public function setOverrideAutoload(array $overrideAutoload): void
     {
@@ -411,6 +507,14 @@ class StraussConfig
     }
 
     /**
+     * @return bool
+     */
+    public function isDeleteVendorPackages(): bool
+    {
+        return $this->deleteVendorPackages;
+    }
+
+    /**
      * @param bool $deleteVendorFiles
      */
     public function setDeleteVendorFiles(bool $deleteVendorFiles): void
@@ -419,7 +523,15 @@ class StraussConfig
     }
 
     /**
-     * @return array
+     * @param bool $deleteVendorPackages
+     */
+    public function setDeleteVendorPackages(bool $deleteVendorPackages): void
+    {
+        $this->deleteVendorPackages = $deleteVendorPackages;
+    }
+
+    /**
+     * @return string[]
      */
     public function getPackages(): array
     {
@@ -427,7 +539,7 @@ class StraussConfig
     }
 
     /**
-     * @param array $packages
+     * @param string[] $packages
      */
     public function setPackages(array $packages): void
     {
@@ -451,21 +563,18 @@ class StraussConfig
     }
 
     /**
-     * Backwards compatability with Mozart.
+     * Backwards compatibility with Mozart.
+     *
+     * @param string[] $excludePackages
      */
-    public function setExcludePackages(array $excludePackages)
+    public function setExcludePackages(array $excludePackages): void
     {
-
-        if (! isset($this->excludeFromPrefix)) {
-            $this->excludeFromPrefix = array();
-        }
-
         $this->excludeFromPrefix['packages'] = $excludePackages;
     }
 
 
     /**
-     * @return array
+     * @return array<string,string>
      */
     public function getNamespaceReplacementPatterns(): array
     {
@@ -473,7 +582,7 @@ class StraussConfig
     }
 
     /**
-     * @param array $namespaceReplacementPatterns
+     * @param array<string,string> $namespaceReplacementPatterns
      */
     public function setNamespaceReplacementPatterns(array $namespaceReplacementPatterns): void
     {
@@ -506,10 +615,41 @@ class StraussConfig
     }
 
     /**
-     * @param bool $includeModifiedDate
+     * @param bool $includeAuthor
      */
     public function setIncludeAuthor(bool $includeAuthor): void
     {
         $this->includeAuthor = $includeAuthor;
+    }
+
+    /**
+     * @param InputInterface $input To access the command line options.
+     */
+    public function updateFromCli(InputInterface $input): void
+    {
+
+        // strauss --updateCallSites=false (default)
+        // strauss --updateCallSites=true
+        // strauss --updateCallSites=src,input,extra
+
+        if ($input->hasOption('updateCallSites')) {
+            $updateCallSitesInput = $input->getOption('updateCallSites');
+
+            if ('false' === $updateCallSitesInput) {
+                $this->updateCallSites = array();
+            } elseif ('true' === $updateCallSitesInput) {
+                $this->updateCallSites = null;
+            } elseif (! is_null($updateCallSitesInput)) {
+                $this->updateCallSites = explode(',', $updateCallSitesInput);
+            }
+        }
+
+        if ($input->hasOption('deleteVendorPackages')) {
+            $isDeleteVendorPackagesCommandLine = $input->getOption('deleteVendorPackages') === 'true';
+            $this->setDeleteVendorPackages($isDeleteVendorPackagesCommandLine);
+        } elseif ($input->hasOption('delete_vendor_packages')) {
+            $isDeleteVendorPackagesCommandLine = $input->getOption('delete_vendor_packages') === 'true';
+            $this->setDeleteVendorPackages($isDeleteVendorPackagesCommandLine);
+        }
     }
 }

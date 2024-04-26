@@ -1,0 +1,39 @@
+# When a new version number is added to the changelog, update the bin.
+
+name: Update version from changelog
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "CHANGELOG.md"
+
+
+jobs:
+  update-version:
+    name: "Create Strauss phar on new release"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: "Checkout repository"
+        uses: actions/checkout@v4
+        with:
+          ref: master
+
+      - name: "Update version number in `bin/strauss`"
+        run: |
+          CURRENT_RELEASE="$(sed -n -e '0,/^## \([0-9.]\+\).*$/ s//\1/p' CHANGELOG.md)"
+          test -n "${CURRENT_RELEASE}"
+          sed -i -e "s/^}, '[0-9.]\\+');\$/}, '${CURRENT_RELEASE}');/" bin/strauss
+
+      - name: "Commit `bin/strauss` changes"
+        run: |
+          if git diff --quiet; then
+            echo "No changes."
+            exit 0
+          fi
+          git add -- bin/strauss
+          git commit -m "🤖 Update version number in bin"
+          git push

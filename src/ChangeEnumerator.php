@@ -1,212 +1,69 @@
 <?php
-/**
- * The purpose of this class is only to find changes that should be made.
- * i.e. classes and namespaces to change.
- * Those recorded are updated in a later step.
- */
 
 namespace BrianHenryIE\Strauss;
 
-use BrianHenryIE\Strauss\Composer\ComposerPackage;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
+use BrianHenryIE\Strauss\Types\ClassSymbol;
+use BrianHenryIE\Strauss\Types\NamespaceSymbol;
 
 class ChangeEnumerator
 {
+    protected StraussConfig $config;
+    protected string $workingDir;
 
-    protected string $namespacePrefix;
-    protected string $classmapPrefix;
-    /**
-     *
-     * @var string[]
-     */
-    protected array $excludePackagesFromPrefixing = array();
-    protected array $excludeNamespacesFromPrefixing = array();
-
-    protected array $excludeFilePatternsFromPrefixing = array();
-
-    protected array $namespaceReplacementPatterns = array();
-
-    /** @var string[] */
-    protected array $discoveredNamespaces = [];
-
-    /** @var string[] */
-    protected array $discoveredClasses = [];
-
-    /** @var string[] */
-    protected array $discoveredConstants = [];
-
-    /**
-     * ChangeEnumerator constructor.
-     * @param \BrianHenryIE\Strauss\Composer\Extra\StraussConfig $config
-     */
-    public function __construct(StraussConfig $config)
+    public function __construct(StraussConfig $config, string $workingDir)
     {
-        $this->namespacePrefix = $config->getNamespacePrefix();
-        $this->classmapPrefix = $config->getClassmapPrefix();
+        $this->config = $config;
+        $this->workingDir = $workingDir;
 
-        $this->excludePackagesFromPrefixing = $config->getExcludePackagesFromPrefixing();
-        $this->excludeNamespacesFromPrefixing = $config->getExcludeNamespacesFromPrefixing();
-        $this->excludeFilePatternsFromPrefixing = $config->getExcludeFilePatternsFromPrefixing();
-
-        $this->namespaceReplacementPatterns = $config->getNamespaceReplacementPatterns();
+        $absoluteTargetDir = $workingDir . $config->getTargetDirectory();
     }
 
-    /**
-     * TODO: Order by longest string first. (or instead, record classnames with their namespaces)
-     *
-     * @return string[]
-     */
-    public function getDiscoveredNamespaceReplacements(): array
+    public function determineReplacements(DiscoveredSymbols $discoveredSymbols)
     {
-        $discoveredNamespaceReplacements = $this->discoveredNamespaces;
+        foreach ($discoveredSymbols->getSymbols() as $symbol) {
+            if (in_array(
+                $symbol->getFile()->getDependency()->getPackageName(),
+                $this->config->getExcludePackagesFromPrefixing(),
+                true
+            )
+            ) {
+                continue;
+            }
 
-        uksort($discoveredNamespaceReplacements, function ($a, $b) {
-            return strlen($b) <=> strlen($a);
-        });
-
-        return $discoveredNamespaceReplacements;
-    }
-
-    /**
-     * @return string[]
-     */
-    public function getDiscoveredClasses(): array
-    {
-        unset($this->discoveredClasses['ReturnTypeWillChange']);
-        return array_keys($this->discoveredClasses);
-    }
-
-    /**
-     * @return string[]
-     */
-    public function getDiscoveredConstants(): array
-    {
-        return array_keys($this->discoveredConstants);
-    }
-
-    /**
-     * @param string $absoluteTargetDir
-     * @param array<string,array{dependency:ComposerPackage,sourceAbsoluteFilepath:string,targetRelativeFilepath:string}> $filesArray
-     */
-    public function findInFiles($absoluteTargetDir, $filesArray)
-    {
-//      $relativeFilepaths = array_keys( $filesArray );
-
-        foreach ($filesArray as $relativeFilepath => $fileArray) {
-            $package = $fileArray['dependency'];
-            foreach ($this->excludePackagesFromPrefixing as $excludePackagesName) {
-                if ($package->getPackageName() === $excludePackagesName) {
+            foreach ($this->config->getExcludeFilePatternsFromPrefixing() as $excludeFilePattern) {
+                if (1 === preg_match($excludeFilePattern, $symbol->getFile()->getTargetRelativePath())) {
                     continue 2;
                 }
             }
 
-            foreach ($this->excludeFilePatternsFromPrefixing as $excludeFilePattern) {
-                if (1 === preg_match($excludeFilePattern, $relativeFilepath)) {
-                    continue 2;
-                }
-            }
-
-
-            $filepath = $absoluteTargetDir . $relativeFilepath;
-
-            // TODO: use flysystem
-            // $contents = $this->filesystem->read($targetFile);
-
-            $contents = file_get_contents($filepath);
-
-            $this->find($contents);
-        }
-    }
-
-
-    /**
-     * TODO: Don't use preg_replace_callback!
-     *
-     * @param string $contents
-     *
-     * @return string $contents
-     */
-    public function find(string $contents): string
-    {
-
-        // If the entire file is under one namespace, all we want is the namespace.
-        $singleNamespacePattern = '/
-            namespace\s+([0-9A-Za-z_\x7f-\xff\\\\]+)[\s\S]*;    # A single namespace in the file.... should return
-        /x';
-        if (1 === preg_match($singleNamespacePattern, $contents, $matches)) {
-            $this->addDiscoveredNamespaceChange($matches[1]);
-            return $contents;
-        }
-
-        if (0 < preg_match_all('/\s*define\s*\(\s*["\']([^"\']*)["\']\s*,\s*["\'][^"\']*["\']\s*\)\s*;/', $contents, $constants)) {
-            foreach ($constants[1] as $constant) {
-                $this->discoveredConstants[$constant] = $constant;
-            }
-        }
-
-        // TODO traits
-
-        // TODO: Is the ";" in this still correct since it's being taken care of in the regex just above?
-        // Looks like with the preceeding regex, it will never match.
-
-
-        return preg_replace_callback(
-            '
-			~											# Start the pattern
-				namespace\s+([a-zA-Z0-9_\x7f-\xff\\\\]+)[;{\s\n]{1}[\s\S]*?(?=namespace|$) 
-														# Look for a preceeding namespace declaration, 
-														# followed by a semicolon, open curly bracket, space or new line
-														# up until a 
-														# potential second namespace declaration or end of file.
-														# if found, match that much before continuing the search on
-				|										# the remainder of the string.
-				\/\*[\s\S]*?\*\/ |                      # Skip multiline comments
-				^\s*\/\/.*$	|   						# Skip single line comments
-				\s*										# Whitespace is allowed before 
-				(?:abstract\sclass|class|interface)\s+	# Look behind for class, abstract class, interface
-				([a-zA-Z0-9_\x7f-\xff]+)				# Match the word until the first non-classname-valid character
-				\s?										# Allow a space after
-				(?:{|extends|implements|\n|$)			# Class declaration can be followed by {, extends, implements 
-														# or a new line
-			~x', //                                     # x: ignore whitespace in regex.
-            function ($matches) {
-
-                // If we're inside a namespace other than the global namespace:
-                if (1 === preg_match('/^namespace\s+[a-zA-Z0-9_\x7f-\xff\\\\]+[;{\s\n]{1}.*/', $matches[0])) {
-                    $this->addDiscoveredNamespaceChange($matches[1]);
-                    return $matches[0];
+            if ($symbol instanceof NamespaceSymbol) {
+                // Don't double-prefix namespaces.
+                if (str_starts_with($symbol->getOriginalSymbol(), $this->config->getNamespacePrefix())) {
+                    continue;
                 }
 
-                if (count($matches) < 3) {
-                    return $matches[0];
+                foreach ($this->config->getNamespaceReplacementPatterns() as $namespaceReplacementPattern => $replacement) {
+                    $prefixed = preg_replace($namespaceReplacementPattern, $replacement, $symbol->getOriginalSymbol());
+
+                    if ($prefixed !== $symbol->getOriginalSymbol()) {
+                        $symbol->setReplacement($prefixed);
+                        continue 2;
+                    }
                 }
 
-                // TODO: Why is this [2] and not [1] (which seems to be always empty).
-                $this->discoveredClasses[$matches[2]] = $matches[2];
-                return $matches[0];
-            },
-            $contents
-        );
-    }
+                $prefixed = "{$this->config->getNamespacePrefix()}\\{$symbol->getOriginalSymbol()}";
+                $symbol->setReplacement($prefixed);
+            }
 
-    protected function addDiscoveredNamespaceChange(string $namespace)
-    {
+            if ($symbol instanceof ClassSymbol) {
+                // Don't double-prefix classnames.
+                if (str_starts_with($symbol->getOriginalSymbol(), $this->config->getClassmapPrefix())) {
+                    continue;
+                }
 
-        foreach ($this->excludeNamespacesFromPrefixing as $excludeNamespace) {
-            if (0 === strpos($namespace, $excludeNamespace)) {
-                return;
+                $symbol->setReplacement($this->config->getClassmapPrefix() . $symbol->getOriginalSymbol());
             }
         }
-
-        foreach ($this->namespaceReplacementPatterns as $namespaceReplacementPattern => $replacement) {
-            $prefixed = preg_replace($namespaceReplacementPattern, $replacement, $namespace);
-
-            if ($prefixed !== $namespace) {
-                $this->discoveredNamespaces[$namespace] = $prefixed;
-                return;
-            }
-        }
-
-        $this->discoveredNamespaces[$namespace] = $this->namespacePrefix . '\\'. $namespace;
     }
 }

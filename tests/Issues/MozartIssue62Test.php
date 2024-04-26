@@ -20,7 +20,6 @@ namespace BrianHenryIE\Strauss\Tests\Issues;
 
 use BrianHenryIE\Strauss\Console\Commands\Compose;
 use BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -37,19 +36,24 @@ class MozartIssue62Test extends IntegrationTestCase
      */
     public function testGuzzleNamespaceIsPrefixedInS3Client()
     {
-        $this->markTestSkipped('Very slow to run');
+        self::markTestSkipped('Very slow to run.');
 
         $composerJsonString = <<<'EOD'
 {
   "name": "brianhenryie/mozart-issue-62",
   "require": {
-    "aws/aws-sdk-php": "2.8.*"
+    "aws/aws-sdk-php": "2.8.31"
   },
   "extra": {
     "strauss": {
-      "namespace_prefix": "Strauss\\",
-      "target_directory": "/strauss/"
-    }
+      "namespace_prefix": "Strauss\\"
+    },
+    "aws/aws-sdk-php": [
+        "S3"
+    ]
+  },
+  "scripts": {
+    "pre-autoload-dump": "Aws\\Script\\Composer\\Composer::removeUnusedServices"
   }
 }
 EOD;
@@ -69,6 +73,6 @@ EOD;
 
         $phpString = file_get_contents($this->testsWorkingDir .'vendor-prefixed/aws/aws-sdk-php/src/Aws/S3/S3Client.php');
 
-        $this->assertStringContainsString('use Strauss\\Guzzle\\Common\\Collection;', $phpString);
+        self::assertStringContainsString('use Strauss\\Guzzle\\Common\\Collection;', $phpString);
     }
 }

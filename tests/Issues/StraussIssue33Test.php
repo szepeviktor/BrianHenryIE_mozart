@@ -8,6 +8,7 @@ namespace BrianHenryIE\Strauss\Tests\Issues;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use BrianHenryIE\Strauss\Console\Commands\Compose;
 use BrianHenryIE\Strauss\Prefixer;
+use BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -15,13 +16,16 @@ use Symfony\Component\Console\Output\OutputInterface;
  * @package BrianHenryIE\Strauss\Tests\Issues
  * @coversNothing
  */
-class StraussIssue33Test extends \BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase
+class StraussIssue33Test extends IntegrationTestCase
 {
 
     /**
      */
     public function test_backtrack_limit_exhausted()
     {
+        if (version_compare(phpversion(), '8.1', '>=')) {
+            $this->markTestSkipped("Package specified for test is not PHP 8.1 compatible. Running tests under PHP " . phpversion());
+        }
 
         $composerJsonString = <<<'EOD'
 {
@@ -29,7 +33,7 @@ class StraussIssue33Test extends \BrianHenryIE\Strauss\Tests\Integration\Util\In
   "minimum-stability": "dev",
   "require": {
     "afragen/wp-dependency-installer": "^3.1",
-    "mpdf/mpdf": "*"
+    "mpdf/mpdf": "8.0.0"
   },
   "extra": {
     "strauss": {
@@ -55,7 +59,7 @@ EOD;
 
         $result = $strauss->run($inputInterfaceMock, $outputInterfaceMock);
 
-        $this->assertNotEquals(1, $result);
+        self::assertNotEquals(1, $result);
     }
 
 
@@ -84,6 +88,6 @@ EOD;
             $exception = $e;
         }
 
-        $this->assertNull($exception);
+        self::assertNull($exception);
     }
 }

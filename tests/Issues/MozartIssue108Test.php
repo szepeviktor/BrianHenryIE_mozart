@@ -16,10 +16,9 @@
 namespace BrianHenryIE\Strauss\Tests\Issues;
 
 use BrianHenryIE\Strauss\Console\Commands\Compose;
-
+use BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase;
 
 /**
  * Class MozartIssue108Test
@@ -74,15 +73,15 @@ EOD;
         $mozartCompose->run($inputInterfaceMock, $outputInterfaceMock);
 
         $php_contents = file_get_contents($this->testsWorkingDir .'vendor-prefixed/deliciousbrains/wp-background-processing/classes/wp-async-request.php');
-        $this->assertStringContainsString('abstract class Strauss_WP_Async_Request', $php_contents);
+        self::assertStringContainsString('abstract class Strauss_WP_Async_Request', $php_contents);
 
 //        $pdf_contents = file_get_contents($this->testsWorkingDir .'strauss/mtdowling/cron-expression/src/Cron/CronExpression.php');
-//        $this->assertStringContainsString('namespace Strauss\\CronExpression', $pdf_contents);
+//        self::assertStringContainsString('namespace Strauss\\CronExpression', $pdf_contents);
 
         $php_contents = file_get_contents($this->testsWorkingDir .'vendor-prefixed/woocommerce/action-scheduler/lib/cron-expression/CronExpression.php');
-        $this->assertStringContainsString('class Strauss_CronExpression', $php_contents);
+        self::assertStringContainsString('class Strauss_CronExpression', $php_contents);
 
         $php_contents = file_get_contents($this->testsWorkingDir .'vendor-prefixed/woocommerce/action-scheduler/classes/schedules/ActionScheduler_CronSchedule.php');
-        $this->assertStringContainsString('if ( ! is_a( $recurrence, \'Strauss_CronExpression\' ) ) {', $php_contents);
+        self::assertStringContainsString('if ( ! is_a( $recurrence, \'Strauss_CronExpression\' ) ) {', $php_contents);
     }
 }

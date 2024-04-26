@@ -4,8 +4,12 @@ namespace BrianHenryIE\Strauss\Tests\Unit\Composer;
 
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use BrianHenryIE\Strauss\Composer\ProjectComposerPackage;
-use PHPUnit\Framework\TestCase;
+use BrianHenryIE\Strauss\TestCase;
+use Symfony\Component\Console\Input\InputInterface;
 
+/**
+ * @coversDefaultClass \BrianHenryIE\Strauss\Composer\ProjectComposerPackage
+ */
 class ProjectComposerPackageTest extends TestCase
 {
 
@@ -19,8 +23,26 @@ class ProjectComposerPackageTest extends TestCase
 
         $composer = new ProjectComposerPackage($testFile);
 
-        $config = $composer->getStraussConfig();
+        $input = $this->createMock(InputInterface::class);
+        $config = $composer->getStraussConfig($input);
 
-        $this->assertInstanceOf(StraussConfig::class, $config);
+        self::assertInstanceOf(StraussConfig::class, $config);
+    }
+
+    /**
+     * @covers ::getFlatAutoloadKey
+     */
+    public function testGetFlatAutoloadKey()
+    {
+
+        $testFile = __DIR__ . '/projectcomposerpackage-test-getProjectPhpFiles.json';
+
+        $composer = new ProjectComposerPackage($testFile);
+
+        $phpFiles = $composer->getFlatAutoloadKey();
+
+        $expected = ["src","includes","classes","functions.php"];
+
+        self::assertEqualsRN($expected, $phpFiles);
     }
 }

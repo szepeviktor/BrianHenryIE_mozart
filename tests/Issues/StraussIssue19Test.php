@@ -6,7 +6,7 @@
 namespace BrianHenryIE\Strauss\Tests\Issues;
 
 use BrianHenryIE\Strauss\Console\Commands\Compose;
-use Exception;
+use BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -14,7 +14,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  * @package BrianHenryIE\Strauss\Tests\Issues
  * @coversNothing
  */
-class StraussIssue19Test extends \BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase
+class StraussIssue19Test extends IntegrationTestCase
 {
 
     /**
@@ -55,8 +55,8 @@ EOD;
 
         $php_string = file_get_contents($this->testsWorkingDir . 'vendor-prefixed/tecnickcom/tcpdf/include/tcpdf_static.php');
 
-        $this->assertStringNotContainsString('* Creates a copy of a class Strauss_Issue19_object', $php_string);
+        self::assertStringNotContainsString('* Creates a copy of a class Strauss_Issue19_object', $php_string);
         
-        $this->assertStringContainsString('* Creates a copy of a class object', $php_string);
+        self::assertStringContainsString('* Creates a copy of a class object', $php_string);
     }
 }

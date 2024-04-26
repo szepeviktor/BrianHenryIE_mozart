@@ -3,6 +3,7 @@
 namespace BrianHenryIE\Strauss\Tests\Integration;
 
 use BrianHenryIE\Strauss\ChangeEnumerator;
+use BrianHenryIE\Strauss\FileScanner;
 use BrianHenryIE\Strauss\Composer\ComposerPackage;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use BrianHenryIE\Strauss\Composer\ProjectComposerPackage;
@@ -48,7 +49,8 @@ EOD;
         exec('composer install');
 
         $projectComposerPackage = new ProjectComposerPackage($this->testsWorkingDir);
-        $config = $projectComposerPackage->getStraussConfig();
+        $input = $this->createMock(InputInterface::class);
+        $config = $projectComposerPackage->getStraussConfig($input);
 
         $dependencies = array_map(function ($element) {
             $dir = $this->testsWorkingDir . 'vendor'. DIRECTORY_SEPARATOR . $element;
@@ -58,34 +60,34 @@ EOD;
         $workingDir = $this->testsWorkingDir;
         $relativeTargetDir = 'vendor-prefixed' . DIRECTORY_SEPARATOR;
         $absoluteTargetDir = $workingDir . $relativeTargetDir;
-        $vendorDir = 'vendor' . DIRECTORY_SEPARATOR;
 
 //        $config = $this->createStub(StraussConfig::class);
 //        $config->method('getTargetDirectory')->willReturn('vendor-prefixed' . DIRECTORY_SEPARATOR);
 
         $fileEnumerator = new FileEnumerator($dependencies, $workingDir, $config);
-        $fileEnumerator->compileFileList();
-        $fileList = $fileEnumerator->getAllFilesAndDependencyList();
-        $phpFileList = $fileEnumerator->getPhpFilesAndDependencyList();
+        $files = $fileEnumerator->compileFileList();
+        $phpFileList = $files->getPhpFilesAndDependencyList();
 
-        $copier = new Copier($fileList, $workingDir, $relativeTargetDir, $vendorDir);
+        $fileEnumerator = new FileEnumerator($dependencies, $workingDir, $config);
+        $files = $fileEnumerator->compileFileList();
+
+        $copier = new Copier($files, $workingDir, $config);
         $copier->prepareTarget();
         $copier->copy();
 
-        $changeEnumerator = new ChangeEnumerator($config);
-        $changeEnumerator->findInFiles($absoluteTargetDir, $phpFileList);
+        $fileScanner = new FileScanner($config);
+        $discoveredSymbols = $fileScanner->findInFiles($files);
 
-        $namespaces = $changeEnumerator->getDiscoveredNamespaceReplacements();
-        $classes = $changeEnumerator->getDiscoveredClasses();
-        $constants = array();
+        $changeEnumerator = new ChangeEnumerator($config, $workingDir);
+        $changeEnumerator->determineReplacements($discoveredSymbols);
 
         $replacer = new Prefixer($config, $workingDir);
 
-        $replacer->replaceInFiles($namespaces, $classes, $constants, $phpFileList);
+        $replacer->replaceInFiles($discoveredSymbols, $phpFileList);
 
         $updatedFile = file_get_contents($absoluteTargetDir . 'google/apiclient/src/Client.php');
 
-        $this->assertStringContainsString('use BrianHenryIE\Strauss\Google\AccessToken\Revoke;', $updatedFile);
+        self::assertStringContainsString('use BrianHenryIE\Strauss\Google\AccessToken\Revoke;', $updatedFile);
     }
 
 
@@ -143,10 +145,10 @@ EOD;
 //        $copier->prepareTarget();
 //        $copier->copy();
 //
-//        $changeEnumerator = new ChangeEnumerator();
-//        $changeEnumerator->findInFiles($absoluteTargetDir, $phpFileList);
-//        $namespaces = $changeEnumerator->getDiscoveredNamespaces();
-//        $classes = $changeEnumerator->getDiscoveredClasses();
+//        $fileScanner = new FileScanner();
+//        $fileScanner->findInFiles($absoluteTargetDir, $phpFileList);
+//        $namespaces = $fileScanner->getDiscoveredNamespaces();
+//        $classes = $fileScanner->getDiscoveredClasses();
 //
 //        $replacer = new Replacer($config, $workingDir);
 //
@@ -154,6 +156,6 @@ EOD;
 
         $updatedFile = file_get_contents($this->testsWorkingDir .'vendor-prefixed/' . 'setasign/fpdf/fpdf.php');
 
-        $this->assertStringContainsString('class BrianHenryIE_Strauss_FPDF', $updatedFile);
+        self::assertStringContainsString('class BrianHenryIE_Strauss_FPDF', $updatedFile);
     }
 }

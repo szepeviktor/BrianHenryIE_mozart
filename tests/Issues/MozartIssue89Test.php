@@ -56,9 +56,8 @@ class MozartIssue89Test extends IntegrationTestCase
      */
     public function it_moves_each_file_once_per_namespace()
     {
-
-        if (version_compare(phpversion(), '8.0.0', '>=')) {
-            $this->markTestSkipped("Package specified for test is not PHP 8 compatible");
+        if (version_compare(phpversion(), '7.1', '>')) {
+            $this->markTestSkipped("Package specified for test requires PHP 7.1. Running tests under PHP " . phpversion());
         }
 
         $composerJsonString = <<<'EOD'
@@ -99,8 +98,8 @@ EOD;
         }
 
         // On the failing test, an exception was thrown and this line was not reached.
-        $this->assertEquals(0, $result);
+        self::assertEqualsRN(0, $result, 'Failed running under PHP ' . phpversion());
 
-        $this->assertNull($exception);
+        self::assertNull($exception);
     }
 }

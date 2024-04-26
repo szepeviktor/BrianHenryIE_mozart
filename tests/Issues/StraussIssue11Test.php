@@ -10,9 +10,9 @@ namespace BrianHenryIE\Strauss\Tests\Issues;
 
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use BrianHenryIE\Strauss\Console\Commands\Compose;
+use BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase;
 use Composer\Factory;
 use Composer\IO\NullIO;
-use Exception;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -20,7 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  * @package BrianHenryIE\Strauss\Tests\Issues
  * @coversNothing
  */
-class StraussIssue11Test extends \BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase
+class StraussIssue11Test extends IntegrationTestCase
 {
 
     /**
@@ -66,11 +66,12 @@ EOD;
 
         $composer = Factory::create(new NullIO(), $tmpfname);
 
-        $straussConfig = new StraussConfig($composer);
+        $input = $this->createMock(InputInterface::class);
+        $straussConfig = new StraussConfig($composer, $input);
 
-        $this->assertEquals('src/Mozart/', $straussConfig->getTargetDirectory());
+        self::assertEqualsRN('src/Mozart/', $straussConfig->getTargetDirectory());
 
-        $this->assertEquals("MZoo\\MBO_Sandbox\\Dependencies", $straussConfig->getNamespacePrefix());
+        self::assertEqualsRN("MZoo\\MBO_Sandbox\\Dependencies", $straussConfig->getNamespacePrefix());
     }
 
 
@@ -130,9 +131,9 @@ EOD;
         $phpString = file_get_contents($this->testsWorkingDir .'src/Mozart/htmlburger/carbon-fields/core/Carbon_Fields.php');
 
         // This was not being prefixed.
-        $this->assertStringNotContainsString('$ioc->register( new \Carbon_Fields\Provider\Container_Condition_Provider() );', $phpString);
+        self::assertStringNotContainsString('$ioc->register( new \Carbon_Fields\Provider\Container_Condition_Provider() );', $phpString);
 
-        $this->assertStringContainsString('$ioc->register( new \MZoo\MBO_Sandbox\Dependencies\Carbon_Fields\Provider\Container_Condition_Provider() );', $phpString);
+        self::assertStringContainsString('$ioc->register( new \MZoo\MBO_Sandbox\Dependencies\Carbon_Fields\Provider\Container_Condition_Provider() );', $phpString);
     }
 
 
@@ -191,8 +192,8 @@ EOD;
         $phpString = file_get_contents($this->testsWorkingDir .'src/Mozart/htmlburger/carbon-fields/core/Container.php');
 
         // This was not being prefixed.
-        $this->assertStringNotContainsString('@method static \Carbon_Fields\Container\Comment_Meta_Container', $phpString);
+        self::assertStringNotContainsString('@method static \Carbon_Fields\Container\Comment_Meta_Container', $phpString);
 
-        $this->assertStringContainsString('@method static \MZoo\MBO_Sandbox\Dependencies\Carbon_Fields\Container\Comment_Meta_Container', $phpString);
+        self::assertStringContainsString('@method static \MZoo\MBO_Sandbox\Dependencies\Carbon_Fields\Container\Comment_Meta_Container', $phpString);
     }
 }

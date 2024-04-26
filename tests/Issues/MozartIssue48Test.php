@@ -49,7 +49,7 @@ EOD;
 
         $result = $mozartCompose->run($inputInterfaceMock, $outputInterfaceMock);
 
-        $this->assertEquals(0, $result);
+        self::assertEqualsRN(0, $result);
 
         // EigenvalueDecomposition.php
         // assert file exists somewhere in the tree
@@ -68,6 +68,6 @@ EOD;
 
         $found = $rsearch($this->testsWorkingDir . 'vendor-prefixed', '~EigenvalueDecomposition\.php~');
 
-        $this->assertNotEmpty($found);
+        self::assertNotEmpty($found);
     }
 }

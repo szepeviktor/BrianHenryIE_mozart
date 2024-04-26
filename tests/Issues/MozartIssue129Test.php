@@ -13,10 +13,9 @@
 
 namespace BrianHenryIE\Strauss\Tests\Issues;
 
-use BrianHenryIE\Strauss\ChangeEnumerator;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use BrianHenryIE\Strauss\Prefixer;
-use PHPUnit\Framework\TestCase;
+use BrianHenryIE\Strauss\TestCase;
 
 /**
  * Class MozartIssue129Test
@@ -43,10 +42,10 @@ class MozartIssue129Test extends TestCase
 
         $result = $replacer->replaceNamespace($phpString, $original, $replacement);
 
-        $this->assertEquals($expected, $result);
+        self::assertEqualsRN($expected, $result);
     }
 
-    public function pairTestDataProvider()
+    public static function pairTestDataProvider()
     {
 
         $fromTo = [];

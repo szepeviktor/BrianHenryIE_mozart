@@ -14,8 +14,9 @@
 namespace BrianHenryIE\Strauss;
 
 use BrianHenryIE\Strauss\Composer\ComposerPackage;
-use League\Flysystem\Adapter\Local;
+use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use League\Flysystem\Filesystem;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 
 class Copier
 {
@@ -29,11 +30,7 @@ class Copier
 
     protected string $absoluteTargetDir;
 
-    /** @var string */
-    protected string $vendorDir;
-
-    /** @var array<string,array{dependency:ComposerPackage,sourceAbsoluteFilepath:string,targetRelativeFilepath:string}> */
-    protected array $files;
+    protected DiscoveredFiles $files;
 
     /** @var Filesystem */
     protected Filesystem $filesystem;
@@ -41,22 +38,17 @@ class Copier
     /**
      * Copier constructor.
      *
-     * @param array<string,array{dependency:ComposerPackage,sourceAbsoluteFilepath:string,targetRelativeFilepath:string}> $files
+     * @param DiscoveredFiles $files
      * @param string $workingDir
-     * @param string $relativeTargetDir
-     * @param string $vendorDir
+     * @param StraussConfig $config
      */
-    public function __construct(array $files, string $workingDir, string $relativeTargetDir, string $vendorDir)
+    public function __construct(DiscoveredFiles $files, string $workingDir, StraussConfig $config)
     {
         $this->files = $files;
 
-        $this->workingDir = $workingDir;
+        $this->absoluteTargetDir = $workingDir . $config->getTargetDirectory();
 
-        $this->absoluteTargetDir = $workingDir . $relativeTargetDir;
-
-        $this->vendorDir = $vendorDir;
-
-        $this->filesystem = new Filesystem(new Local('/'));
+        $this->filesystem = new Filesystem(new LocalFilesystemAdapter('/'));
     }
 
     /**
@@ -67,13 +59,13 @@ class Copier
      */
     public function prepareTarget(): void
     {
-        if (! $this->filesystem->has($this->absoluteTargetDir)) {
-            $this->filesystem->createDir($this->absoluteTargetDir);
+        if (! is_dir($this->absoluteTargetDir)) {
+            $this->filesystem->createDirectory($this->absoluteTargetDir);
         } else {
-            foreach (array_keys($this->files) as $targetRelativeFilepath) {
-                $targetAbsoluteFilepath = $this->absoluteTargetDir . $targetRelativeFilepath;
+            foreach ($this->files->getFiles() as $file) {
+                $targetAbsoluteFilepath = $this->absoluteTargetDir . $file->getTargetRelativePath();
 
-                if ($this->filesystem->has($targetAbsoluteFilepath)) {
+                if ($this->filesystem->fileExists($targetAbsoluteFilepath)) {
                     $this->filesystem->delete($targetAbsoluteFilepath);
                 }
             }
@@ -87,10 +79,14 @@ class Copier
     public function copy(): void
     {
 
-        foreach ($this->files as $targetRelativeFilepath => $fileArray) {
-            $sourceAbsoluteFilepath = $fileArray['sourceAbsoluteFilepath'];
+        /**
+         * @var string $targetRelativeFilepath
+         * @var File $file
+         */
+        foreach ($this->files->getFiles() as $file) {
+            $sourceAbsoluteFilepath = $file->getSourcePath();
 
-            $targetAbsolutePath = $this->absoluteTargetDir . $targetRelativeFilepath;
+            $targetAbsolutePath = $this->absoluteTargetDir . $file->getTargetRelativePath();
 
             $this->filesystem->copy($sourceAbsoluteFilepath, $targetAbsolutePath);
         }

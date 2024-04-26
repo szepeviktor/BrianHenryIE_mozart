@@ -10,7 +10,6 @@ namespace BrianHenryIE\Strauss\Tests\Issues;
 
 use BrianHenryIE\Strauss\Console\Commands\Compose;
 use BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -77,6 +76,6 @@ EOD;
 
         $mozartCompose->run($inputInterfaceMock, $outputInterfaceMock);
 
-        $this->assertFileExists($this->testsWorkingDir . 'strauss/php-di/php-di/src/functions.php');
+        self::assertFileExists($this->testsWorkingDir . 'strauss/php-di/php-di/src/functions.php');
     }
 }

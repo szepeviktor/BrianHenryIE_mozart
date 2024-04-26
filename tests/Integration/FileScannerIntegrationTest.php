@@ -2,7 +2,7 @@
 
 namespace BrianHenryIE\Strauss\Tests\Integration;
 
-use BrianHenryIE\Strauss\ChangeEnumerator;
+use BrianHenryIE\Strauss\FileScanner;
 use BrianHenryIE\Strauss\Composer\ComposerPackage;
 use BrianHenryIE\Strauss\Composer\Extra\StraussConfig;
 use BrianHenryIE\Strauss\Composer\ProjectComposerPackage;
@@ -15,7 +15,7 @@ use BrianHenryIE\Strauss\Tests\Integration\Util\IntegrationTestCase;
  * @package BrianHenryIE\Strauss
  * @coversNothing
  */
-class ChangeEnumeratorIntegrationTest extends IntegrationTestCase
+class FileScannerIntegrationTest extends IntegrationTestCase
 {
 
     /**
@@ -59,12 +59,13 @@ EOD;
 
         $config = $this->createStub(StraussConfig::class);
         $config->method('getVendorDirectory')->willReturn($vendorDir);
+        $config->method('getTargetDirectory')->willReturn($relativeTargetDir);
 
         $fileEnumerator = new FileEnumerator($dependencies, $workingDir, $config);
 
-        $fileEnumerator->compileFileList();
+        $files = $fileEnumerator->compileFileList();
 
-        $copier = new Copier($fileEnumerator->getAllFilesAndDependencyList(), $workingDir, $relativeTargetDir, $vendorDir);
+        $copier = new Copier($files, $workingDir, $config);
 
         $copier->prepareTarget();
 
@@ -72,23 +73,21 @@ EOD;
 
         $config = $this->createStub(StraussConfig::class);
 
-        $config->method('getExcludePackagesFromPrefixing')->willReturn(array());
+        $config->method('getNamespacePrefix')->willReturn("Prefix");
         $config->method('getExcludeNamespacesFromPrefixing')->willReturn(array());
+        $config->method('getExcludePackagesFromPrefixing')->willReturn(array());
 
-        $changeEnumerator = new ChangeEnumerator($config);
+        $fileScanner = new FileScanner($config);
 
-        $phpFileList = $fileEnumerator->getPhpFilesAndDependencyList();
+        $discoveredSymbols = $fileScanner->findInFiles($files);
 
-        $changeEnumerator->findInFiles($workingDir . $relativeTargetDir, $phpFileList);
+        $classes = $discoveredSymbols->getDiscoveredClasses();
 
+        $namespaces = $discoveredSymbols->getDiscoveredNamespaces();
 
-        $classes = $changeEnumerator->getDiscoveredClasses();
+        self::assertNotEmpty($classes);
+        self::assertNotEmpty($namespaces);
 
-        $namespaces = $changeEnumerator->getDiscoveredNamespaceReplacements();
-
-        $this->assertNotEmpty($classes);
-        $this->assertNotEmpty($namespaces);
-
-        $this->assertContains('Google_Task_Composer', $classes);
+        self::assertContains('Google_Task_Composer', $classes);
     }
 }
