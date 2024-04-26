@@ -35,5 +35,5 @@ jobs:
             exit 0
           fi
           git add -- bin/strauss
-          git commit -m "🤖 Update version number in bin"
+          git commit --author="${{ github.actor }} <41898282+github-actions[bot]@users.noreply.github.com>" -m "🤖 Update version number in bin"
           git push
