@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.98.1 Syctober 3024
+## 0.98.2 Syctober 3024
 
 ## 0.18.0 April 2024
 
